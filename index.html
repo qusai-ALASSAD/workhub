@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EMS WorkHub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+</head>
+<body style="margin:0;padding:0;">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+// ══════════════════════════════════════════════════════════════════
+// ██████  APP CONFIG — Edit this section to rebrand for any domain
+// ══════════════════════════════════════════════════════════════════
+const APP_CONFIG = {
+  // --- Branding ---
+  appName:    "EMS WorkHub",            // App name shown everywhere
+  appSubtitle:"Bau & Gebäudereinigung", // Subtitle under app name
+  logoIcon:   "🏠",                     // Emoji logo
+
+  // --- Company Info (shown in PDFs & sidebar) ---
+  companyName:   "EMS Bau & Gebäudereinigung UG",
+  companyAddress:"Wandesbeker Chaussee 19, 22089 Hamburg",
+  companyPhone:  "0157/33096090",
+  companyEmail:  "service@ems-handwerk.de",
+  companyHours:  "Mo–Fr 10–18 Uhr",
+  companyCity:   "Hamburg",
+
+  // --- Support & Platform ---
+  supportCompany:"Ovivo",
+  supportUrl:    "https://ovivo.io",
+  supportEmail:  "hallo@ovivo.io",
+  supportPhone:  "+49 176 56565322",
+  supportHours:  "Mo–Fr, 9–18 Uhr",
+  supportNote:   "Antwort in < 24h",
+
+  // --- Theme colors (hex) ---
+  primaryColor: "#0D3B6E",  // Navy blue
+  accentColor:  "#F5831F",  // Orange
+
+  // --- Feature flags (true = enabled) ---
+  features: {
+    repairs:   true,
+    tasks:     true,
+    messages:  true,
+    feed:      true,
+    gallery:   true,
+    projects:  true,
+    schedule:  true,
+    warehouse: true,
+    reports:   true,
+  },
+};
+// ══════════════════════════════════════════════════════════════════
+
+const C={navy:"#0D3B6E",navyDark:"#092D55",navyLight:"#E8F0F9",orange:"#F5831F",orangeLight:"#FEF0E3",bg:"#F2F5F9",border:"#DDE4EE",text:"#0D1F35",sub:"#5A7090",green:"#059669",greenL:"#F0FDF4",red:"#DC2626",redL:"#FEF2F2",yellow:"#D97706",yellowL:"#FFFBEB",purple:"#7C3AED",purpleL:"#F5F3FF"};
+
+const ALL_PERMS=[
+  {key:"repairs",  label:"Aufträge & Wartung",  icon:"🔧"},
+  {key:"tasks",    label:"Aufgaben",             icon:"✓"},
+  {key:"messages", label:"Nachrichten",          icon:"✉"},
+  {key:"feed",     label:"Team-Feed",            icon:"◉"},
+  {key:"gallery",  label:"Fotogalerie",          icon:"📷"},
+  {key:"projects", label:"Projekte",             icon:"🏗"},
+  {key:"schedule", label:"Arbeitsplan",          icon:"📅"},
+  {key:"warehouse",label:"Lager & Material",     icon:"📦"},
+  {key:"reports",  label:"Berichte & PDF",       icon:"📋"},
+];
+
+const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,warehouse:true,reports:true};
+const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false};
+
+const ROLE_CFG={
+  admin:{label:"Manager",    icon:"👑",color:C.orange, bg:C.orangeLight},
+  it:   {label:"IT Support", icon:"🖥",color:C.purple, bg:C.purpleL},
+  va:   {label:"Vorarbeiter",icon:"👥",color:"#2563EB",bg:"#EFF6FF"},
+  ma:   {label:"Mitarbeiter",icon:"👤",color:C.sub,    bg:"#F9FAFB"},
+  hotel:{label:"Hotel Staff",icon:"🏨",color:"#0891B2",bg:"#F0F9FF"},
+};
+
+const DEPTS=["Bauhandwerk","Trockenbau","Reinigung","Kabelverlegen","Rezeption","Leitung","IT","Hotel"];
+const ENTITIES=["EMS Hamburg","EMS Zentrale Hamburg","Hotel Hamburg","EMS System"];
+const DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"];
+const WDAYS=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+const SHIFTS_C={
+  work:    {bg:"#E8F0F9",color:C.navy,  label:"Arbeit"},
+  off:     {bg:"#F9FAFB",color:C.sub,   label:"Frei"},
+  vacation:{bg:"#FEF3C7",color:"#92400E",label:"Urlaub"},
+  sick:    {bg:C.redL,   color:C.red,   label:"Krank"},
+};
+const MAT_UNITS=["Stk","Kg","L","m²","m","Pkg","Rolle","Eimer","Box","Palette"];
+const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär","Sonstige"];
+
+const INIT_USERS=[
+  {id:1,name:"Al-Saeed Mohammed",role:"admin",dept:"Leitung",    entity:"EMS Zentrale Hamburg",avatar:"SM",color:C.orange,  active:true,pin:"1234",perms:FULL},
+  {id:2,name:"Support Admin",    role:"it",   dept:"IT",         entity:"EMS System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
+  {id:3,name:"Leon Weber",       role:"va",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
+  {id:4,name:"Sara Demir",       role:"va",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
+  {id:5,name:"Mehmet Yilmaz",    role:"ma",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:6,name:"Klaus Bauer",      role:"ma",   dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:7,name:"Anna Schmidt",     role:"ma",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:8,name:"Panter",           role:"hotel",dept:"Hotel",      entity:"Hotel Hamburg",       avatar:"PA",color:"#0891B2", active:true,pin:"7777",perms:{repairs:true,tasks:false,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+];
+
+const INIT_PROJECTS=[
+  {id:1,name:"Trockenbau Wandesbeker Str.",location:"Wandesbeker Chaussee 19",entity:"EMS Hamburg",responsibleId:3,
+   editableBy:[1,2,3],visibleTo:[1,2,3,5,6],
+   status:"active",startDate:"01.05.2026",endDate:"15.05.2026",
+   area:120,rooms:3,floors:1,expectedHours:80,notes:"3 neue Trennwände, Bürobereich",
+   materials:[
+     {id:1,name:"Trockenbauplatten",qty:40,unit:"Stk",pricePerUnit:8.50,total:340,supplier:"Bauhaus GmbH",deliveryDate:"02.05.2026",status:"geliefert",note:"Standard 12,5mm"},
+     {id:2,name:"Spachtelmasse",    qty:10,unit:"Kg", pricePerUnit:5.80,total:58, supplier:"OBI Hamburg",  deliveryDate:"02.05.2026",status:"geliefert",note:""},
+   ],
+   requests:[
+     {id:1,material:"Schrauben 4x40mm",qty:100,unit:"Pkg",urgency:"normal",  by:5,date:"03.05.2026",status:"ausstehend",note:"Für zweite Wand"},
+     {id:2,material:"Schutzfolie",      qty:5,  unit:"Rolle",urgency:"dringend",by:6,date:"03.05.2026",status:"genehmigt",note:"Bodenschutz"},
+   ],
+   worklog:[
+     {userId:5,date:"03.05.2026",start:"07:30",end:"15:00",hours:7.5,note:"Wand 1 fertig"},
+     {userId:6,date:"03.05.2026",start:"08:00",end:"16:00",hours:8,note:"Dämmung eingebaut"},
+   ],
+   stopReason:"",totalCost:398},
+
+  {id:2,name:"Grundreinigung Bürokomplex Hamm",location:"Hamm-Süd, Hamburg",entity:"Hotel Hamburg",responsibleId:4,
+   editableBy:[1,2,4],visibleTo:[1,2,4,7,8],
+   status:"stopped",startDate:"02.05.2026",endDate:"10.05.2026",
+   area:800,rooms:12,floors:4,expectedHours:60,notes:"Wöchentliche Grundreinigung",
+   materials:[
+     {id:1,name:"Reinigungsmittel",qty:15,unit:"L",pricePerUnit:4.50,total:67.50,supplier:"Profex GmbH",deliveryDate:"01.05.2026",status:"geliefert",note:"pH-neutral"},
+   ],
+   requests:[
+     {id:1,material:"Reinigungsmittel Typ B",qty:20,unit:"L",urgency:"dringend",by:7,date:"03.05.2026",status:"ausstehend",note:"Typ A reicht nicht für Böden"},
+   ],
+   worklog:[
+     {userId:7,date:"03.05.2026",start:"09:00",end:"14:00",hours:5,note:"Etage 1 & 2 fertig"},
+   ],
+   stopReason:"Material fehlt: Reinigungsmittel Typ B nicht vorhanden",totalCost:67.50},
+
+  {id:3,name:"Laminat verlegen Eilbek",location:"Eilbek, Hamburg",entity:"EMS Hamburg",responsibleId:3,
+   editableBy:[1,2,3],visibleTo:[1,2,3,5],
+   status:"done",startDate:"28.04.2026",endDate:"30.04.2026",
+   area:65,rooms:3,floors:1,expectedHours:16,notes:"65 m² Laminat, 3 Zimmer",
+   materials:[
+     {id:1,name:"Laminat 8mm",qty:70,unit:"m²",pricePerUnit:12.00,total:840,supplier:"Flooring GmbH",deliveryDate:"28.04.2026",status:"geliefert",note:"10% Verschnitt"},
+     {id:2,name:"Trittschalldämmung",qty:70,unit:"m²",pricePerUnit:3.50,total:245,supplier:"Flooring GmbH",deliveryDate:"28.04.2026",status:"geliefert",note:""},
+   ],
+   requests:[],
+   worklog:[
+     {userId:5,date:"30.04.2026",start:"08:00",end:"14:30",hours:6.5,note:"65 m² verlegt, fertig"},
+   ],
+   stopReason:"",totalCost:1085},
+];
+
+const INIT_TASKS=[
+  {id:1,title:"Morgenschichtübergabe",    dept:"Leitung",    status:"done",       due:"03.05.2026",assignedTo:1,recurring:"Täglich",   checklist:[{text:"Aufträge geprüft",done:true},{text:"Team eingeteilt",done:true}]},
+  {id:2,title:"Werkzeugkontrolle",        dept:"Bauhandwerk",status:"open",        due:"05.05.2026",assignedTo:5,recurring:"Wöchentlich",checklist:[{text:"Elektrowerkzeug",done:false},{text:"Handwerkzeug",done:false}]},
+  {id:3,title:"Reinigungsplan – Woche",   dept:"Reinigung",  status:"in-progress",due:"03.05.2026",assignedTo:7,recurring:"Wöchentlich",checklist:[{text:"Etage 1 & 2",done:true},{text:"Etage 3 & 4",done:false}]},
+];
+const INIT_MSGS=[
+  {id:1,from:1,to:5,text:"Mehmet, bitte Wasserleck Zi. 204 heute erledigen!",time:"08:10",date:"03.05.2026",read:true},
+  {id:2,from:8,to:1,text:"Hallo, die Reinigung in Etage 2 ist noch nicht fertig.",time:"09:30",date:"03.05.2026",read:false},
+  {id:3,from:7,to:4,text:"Sara, Etage 1&2 fertig!",time:"11:30",date:"03.05.2026",read:true},
+];
+const INIT_FEED=[
+  {id:1,author:1,type:"announcement",text:"🎉 5-Sterne-Bewertung von Familie Müller! Danke an das gesamte Team!",time:"08:00",date:"03.05.2026",likes:8,comments:[]},
+  {id:2,author:8,type:"update",      text:"🏨 Hotel Hamburg: Zimmer 301-310 bereit für Reinigung nach Check-out.",time:"09:00",date:"03.05.2026",likes:2,comments:[]},
+  {id:3,author:5,type:"repair",      text:"✅ Laminat Eilbek fertig – 65 m². Fotos hochgeladen.",time:"14:30",date:"30.04.2026",likes:5,comments:[{user:1,text:"Saubere Arbeit! 👍",time:"15:00"}]},
+];
+const REPAIR_TYPES=["Hausreparatur","Sanitär","Elektro","Klimaanlage","Reinigung","Trockenbau","Malerarbeiten","Sicherheit","Sonstiges"];
+const INIT_REPAIRS=[
+  {id:1,title:"Wasserleck – Zimmer 204",    room:"Zi. 204",  dept:"Bauhandwerk",type:"Sanitär",       status:"open",        priority:"urgent",assignedTo:5,reporter:8,createdAt:"01.05.2026",startTime:null,endTime:null,
+   photos:{before:null,after:null},notes:"Tropfende Decke, Gast beschwert sich.",stopReason:"",
+   materials:[],
+   comments:[{user:1,text:"Bitte sofort erledigen!",time:"08:15"}]},
+  {id:2,title:"Klimaanlage defekt – Lobby", room:"Lobby",    dept:"Bauhandwerk",type:"Klimaanlage",   status:"in-progress", priority:"medium",assignedTo:5,reporter:1,createdAt:"02.05.2026",startTime:"09:00",endTime:null,
+   photos:{before:"uploaded",after:null},notes:"AC macht Geräusche seit gestern Abend.",stopReason:"",
+   materials:[{name:"Kältemittel R32",qty:1,unit:"Flasche"},{name:"Dichtungsring",qty:2,unit:"Stk"}],
+   comments:[{user:1,text:"Bitte Fotos nach Reparatur hochladen.",time:"09:05"},{user:5,text:"Bin dabei, brauche noch Kältemittel.",time:"09:30"}]},
+  {id:3,title:"Leuchtmittel – 3. Etage",    room:"Etage 3",  dept:"Bauhandwerk",type:"Elektro",       status:"done",        priority:"low",   assignedTo:6,reporter:3,createdAt:"30.04.2026",startTime:"10:00",endTime:"11:30",
+   photos:{before:"uploaded",after:"uploaded"},notes:"12 Leuchten erfolgreich ersetzt.",stopReason:"",
+   materials:[{name:"LED E27 10W",qty:12,unit:"Stk"}],
+   comments:[{user:3,text:"Gut gemacht Klaus!",time:"11:45"}]},
+  {id:4,title:"Sanitär – Verstopfung WC",   room:"Zi. 312",  dept:"Reinigung",  type:"Sanitär",       status:"stopped",     priority:"high",  assignedTo:7,reporter:8,createdAt:"03.05.2026",startTime:"08:00",endTime:null,
+   photos:{before:null,after:null},notes:"WC komplett verstopft.",stopReason:"Spezialwerkzeug fehlt – Rohrreinigungsspirale nicht vorhanden",
+   materials:[],
+   comments:[{user:7,text:"Kann ohne Spezialwerkzeug nicht weiter.",time:"08:45"}]},
+  {id:5,title:"Türschloss defekt – Zi. 205",room:"Zi. 205",  dept:"Bauhandwerk",type:"Hausreparatur", status:"open",        priority:"urgent",assignedTo:5,reporter:8,createdAt:"03.05.2026",startTime:null,endTime:null,
+   photos:{before:null,after:null},notes:"Gast kann Zimmer nicht abschließen.",stopReason:"",
+   materials:[{name:"Schlosszylinder",qty:1,unit:"Stk"}],
+   comments:[]},
+];
+const INIT_MATS=[
+  {id:1,name:"Trockenbauplatten",unit:"Stk", qty:120,minQty:20,price:8.50, category:"Bau"},
+  {id:2,name:"Schrauben 4x40mm", unit:"Pkg", qty:45, minQty:10,price:3.20, category:"Werkzeug"},
+  {id:3,name:"Spachtelmasse",     unit:"Kg",  qty:80, minQty:15,price:5.80, category:"Bau"},
+  {id:4,name:"Laminat 8mm",       unit:"m²",  qty:200,minQty:30,price:12.00,category:"Boden"},
+  {id:5,name:"Reinigungsmittel",  unit:"L",   qty:8,  minQty:10,price:4.50, category:"Reinigung"},
+];
+const INIT_ORDERS=[
+  {id:1,type:"eingang",material:"Trockenbauplatten",qty:50,unit:"Stk",supplier:"Bauhaus GmbH",date:"28.04.2026",status:"geliefert",  note:"",priceTotal:425},
+  {id:2,type:"ausgang",material:"Laminat 8mm",      qty:65,unit:"m²", supplier:"Kunde Eilbek", date:"30.04.2026",status:"abgeschlossen",note:"",priceTotal:780},
+  {id:3,type:"eingang",material:"Reinigungsmittel", qty:40,unit:"L",  supplier:"OBI Hamburg",  date:"02.05.2026",status:"ausstehend", note:"Lieferung erwartet",priceTotal:180},
+];
+const INIT_SCHED=[
+  {id:1,userId:5,day:0,shift:"07:00–15:00",type:"work"},{id:2,userId:5,day:1,shift:"07:00–15:00",type:"work"},
+  {id:3,userId:5,day:2,shift:"–",type:"off"},{id:4,userId:5,day:3,shift:"07:00–15:00",type:"work"},{id:5,userId:5,day:4,shift:"07:00–15:00",type:"work"},
+  {id:6,userId:7,day:0,shift:"09:00–17:00",type:"work"},{id:7,userId:7,day:3,shift:"09:00–17:00",type:"work"},{id:8,userId:7,day:4,shift:"–",type:"sick"},
+  {id:9,userId:8,day:0,shift:"08:00–16:00",type:"work"},{id:10,userId:8,day:1,shift:"08:00–16:00",type:"work"},{id:11,userId:8,day:2,shift:"–",type:"vacation"},
+];
+
+const S={open:{label:"Offen",color:"#D97706",bg:"#FFFBEB",border:"#FDE68A"},"in-progress":{label:"In Bearbeitung",color:"#2563EB",bg:"#EFF6FF",border:"#BFDBFE"},done:{label:"Erledigt",color:"#059669",bg:"#F0FDF4",border:"#6EE7B7"},active:{label:"Aktiv",color:"#2563EB",bg:"#EFF6FF",border:"#BFDBFE"},stopped:{label:"Gestoppt",color:"#DC2626",bg:"#FEF2F2",border:"#FECACA"}};
+const P={urgent:{label:"Dringend",color:"#DC2626",bg:"#FEF2F2"},high:{label:"Hoch",color:C.orange,bg:C.orangeLight},medium:{label:"Mittel",color:"#D97706",bg:"#FFFBEB"},low:{label:"Niedrig",color:C.sub,bg:"#F9FAFB"}};
+
+// ── TINY COMPONENTS ───────────────────────────────────────────────
+const Av=({u,size=34})=>{
+  if(u?.photo) return <img src={u.photo} alt="" style={{width:size,height:size,minWidth:size,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:`2px solid ${u.color||"#ddd"}`}}/>;
+  return <div style={{width:size,height:size,minWidth:size,borderRadius:"50%",background:u?.color||C.navy,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:size*.32,fontWeight:700,flexShrink:0}}>{u?.avatar}</div>;
+};
+const RB=({role})=>(<span style={{background:ROLE_CFG[role]?.bg,color:ROLE_CFG[role]?.color,borderRadius:5,padding:"1px 7px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>{ROLE_CFG[role]?.icon} {ROLE_CFG[role]?.label}</span>);
+const SB=({status})=>(<span style={{background:S[status]?.bg,color:S[status]?.color,border:`1px solid ${S[status]?.border}`,borderRadius:20,padding:"2px 9px",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{S[status]?.label}</span>);
+const PD=({priority})=>(<span style={{display:"inline-flex",alignItems:"center",gap:4,background:P[priority]?.bg,color:P[priority]?.color,borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}><span style={{width:6,height:6,borderRadius:"50%",background:P[priority]?.color,display:"inline-block"}}/>{P[priority]?.label}</span>);
+const Tag=({children,color=C.navy,bg=C.navyLight})=>(<span style={{background:bg,color,borderRadius:5,padding:"2px 8px",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{children}</span>);
+const Lbl=({children})=>(<label style={{fontSize:11,fontWeight:700,color:C.sub,display:"block",marginBottom:4,letterSpacing:".4px"}}>{children}</label>);
+const Inp=({...p})=>(<input {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,...p.style}}/>);
+const Sel=({children,...p})=>(<select {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,...p.style}}>{children}</select>);
+const Txt=({...p})=>(<textarea {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"none",...p.style}}/>);
+
+const calcDur=(s,e)=>{try{const[sh,sm]=s.split(":").map(Number),[eh,em]=e.split(":").map(Number);const m=(eh*60+em)-(sh*60+sm);return m<0?"–":`${Math.floor(m/60)}h ${m%60}m`;}catch{return"–";}};
+const totalHrs=wl=>wl.reduce((a,l)=>a+(l.hours||0),0);
+
+function useW(){const[w,setW]=useState(typeof window!=="undefined"?window.innerWidth:1200);useEffect(()=>{const h=()=>setW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);return w;}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function Modal({title,onClose,children,w=480}){
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(13,59,110,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:600,padding:14}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:"#fff",borderRadius:16,padding:"18px 16px",width:"100%",maxWidth:w,maxHeight:"94vh",overflowY:"auto",boxShadow:"0 24px 60px rgba(13,59,110,.3)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <h3 style={{fontSize:15,fontWeight:800,color:C.text}}>{title}</h3>
+          <button onClick={onClose} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:26,height:26,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── SECTION ─────────────────────────────────────────────────────
+function Sec({title,icon,children,collapsible=false}){
+  const[open,setOpen]=useState(true);
+  return(
+    <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:10,border:`1px solid ${C.border}`}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:open?8:0,cursor:collapsible?"pointer":"default"}} onClick={()=>collapsible&&setOpen(v=>!v)}>
+        <div style={{fontSize:11,fontWeight:700,color:C.navy,letterSpacing:".4px"}}>{icon} {title}</div>
+        {collapsible&&<span style={{color:C.sub,fontSize:12}}>{open?"▲":"▼"}</span>}
+      </div>
+      {open&&children}
+    </div>
+  );
+}
+
+// ── PDF ───────────────────────────────────────────────────────────
+// PDF is shown as an in-app modal (window.open not allowed in artifacts)
+const buildPdfHtml=(type,data,meta)=>{
+  const now=new Date().toLocaleDateString("de-DE");
+  let rows="";
+  if(type==="project"){
+    const p=data;const hrs=totalHrs(p.worklog);const matTotal=p.materials.reduce((a,m)=>a+m.total,0);
+    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Projektbericht: ${p.name}</h2>
+    <p><b>Standort:</b> ${p.location} | <b>Zeitraum:</b> ${p.startDate}–${p.endDate||"laufend"} | <b>Fläche:</b> ${p.area}m² | <b>Räume:</b> ${p.rooms} | <b>Etagen:</b> ${p.floors}</p>
+    <p><b>Geplant:</b> ${p.expectedHours}h | <b>Geleistet:</b> ${hrs}h | <b>Diff:</b> ${hrs-p.expectedHours>0?"+":""}${hrs-p.expectedHours}h | <b>Material:</b> ${matTotal.toFixed(2)} €</p>
+    ${p.stopReason?`<p style="color:#DC2626">⛔ ${p.stopReason}</p>`:""}
+    <h3 style="margin:10px 0 4px">Materialien</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Menge</th><th>Einheit</th><th>Preis</th><th>Gesamt</th><th>Lieferant</th></tr>
+    ${p.materials.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td><td style="padding:4px 8px">${m.pricePerUnit.toFixed(2)}€</td><td style="padding:4px 8px;font-weight:700">${m.total.toFixed(2)}€</td><td style="padding:4px 8px">${m.supplier}</td></tr>`).join("")}</table>
+    <h3 style="margin:10px 0 4px">Arbeitsprotokoll</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">MA</th><th>Datum</th><th>Von</th><th>Bis</th><th>Stunden</th><th>Notiz</th></tr>
+    ${p.worklog.map(l=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">#${l.userId}</td><td style="padding:4px 8px">${l.date}</td><td style="padding:4px 8px">${l.start}</td><td style="padding:4px 8px">${l.end}</td><td style="padding:4px 8px;font-weight:700">${l.hours}h</td><td style="padding:4px 8px">${l.note||"–"}</td></tr>`).join("")}
+    <tr style="background:#E8F0F9;font-weight:700"><td colspan="4" style="padding:4px 8px">GESAMT</td><td style="padding:4px 8px">${hrs}h / ${p.expectedHours}h</td><td></td></tr></table>`;
+  }
+  if(type==="repair"){const r=data;const dur=r.startTime&&r.endTime?calcDur(r.startTime,r.endTime):"laufend";
+    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Auftragsbericht: ${r.title}</h2>
+    <p><b>Zimmer:</b> ${r.room} | <b>Typ:</b> ${r.type||"–"} | <b>Priorität:</b> ${P[r.priority]?.label} | <b>Status:</b> ${S[r.status]?.label}</p>
+    <p><b>Erstellt:</b> ${r.createdAt} | <b>Beginn:</b> ${r.startTime||"–"} | <b>Ende:</b> ${r.endTime||"–"} | <b>Dauer:</b> ${dur}</p>
+    ${r.notes?`<p><b>Hinweise:</b> ${r.notes}</p>`:""}
+    ${r.stopReason?`<p style="color:#DC2626">⛔ Stopp: ${r.stopReason}</p>`:""}
+    <h3 style="margin:10px 0 4px">Material</h3>
+    ${r.materials?.length?`<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Menge</th><th>Einheit</th></tr>${r.materials.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td></tr>`).join("")}</table>`:"<p>Kein Material</p>"}
+    <p><b>Fotos:</b> Vorher: ${r.photos?.before?"✓":"✗"} | Nachher: ${r.photos?.after?"✓":"✗"}</p>`;
+  }
+  if(type==="warehouse"){
+    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Lagerbestand</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Kategorie</th><th>Bestand</th><th>Einheit</th><th>Mindest</th><th>Status</th></tr>
+    ${data.mats.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.category}</td><td style="padding:4px 8px;font-weight:700;color:${m.qty<=m.minQty?"#DC2626":"#059669"}">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td><td style="padding:4px 8px">${m.minQty}</td><td style="padding:4px 8px">${m.qty<=m.minQty?"⚠ Niedrig":"✓ OK"}</td></tr>`).join("")}</table>
+    <h3 style="margin:10px 0 4px">Bestellungen</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Typ</th><th>Material</th><th>Menge</th><th>Lieferant</th><th>Datum</th><th>Betrag</th><th>Status</th></tr>
+    ${data.orders.map(o=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${o.type==="eingang"?"📥":"📤"}</td><td style="padding:4px 8px">${o.material}</td><td style="padding:4px 8px">${o.qty}</td><td style="padding:4px 8px">${o.supplier}</td><td style="padding:4px 8px">${o.date}</td><td style="padding:4px 8px">${o.priceTotal?.toFixed(2)||"–"}€</td><td style="padding:4px 8px">${o.status}</td></tr>`).join("")}</table>`;
+  }
+  return `<div style="font-family:Arial,sans-serif;font-size:13px;color:#0D1F35">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:3px solid #F5831F">
+      <div><b style="font-size:16px;color:#0D3B6E">${APP_CONFIG.logoIcon} ${APP_CONFIG.appName}</b><br><span style="font-size:10px;color:#5A7090">${APP_CONFIG.companyName} · ${APP_CONFIG.companyCity}</span></div>
+      <div style="text-align:right;font-size:10px;color:#5A7090">Erstellt: ${now}<br>von: ${meta?.by||"–"}</div>
+    </div>
+    ${rows}
+    <p style="margin-top:16px;font-size:10px;color:#aaa;border-top:1px solid #ddd;padding-top:8px">${APP_CONFIG.companyName} · ${APP_CONFIG.companyEmail} · ${APP_CONFIG.companyPhone}</p>
+  </div>`;
+};
+
+
+
+// ══════════════════════════════════════════════════════
+// MAIN APP
+// ══════════════════════════════════════════════════════
+function App(){
+  const[cu,setCu]      =useState(null);
+  const[li,setLi]      =useState({user:"",pass:""});
+  const[err,setErr]    =useState("");
+  const[tab,setTab]    =useState("dashboard");
+  const[pdfContent,setPdfContent]=useState(null);
+  const[notifs,setNotifs]=useState([
+    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:"Al-Saeed Mohammed hat Sie als Verantwortlichen für „Trockenbau Wandesbeker Str." eingesetzt.",projId:1,time:"08:00",date:"01.05.2026",read:false},
+    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:"Al-Saeed Mohammed hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: „Wasserleck – Zimmer 204" (Zi. 204).",projId:null,time:"08:10",date:"01.05.2026",read:false},
+    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:"Anna Schmidt hat eine Anfrage für „Reinigungsmittel Typ B" (20 L) im Projekt „Grundreinigung Bürokomplex Hamm" gestellt.",projId:2,time:"09:30",date:"03.05.2026",read:false},
+    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:"Panter hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: „Türschloss defekt – Zi. 205" in Zi. 205.",projId:null,time:"09:45",date:"03.05.2026",read:false},
+  ]);
+  const[showNotifs,setShowNotifs]=useState(false);
+
+  const[users,setUsers]    =useState(INIT_USERS);
+  const[projs,setProjs]    =useState(INIT_PROJECTS);
+  const[repairs,setRepairs]=useState(INIT_REPAIRS);
+  const[tasks,setTasks]    =useState(INIT_TASKS);
+  const[msgs,setMsgs]      =useState(INIT_MSGS);
+  const[feed,setFeed]      =useState(INIT_FEED);
+  const[mats,setMats]      =useState(INIT_MATS);
+  const[orders,setOrders]  =useState(INIT_ORDERS);
+  const[sched,setSched]    =useState(INIT_SCHED);
+
+  // UI
+  const[selP,setSelP]         =useState(null);  // selected project
+  const[pPanel,setPPanel]     =useState(false);
+  const[selR,setSelR]         =useState(null);
+  const[rPanel,setRPanel]     =useState(false);
+  const[selChat,setSelChat]   =useState(null);
+  const[chatPanel,setChatPanel]=useState(false);
+  const[chatMsg,setChatMsg]   =useState("");
+  const[newPost,setNewPost]   =useState("");
+  const[photoType,setPhotoType]=useState("before");
+
+  // Modals
+  const[mUser,setMUser]      =useState(null);
+  const[mProj,setMProj]      =useState(false);
+  const[mEditProj,setMEditProj]=useState(null); // project to edit
+  const[mReq,setMReq]        =useState(null);   // project id
+  const[mLog,setMLog]        =useState(null);
+  const[mMatProj,setMMatProj]=useState(null);
+  const[mAddR,setMAddR]      =useState(false);
+  const BLANK_R={title:"",room:"",dept:"Bauhandwerk",type:"Hausreparatur",priority:"medium",assignedTo:5,notes:""};
+  const[fR,setFR]            =useState(BLANK_R);
+  const[rMatRows,setRMatRows]=useState([]);
+  const[newRMat,setNRM]      =useState({name:"",qty:1,unit:"Stk"});
+  const[newComment,setNC]    =useState("");
+  const[stopInput,setStopInput]=useState("");
+  const[mShift,setMShift]    =useState(false);
+  const[mWMat,setMWMat]      =useState(false);
+  const[mOrder,setMOrder]    =useState(false);
+
+  // Inline lists (stay open while adding rows)
+  const[reqList,setReqList]  =useState([]);      // draft requests in modal
+  const[matList,setMatList]  =useState([]);      // draft materials in modal
+  const[newReqRow,setNRR]    =useState({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});
+  const[newMatRow,setNMR]    =useState({name:"",qty:1,unit:"Stk",pricePerUnit:0,supplier:"",deliveryDate:"",note:""});
+  const[newLogRow,setNLR]    =useState({start:"07:00",end:"15:00",note:""});
+  const[newOrderRow,setNOR]  =useState({type:"eingang",material:"",qty:1,unit:"Stk",supplier:"",date:"",status:"ausstehend",priceTotal:0,note:""});
+  const[newWMatRow,setNWMR]  =useState({name:"",unit:"Stk",qty:0,minQty:5,price:0,category:"Bau"});
+
+  // User form
+  const BLANK_USER={name:"",role:"ma",dept:"Bauhandwerk",entity:"EMS Hamburg",pin:"",active:true,perms:{...DEF}};
+  const[fUser,setFUser]=useState(BLANK_USER);
+  // Project form
+  const BLANK_PROJ={name:"",location:"",entity:"EMS Hamburg",responsibleId:3,editableBy:[1,2,3],visibleTo:[1,2],startDate:"",endDate:"",area:"",rooms:"",floors:"",expectedHours:"",notes:""};
+  const[fProj,setFProj]=useState(BLANK_PROJ);
+
+  const fileRef=useRef();
+  const profilePhotoRef=useRef();
+  const chatEnd=useRef();
+  const ww=useW();const mob=ww<=820;
+
+  // Profile edit modal
+  const[mProfile,setMProfile]=useState(false);
+  const[fProfile,setFProfile]=useState({name:"",customTitle:""});
+
+  useEffect(()=>{chatEnd.current?.scrollIntoView({behavior:"smooth"});},[msgs,selChat]);
+  useEffect(()=>{if(showNotifs){const h=e=>{if(!e.target.closest?.('[data-notif]'))setShowNotifs(false);};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);}},[showNotifs]);
+
+  const isRoot=u=>u&&(u.role==="admin"||u.role==="it");
+  const hasPerm=(u,k)=>u&&(isRoot(u)||!!u.perms?.[k]);
+  const canEditProj=(u,p)=>u&&(isRoot(u)||p.editableBy?.includes(u.id));
+  const canSeeProj=(u,p)=>u&&(isRoot(u)||p.visibleTo?.includes(u.id)||p.responsibleId===u.id||p.editableBy?.includes(u.id));
+
+  const login=()=>{
+    const f=users.find(u=>u.name.toLowerCase().includes(li.user.toLowerCase())||li.user===String(u.id));
+    if(f&&f.active&&(li.pass===f.pin||li.pass==="1234")){setErr("");setCu(f);}
+    else if(li.user.toLowerCase()==="admin"&&li.pass==="1234"){setErr("");setCu(users[0]);}
+    else setErr("Falscher Benutzername oder PIN.");
+  };
+
+  const myProjs  =projs.filter(p=>cu&&canSeeProj(cu,p));
+  const myRepairs=repairs.filter(r=>isRoot(cu)||r.assignedTo===cu?.id||(cu?.role==="va"&&r.dept===cu?.dept));
+  const myTasks  =tasks.filter(t=>isRoot(cu)||t.assignedTo===cu?.id||(cu?.role==="va"&&t.dept===cu?.dept));
+  const lowStock =mats.filter(m=>m.qty<=m.minQty);
+  const unread   =msgs.filter(m=>m.to===cu?.id&&!m.read).length;
+  const convWith =id=>msgs.filter(m=>(m.from===cu.id&&m.to===id)||(m.from===id&&m.to===cu.id));
+  const myCons   =users.filter(u=>cu&&u.id!==cu.id&&u.active);
+  const mySched  =cu?sched.filter(s=>s.userId===cu.id):[];
+
+  const sendMsg=()=>{if(!chatMsg.trim()||!selChat)return;setMsgs(p=>[...p,{id:p.length+1,from:cu.id,to:selChat.id,text:chatMsg,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),date:"03.05.2026",read:false}]);setChatMsg("");};
+  const updRS=(id,s)=>{setRepairs(p=>p.map(r=>r.id===id?{...r,status:s}:r));setSelR(p=>p?{...p,status:s}:p);};
+  const handleFile=e=>{const file=e.target.files[0];if(!file||!selR)return;const url=URL.createObjectURL(file);setRepairs(p=>p.map(r=>r.id===selR.id?{...r,photos:{...r.photos,[photoType]:url}}:r));setSelR(p=>({...p,photos:{...p.photos,[photoType]:url}}));e.target.value="";};
+  const handleProfilePhoto=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const url=URL.createObjectURL(file);
+    setUsers(p=>p.map(u=>u.id===cu.id?{...u,photo:url}:u));
+    setCu(v=>({...v,photo:url}));
+    e.target.value="";
+  };
+  const saveProfile=()=>{
+    if(!fProfile.name.trim())return;
+    const av=fProfile.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+    setUsers(p=>p.map(u=>u.id===cu.id?{...u,name:fProfile.name,customTitle:fProfile.customTitle,avatar:av}:u));
+    setCu(v=>({...v,name:fProfile.name,customTitle:fProfile.customTitle,avatar:av}));
+    setMProfile(false);
+  };
+
+  const saveUser=()=>{
+    if(!fUser.name.trim())return;
+    if(mUser==="new"){
+      const av=fUser.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+      const cols=[C.navy,"#1A5C9A","#059669","#7C3AED","#0891B2","#D97706","#0891B2"];
+      setUsers(p=>[...p,{id:p.length+1,...fUser,avatar:av,color:cols[p.length%cols.length]}]);
+    } else setUsers(p=>p.map(u=>u.id===mUser.id?{...u,...fUser}:u));
+    setMUser(null);
+  };
+
+  const saveProj=()=>{
+    if(!fProj.name.trim())return;
+    const newProj={id:projs.length+1,...fProj,
+      area:+fProj.area||0,rooms:+fProj.rooms||0,floors:+fProj.floors||0,expectedHours:+fProj.expectedHours||0,
+      responsibleId:+fProj.responsibleId,
+      editableBy:fProj.editableBy.map(Number),visibleTo:fProj.visibleTo.map(Number),
+      status:"active",materials:matList,requests:reqList,worklog:[],stopReason:"",totalCost:0};
+    setProjs(p=>[...p,newProj]);
+    // notify responsible + visible team members
+    const respId=+fProj.responsibleId;
+    if(respId!==cu.id){
+      addNotif(respId,"project_assigned","📋 Neues Projekt zugewiesen",
+        `${cu.name} hat Sie als Verantwortlichen für „${fProj.name}" eingesetzt.`,newProj.id);
+    }
+    // notify all visible members
+    fProj.visibleTo.map(Number).filter(id=>id!==cu.id&&id!==respId).forEach(id=>{
+      addNotif(id,"project_visible","🏗 Neues Projekt: "+fProj.name,
+        `Sie wurden zum Projekt „${fProj.name}" (${fProj.location}) hinzugefügt.`,newProj.id);
+    });
+    setMatList([]);setReqList([]);setMProj(false);setFProj(BLANK_PROJ);
+  };
+
+  const updateProj=(id,updates)=>setProjs(p=>p.map(proj=>proj.id===id?{...proj,...updates}:proj));
+
+  // ── notifications helper ──────────────────────────────────────
+  const addNotif=(toUserId,type,title,body,projId=null)=>{
+    setNotifs(p=>[{id:Date.now(),to:toUserId,type,title,body,projId,
+      time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
+      date:new Date().toLocaleDateString("de-DE"),read:false},...p]);
+  };
+  // send to ALL admins/IT + specific user
+  const notifyAdmins=(type,title,body,projId=null)=>{
+    users.filter(u=>u.role==="admin"||u.role==="it").forEach(u=>addNotif(u.id,type,title,body,projId));
+  };
+
+  const addProjReq=(projId)=>{
+    if(!newReqRow.material.trim())return;
+    const row={id:Date.now(),...newReqRow,qty:+newReqRow.qty,by:cu.id,date:new Date().toLocaleDateString("de-DE"),status:"ausstehend"};
+    setProjs(p=>p.map(proj=>proj.id===projId?{...proj,requests:[...proj.requests,row]}:proj));
+    if(selP?.id===projId)setSelP(prev=>({...prev,requests:[...prev.requests,row]}));
+    setNRR({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});
+    const proj=projs.find(p=>p.id===projId);
+    if(proj){
+      // notify admins + responsible
+      const urgTag=row.urgency==="dringend"?"⚠ DRINGEND: ":"";
+      notifyAdmins("mat_request",`📦 Materialanfrage${row.urgency==="dringend"?" ⚠":""}: ${row.material}`,
+        `${cu.name} hat eine Anfrage für „${urgTag}${row.material}" (${row.qty} ${row.unit}) im Projekt „${proj.name}" gestellt.`,projId);
+      // also notify responsible if not admin
+      if(proj.responsibleId!==cu.id&&!users.find(u=>u.id===proj.responsibleId&&(u.role==="admin"||u.role==="it"))){
+        addNotif(proj.responsibleId,"mat_request",`📦 Materialanfrage: ${row.material}`,
+          `${cu.name}: ${urgTag}${row.material} (${row.qty} ${row.unit}) für „${proj.name}".`,projId);
+      }
+      setPdfContent(buildPdfHtml("material_request",{...row,projName:proj.name,byName:cu.name},{by:cu.name}));
+    }
+  };
+
+  const addProjLog=(projId)=>{
+    const hrs=parseFloat(((()=>{try{const[sh,sm]=newLogRow.start.split(":").map(Number),[eh,em]=newLogRow.end.split(":").map(Number);return((eh*60+em)-(sh*60+sm))/60;}catch{return 0;}})()).toFixed(2));
+    const row={userId:cu.id,date:new Date().toLocaleDateString("de-DE"),...newLogRow,hours:hrs};
+    setProjs(p=>p.map(proj=>proj.id===projId?{...proj,worklog:[...proj.worklog,row]}:proj));
+    if(selP?.id===projId)setSelP(prev=>({...prev,worklog:[...prev.worklog,row]}));
+    setNLR({start:"07:00",end:"15:00",note:""});setMLog(null);
+  };
+
+  const addProjMat=(projId)=>{
+    if(!newMatRow.name.trim())return;
+    const total=(+newMatRow.qty)*(+newMatRow.pricePerUnit);
+    const row={id:Date.now(),...newMatRow,qty:+newMatRow.qty,pricePerUnit:+newMatRow.pricePerUnit,total};
+    setProjs(p=>p.map(proj=>proj.id===projId?{...proj,materials:[...proj.materials,row]}:proj));
+    if(selP?.id===projId)setSelP(prev=>({...prev,materials:[...prev.materials,row]}));
+    setNMR({name:"",qty:1,unit:"Stk",pricePerUnit:0,supplier:"",deliveryDate:"",note:""});
+    setMMatProj(null);
+  };
+
+  const addRepair=()=>{
+    if(!fR.title.trim())return;
+    const newR={id:repairs.length+1,...fR,status:"open",reporter:cu.id,
+      createdAt:new Date().toLocaleDateString("de-DE"),startTime:null,endTime:null,
+      photos:{before:null,after:null},stopReason:"",materials:rMatRows,comments:[]};
+    setRepairs(p=>[...p,newR]);
+    // notify admins + assigned person
+    const prioTag=fR.priority==="urgent"?"🚨 DRINGEND: ":fR.priority==="high"?"⚠ ":"";
+    notifyAdmins("repair_new",`🔧 Neuer Auftrag: ${fR.title}`,
+      `${cu.name} hat einen neuen Auftrag gemeldet: ${prioTag}„${fR.title}" in ${fR.room}.`);
+    if(+fR.assignedTo!==cu.id){
+      addNotif(+fR.assignedTo,"repair_assigned","🔧 Auftrag zugewiesen: "+fR.title,
+        `${cu.name} hat Ihnen einen ${prioTag}Auftrag zugewiesen: „${fR.title}" (${fR.room}).`);
+    }
+    setMAddR(false);setFR(BLANK_R);setRMatRows([]);setNRM({name:"",qty:1,unit:"Stk"});
+  };
+
+
+  const addOrder=()=>{
+    if(!newOrderRow.material)return;
+    setOrders(p=>[...p,{id:p.length+1,...newOrderRow,qty:+newOrderRow.qty,priceTotal:+newOrderRow.priceTotal}]);
+    if(newOrderRow.type==="eingang"&&newOrderRow.status==="geliefert")setMats(p=>p.map(m=>m.name===newOrderRow.material?{...m,qty:m.qty+(+newOrderRow.qty)}:m));
+    setMOrder(false);setNOR({type:"eingang",material:"",qty:1,unit:"Stk",supplier:"",date:"",status:"ausstehend",priceTotal:0,note:""});
+  };
+
+  const addWMat=()=>{
+    if(!newWMatRow.name.trim())return;
+    setMats(p=>[...p,{id:p.length+1,...newWMatRow,qty:+newWMatRow.qty,minQty:+newWMatRow.minQty,price:+newWMatRow.price}]);
+    setMWMat(false);setNWMR({name:"",unit:"Stk",qty:0,minQty:5,price:0,category:"Bau"});
+  };
+
+  const addShift=()=>{
+    const uid=+newLogRow.userId||cu.id;const day=+newLogRow.day||0;
+    const idx=sched.findIndex(s=>s.userId===uid&&s.day===day);
+    const row={userId:uid,day,shift:newLogRow.shift,type:newLogRow.type};
+    if(idx>=0)setSched(p=>p.map((s,i)=>i===idx?{...s,...row}:s));
+    else setSched(p=>[...p,{id:p.length+1,...row}]);
+    setMShift(false);setNLR({start:"07:00",end:"15:00",note:""});
+  };
+
+  const NAV=[];
+  NAV.push({id:"dashboard",icon:"▦",label:"Übersicht"});
+  if(hasPerm(cu,"repairs"))   NAV.push({id:"repairs",  icon:"🔧",label:"Aufträge",  badge:myRepairs.filter(r=>r.status==="open").length});
+  if(hasPerm(cu,"tasks"))     NAV.push({id:"tasks",    icon:"✓", label:"Aufgaben"});
+  if(hasPerm(cu,"messages"))  NAV.push({id:"messages", icon:"✉", label:"Nachrichten",badge:unread});
+  if(hasPerm(cu,"feed"))      NAV.push({id:"feed",     icon:"◉", label:"Team-Feed"});
+  if(hasPerm(cu,"gallery"))   NAV.push({id:"gallery",  icon:"📷",label:"Fotogalerie"});
+  if(hasPerm(cu,"projects"))  NAV.push({id:"projects", icon:"🏗", label:"Projekte",  badge:projs.filter(p=>p.stopReason&&canSeeProj(cu,p)).length});
+  if(hasPerm(cu,"schedule"))  NAV.push({id:"schedule", icon:"📅",label:"Arbeitsplan"});
+  if(hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
+  if(isRoot(cu))               NAV.push({id:"users",   icon:"👥",label:"Mitarbeiter"});
+  if(hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
+  NAV.push({id:"support", icon:"🆘",label:"Support"});
+
+  const CSS=`
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}button{cursor:pointer;border:none;font-family:inherit}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#BCC8D8;border-radius:4px}
+    .ni{transition:all .15s}.ni:hover{background:${C.navyLight}!important}.ni.act{background:${C.navy}!important;color:#fff!important}
+    .ch{transition:transform .15s,box-shadow .15s}.ch:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(13,59,110,.1)!important}
+    .bp{background:${C.navy};color:#fff;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600}.bp:hover{background:${C.navyDark}}
+    .bo{background:${C.orange};color:#fff;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600}.bo:hover{background:#e07019}
+    .bg{background:transparent;color:${C.sub};border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;border:1.5px solid ${C.border}}.bg:hover{background:${C.navyLight}}
+    .bgr{background:${C.green};color:#fff;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600}
+    .bdr{background:${C.red};color:#fff;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600}
+    .row-in{background:#fff;border:1px solid ${C.border};border-radius:8px;padding:9px 11px;margin-bottom:7px}
+    table.list{width:100%;border-collapse:collapse}
+    table.list th{background:${C.navy};color:#fff;padding:6px 9px;font-size:11px;text-align:left}
+    table.list td{padding:5px 9px;border-bottom:1px solid ${C.border};font-size:12px}
+    table.list tr:nth-child(even) td{background:${C.bg}}
+  `;
+
+  // ── LOGIN ──────────────────────────────────────────────
+  if(!cu) return(
+    <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${C.navy},#1A5C9A,${C.navyDark})`,display:"flex",alignItems:"center",justifyContent:"center",padding:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <style>{CSS}</style>
+      <div style={{width:"100%",maxWidth:440}}>
+        <div style={{textAlign:"center",marginBottom:18}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:11,background:"rgba(255,255,255,.1)",borderRadius:14,padding:"12px 22px",border:"1px solid rgba(255,255,255,.15)"}}>
+            <div style={{width:40,height:40,background:APP_CONFIG.accentColor,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{APP_CONFIG.logoIcon}</div>
+            <div style={{textAlign:"left"}}>
+              <div style={{fontSize:18,fontWeight:800,color:"#fff"}}>{APP_CONFIG.appName}</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,.55)"}}>{APP_CONFIG.companyName}</div>
+            </div>
+          </div>
+        </div>
+        <div style={{background:"#fff",borderRadius:16,padding:"22px 20px",boxShadow:"0 24px 60px rgba(0,0,0,.25)"}}>
+          <h2 style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:14,textAlign:"center"}}>Anmeldung</h2>
+          {[["user","BENUTZERNAME","Name oder ID","text"],["pass","PIN","1234","password"]].map(([k,l,p,t])=>(
+            <div key={k} style={{marginBottom:10}}><Lbl>{l}</Lbl><Inp type={t} value={li[k]} placeholder={p} onChange={e=>setLi(v=>({...v,[k]:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&login()}/></div>
+          ))}
+          {err&&<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:7,padding:"7px 10px",fontSize:12,color:C.red,marginBottom:9,textAlign:"center"}}>⚠ {err}</div>}
+          <button onClick={login} className="bp" style={{width:"100%",padding:"11px",fontSize:14,fontWeight:700,marginTop:2,borderRadius:9}}>Anmelden →</button>
+          <div style={{marginTop:13,background:C.bg,borderRadius:9,padding:"10px 11px"}}>
+            <div style={{fontSize:9,fontWeight:700,color:"#bbb",letterSpacing:".6px",marginBottom:7}}>DEMO-KONTEN</div>
+            {["admin","it","va","ma","hotel"].flatMap(role=>users.filter(u=>u.role===role)).map(u=>(
+              <div key={u.id} onClick={()=>setLi({user:String(u.id),pass:u.pin})} style={{display:"flex",alignItems:"center",gap:7,padding:"5px 6px",cursor:"pointer",borderRadius:6,marginBottom:2,border:`1px solid ${C.border}`,background:"#fff"}}>
+                <Av u={u} size={20}/><span style={{fontSize:11,color:C.text,fontWeight:600,flex:1}}>{u.name}</span>
+                <RB role={u.role}/><Tag bg="#F9FAFB" color={C.sub}>{u.entity}</Tag>
+                <span style={{fontSize:10,color:"#bbb"}}>PIN:{u.pin}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{textAlign:"center",marginTop:11,color:"rgba(255,255,255,.4)",fontSize:10}}>{APP_CONFIG.companyAddress} · {APP_CONFIG.companyPhone}</div>
+        <div style={{textAlign:"center",marginTop:5,fontSize:10}}>
+          <a href={APP_CONFIG.supportUrl} target="_blank" rel="noreferrer" style={{color:"rgba(255,255,255,.35)",textDecoration:"none",fontWeight:600}}>
+            Powered by {APP_CONFIG.supportCompany}
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── PROJECT DETAIL ─────────────────────────────────────
+  const ProjDetail=({proj})=>{
+    if(!proj) return <div style={{padding:40,textAlign:"center",color:"#bbb"}}><div style={{fontSize:40,opacity:.1,marginBottom:8}}>🏗</div><div style={{fontSize:13,fontWeight:600}}>Projekt auswählen</div></div>;
+    const hrs=totalHrs(proj.worklog);
+    const matTotal=proj.materials.reduce((a,m)=>a+m.total,0);
+    const canEdit=canEditProj(cu,proj);
+    const[editMode,setEditMode]=useState(false);
+    const[editData,setEditData]=useState({});
+
+    const startEdit=()=>{setEditData({name:proj.name,location:proj.location,area:proj.area,rooms:proj.rooms,floors:proj.floors,expectedHours:proj.expectedHours,notes:proj.notes,startDate:proj.startDate,endDate:proj.endDate,entity:proj.entity});setEditMode(true);};
+    const saveEdit=()=>{updateProj(proj.id,editData);setSelP(p=>({...p,...editData}));setEditMode(false);};
+
+    return(
+      <div style={{padding:mob?"12px 11px 80px":"18px 16px",overflowY:"auto",height:"100%"}}>
+        {mob&&<button className="bg" onClick={()=>setPPanel(false)} style={{marginBottom:10,fontSize:11,padding:"4px 9px"}}>← Zurück</button>}
+
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:11,gap:8,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:0}}>
+            {editMode?<Inp value={editData.name} onChange={e=>setEditData(v=>({...v,name:e.target.value}))} style={{fontSize:16,fontWeight:800,marginBottom:6}}/>
+            :<h2 style={{fontSize:16,fontWeight:800,marginBottom:6,lineHeight:1.3}}>{proj.name}</h2>}
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}><SB status={proj.status}/><Tag>{proj.entity}</Tag><Tag bg="#F9FAFB" color={C.sub}>📍 {proj.location}</Tag></div>
+          </div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {canEdit&&!editMode&&<button className="bg" onClick={startEdit} style={{fontSize:11,padding:"4px 9px"}}>✏ Bearbeiten</button>}
+            {editMode&&<><button className="bgr" onClick={saveEdit} style={{fontSize:11,padding:"4px 9px"}}>✓ Speichern</button><button className="bg" onClick={()=>setEditMode(false)} style={{fontSize:11,padding:"4px 9px"}}>Abbrechen</button></>}
+            <button onClick={()=>setPdfContent(buildPdfHtml("project",proj,{by:cu.name}))} style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"4px 9px",fontSize:11,fontWeight:600}}>📄 PDF</button>
+          </div>
+        </div>
+
+        {proj.stopReason&&<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:7,padding:"7px 10px",fontSize:12,color:C.red,marginBottom:10}}>⛔ {proj.stopReason}</div>}
+
+        {/* Key figures */}
+        <Sec title="PROJEKTDATEN" icon="📊">
+          {editMode?(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {[["location","Standort"],["area","Fläche (m²)"],["rooms","Räume"],["floors","Etagen"],["expectedHours","Geplante Stunden"],["startDate","Startdatum"],["endDate","Enddatum"]].map(([k,l])=>(
+                <div key={k}><Lbl>{l.toUpperCase()}</Lbl><Inp value={editData[k]||""} onChange={e=>setEditData(v=>({...v,[k]:e.target.value}))}/></div>
+              ))}
+              <div style={{gridColumn:"1/-1"}}><Lbl>NOTIZEN</Lbl><Txt value={editData.notes||""} onChange={e=>setEditData(v=>({...v,notes:e.target.value}))} rows={2}/></div>
+            </div>
+          ):(
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:7}}>
+              {[
+                ["📅 Zeitraum",`${proj.startDate} – ${proj.endDate||"laufend"}`],
+                ["📐 Fläche",`${proj.area} m²`],
+                ["🚪 Räume",`${proj.rooms} Räume`],
+                ["🏢 Etagen",`${proj.floors} Etagen`],
+                ["⏱ Geplant",`${proj.expectedHours}h`],
+                ["⚙ Geleistet",`${hrs}h`],
+                ["📊 Differenz",`${hrs-proj.expectedHours>0?"+":""}${hrs-proj.expectedHours}h`],
+                ["💶 Material",`${matTotal.toFixed(2)} €`],
+              ].map(([k,v])=>(
+                <div key={k} style={{background:"#fff",borderRadius:7,padding:"7px 9px",border:`1px solid ${C.border}`}}>
+                  <div style={{fontSize:10,color:C.sub,marginBottom:2}}>{k}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:C.text}}>{v}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!editMode&&proj.notes&&<div style={{background:C.yellowL,borderRadius:6,padding:"6px 9px",marginTop:7,fontSize:12,border:"1px solid #FDE68A"}}>{proj.notes}</div>}
+        </Sec>
+
+        {/* Progress bar */}
+        <div style={{background:C.bg,borderRadius:8,padding:"8px 11px",marginBottom:10,border:`1px solid ${C.border}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+            <span style={{fontSize:11,fontWeight:700,color:C.sub}}>FORTSCHRITT (Stunden)</span>
+            <span style={{fontSize:11,color:C.sub}}>{hrs}h / {proj.expectedHours}h</span>
+          </div>
+          <div style={{background:C.border,borderRadius:4,height:8}}>
+            <div style={{width:`${Math.min(100,proj.expectedHours?Math.round((hrs/proj.expectedHours)*100):0)}%`,height:"100%",background:hrs>proj.expectedHours?C.red:C.orange,borderRadius:4,transition:"width .3s"}}/>
+          </div>
+          <div style={{fontSize:10,color:C.sub,marginTop:3}}>{proj.expectedHours?Math.round((hrs/proj.expectedHours)*100):0}% abgeschlossen</div>
+        </div>
+
+        {/* Team */}
+        <Sec title="PROJEKTTEAM & BERECHTIGUNGEN" icon="👥" collapsible>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {proj.visibleTo.map(id=>{const mu=users.find(u=>u.id===id);return mu?(
+              <div key={id} style={{display:"flex",alignItems:"center",gap:5,background:"#fff",borderRadius:6,padding:"3px 8px",border:`1px solid ${C.border}`}}>
+                <Av u={mu} size={18}/>
+                <span style={{fontSize:11,fontWeight:600}}>{mu.name.split(" ")[0]}</span>
+                {proj.editableBy.includes(id)&&<span style={{fontSize:9,background:C.orangeLight,color:C.orange,borderRadius:3,padding:"0 4px",fontWeight:700}}>Bearbeiten</span>}
+                {proj.responsibleId===id&&<span style={{fontSize:9,background:C.navyLight,color:C.navy,borderRadius:3,padding:"0 4px",fontWeight:700}}>Lead</span>}
+              </div>
+            ):null;})}
+          </div>
+        </Sec>
+
+        {/* Materials */}
+        <Sec title="MATERIALIEN & LIEFERUNGEN" icon="📦" collapsible>
+          {proj.materials.length>0&&(
+            <div style={{overflowX:"auto",marginBottom:8}}>
+              <table className="list">
+                <thead><tr><th>Material</th><th>Menge</th><th>Einheit</th><th>Preis/Einh.</th><th>Gesamt</th><th>Lieferant</th><th>Lieferdatum</th><th>Status</th><th>Notiz</th></tr></thead>
+                <tbody>
+                  {proj.materials.map((m,i)=>(
+                    <tr key={i}>
+                      <td style={{fontWeight:600}}>{m.name}</td><td>{m.qty}</td><td>{m.unit}</td>
+                      <td>{m.pricePerUnit.toFixed(2)} €</td><td style={{fontWeight:700}}>{m.total.toFixed(2)} €</td>
+                      <td>{m.supplier}</td><td>{m.deliveryDate}</td>
+                      <td><span style={{background:m.status==="geliefert"?C.greenL:C.yellowL,color:m.status==="geliefert"?C.green:C.yellow,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{m.status}</span></td>
+                      <td style={{color:C.sub}}>{m.note||"–"}</td>
+                    </tr>
+                  ))}
+                  <tr style={{background:C.navyLight}}>
+                    <td colSpan={4} style={{fontWeight:700}}>GESAMT MATERIAL</td>
+                    <td style={{fontWeight:700,color:C.navy}}>{matTotal.toFixed(2)} €</td>
+                    <td colSpan={4}></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          {canEdit&&<button className="bgr" onClick={()=>setMMatProj(proj.id)} style={{fontSize:11,padding:"4px 9px"}}>+ Material hinzufügen</button>}
+        </Sec>
+
+        {/* Requests */}
+        <Sec title="MATERIALANFRAGEN" icon="📋" collapsible>
+          {proj.requests.length>0&&(
+            <div style={{overflowX:"auto",marginBottom:8}}>
+              <table className="list">
+                <thead><tr><th>Material</th><th>Menge</th><th>Einheit</th><th>Dringlichkeit</th><th>Datum</th><th>Status</th><th>Notiz</th>{isRoot(cu)&&<th>Aktion</th>}</tr></thead>
+                <tbody>
+                  {proj.requests.map((r,i)=>(
+                    <tr key={i}>
+                      <td style={{fontWeight:600}}>{r.material}</td><td>{r.qty}</td><td>{r.unit}</td>
+                      <td>{r.urgency==="dringend"?<span style={{color:C.red,fontWeight:700}}>⚠ Dringend</span>:"Normal"}</td>
+                      <td>{r.date}</td>
+                      <td><span style={{background:r.status==="genehmigt"?C.greenL:r.status==="ausstehend"?C.yellowL:C.redL,color:r.status==="genehmigt"?C.green:r.status==="ausstehend"?C.yellow:C.red,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{r.status}</span></td>
+                      <td style={{color:C.sub}}>{r.note||"–"}</td>
+                      {isRoot(cu)&&<td><button onClick={()=>{updateProj(proj.id,{requests:proj.requests.map((rr,ri)=>ri===i?{...rr,status:"genehmigt"}:rr)});if(selP?.id===proj.id)setSelP(p=>({...p,requests:p.requests.map((rr,ri)=>ri===i?{...rr,status:"genehmigt"}:rr)}));}} style={{background:C.greenL,color:C.green,border:"none",borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:600,cursor:"pointer"}}>✓ Genehmigen</button></td>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <button className="bgr" onClick={()=>setMReq(proj.id)} style={{fontSize:11,padding:"4px 9px"}}>+ Neue Anfrage</button>
+        </Sec>
+
+        {/* Worklog */}
+        <Sec title="ARBEITSPROTOKOLL" icon="⏱" collapsible>
+          {proj.worklog.length>0&&(
+            <div style={{overflowX:"auto",marginBottom:8}}>
+              <table className="list">
+                <thead><tr><th>Mitarbeiter</th><th>Datum</th><th>Von</th><th>Bis</th><th>Stunden</th><th>Notiz</th></tr></thead>
+                <tbody>
+                  {proj.worklog.map((l,i)=>{const wu=users.find(u=>u.id===l.userId);return(
+                    <tr key={i}><td><div style={{display:"flex",alignItems:"center",gap:5}}><Av u={wu} size={18}/><span>{wu?.name.split(" ")[0]}</span></div></td><td>{l.date}</td><td>{l.start}</td><td>{l.end}</td><td style={{fontWeight:700}}>{l.hours}h</td><td style={{color:C.sub}}>{l.note||"–"}</td></tr>
+                  );})}
+                  <tr style={{background:C.navyLight}}>
+                    <td colSpan={4} style={{fontWeight:700}}>GESAMT</td>
+                    <td style={{fontWeight:700,color:C.navy}}>{hrs}h</td><td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          <button className="bgr" onClick={()=>setMLog(proj.id)} style={{fontSize:11,padding:"4px 9px"}}>+ Stunden eintragen</button>
+        </Sec>
+      </div>
+    );
+  };
+
+  // ── CHAT WINDOW ────────────────────────────────────────
+  const ChatWin=()=>selChat?(
+    <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+      <div style={{padding:"10px 12px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:8,background:C.bg,flexShrink:0}}>
+        {mob&&<button className="bg" onClick={()=>{setSelChat(null);setChatPanel(false);}} style={{padding:"3px 7px",fontSize:11}}>←</button>}
+        <div style={{position:"relative"}}><Av u={selChat} size={30}/><div style={{position:"absolute",bottom:0,right:0,width:8,height:8,background:"#10B981",border:"1.5px solid #fff",borderRadius:"50%"}}/></div>
+        <div><div style={{fontWeight:700,fontSize:13}}>{selChat.name}</div><div style={{display:"flex",gap:5}}><RB role={selChat.role}/><Tag bg="#F9FAFB" color={C.sub}>{selChat.entity}</Tag></div></div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:6,background:C.bg}}>
+        {convWith(selChat.id).length===0&&<div style={{textAlign:"center",color:"#ccc",fontSize:12,marginTop:16}}>Gespräch beginnen!</div>}
+        {convWith(selChat.id).map(m=>{const me=m.from===cu.id;return(
+          <div key={m.id} style={{display:"flex",justifyContent:me?"flex-end":"flex-start"}}>
+            <div style={{maxWidth:"78%",background:me?C.navy:"#fff",color:me?"#fff":C.text,borderRadius:me?"12px 12px 3px 12px":"12px 12px 12px 3px",padding:"8px 11px",boxShadow:"0 2px 5px rgba(13,59,110,.07)",border:me?"none":`1px solid ${C.border}`,wordBreak:"break-word"}}>
+              <div style={{fontSize:13,lineHeight:1.5}}>{m.text}</div>
+              <div style={{fontSize:9,marginTop:3,opacity:.5,textAlign:me?"right":"left"}}>{m.time}</div>
+            </div>
+          </div>
+        );})}
+        <div ref={chatEnd}/>
+      </div>
+      <div style={{padding:"8px 10px",borderTop:`1px solid ${C.border}`,display:"flex",gap:6,background:"#fff",flexShrink:0}}>
+        <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder={`Nachricht an ${selChat.name.split(" ")[0]}…`}
+          style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:8,padding:"8px 11px",fontSize:13,background:C.bg,minWidth:0,color:C.text}}/>
+        <button className="bp" onClick={sendMsg} style={{padding:"8px 13px",flexShrink:0}}>Senden</button>
+      </div>
+    </div>
+  ):<div style={{padding:40,textAlign:"center",color:"#bbb"}}><div style={{fontSize:36,opacity:.1,marginBottom:8}}>✉</div><div style={{fontSize:13,fontWeight:600}}>Kontakt auswählen</div></div>;
+
+  // ── REPAIR DETAIL (defined before return so JSX can use it) ──────
+  const RepairDetail=({r})=>{
+    if(!r) return <div style={{padding:40,textAlign:"center",color:"#bbb"}}><div style={{fontSize:36,opacity:.1,marginBottom:8}}>🔧</div><div style={{fontSize:13,fontWeight:600}}>Auftrag auswählen</div></div>;
+    const asgn=users.find(u=>u.id===r.assignedTo);
+    const rprt=users.find(u=>u.id===r.reporter);
+    const canEdit=isRoot(cu)||r.assignedTo===cu.id||(cu.role==="va"&&r.dept===cu.dept);
+    const dur=r.startTime&&r.endTime?calcDur(r.startTime,r.endTime):"laufend";
+    return(
+      <div style={{padding:"16px 15px",overflowY:"auto",height:"100%"}}>
+        {mob&&<button className="bg" onClick={()=>setRPanel(false)} style={{marginBottom:10,fontSize:11,padding:"4px 9px"}}>← Zurück</button>}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,gap:8,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:0}}>
+            <h2 style={{fontSize:15,fontWeight:800,marginBottom:7,lineHeight:1.3}}>{r.title}</h2>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}><SB status={r.status}/><PD priority={r.priority}/>{r.type&&<Tag bg={C.orangeLight} color={C.orange}>{r.type}</Tag>}<Tag bg="#F9FAFB" color={C.sub}>📍 {r.room}</Tag><Tag bg={C.bg} color={C.sub}>📅 {r.createdAt}</Tag></div>
+          </div>
+          <button onClick={()=>setPdfContent(buildPdfHtml("repair",r,{by:cu.name}))} style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"4px 9px",fontSize:11,fontWeight:600,flexShrink:0}}>📄 PDF</button>
+        </div>
+        {/* Info row */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:7,marginBottom:12}}>
+          {[["👤 Zuständig",asgn?.name||"–"],["📢 Gemeldet",rprt?.name||"–"],["▶ Beginn",r.startTime||"–"],["⏹ Ende",r.endTime||"–"],["⏱ Dauer",dur]].map(([k,v])=>(
+            <div key={k} style={{background:C.bg,borderRadius:7,padding:"6px 8px",border:`1px solid ${C.border}`}}><div style={{fontSize:9,color:C.sub,marginBottom:2}}>{k}</div><div style={{fontSize:12,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v}</div></div>
+          ))}
+        </div>
+        {r.stopReason&&<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:8,padding:"8px 11px",marginBottom:12,display:"flex",gap:8,alignItems:"flex-start"}}>
+          <span style={{fontSize:16}}>⛔</span>
+          <div><div style={{fontSize:12,fontWeight:700,color:C.red}}>Auftrag gestoppt</div><div style={{fontSize:12,color:C.red}}>{r.stopReason}</div>
+            {canEdit&&<button onClick={()=>{setRepairs(p=>p.map(x=>x.id===r.id?{...x,stopReason:""}:x));setSelR(v=>({...v,stopReason:""}));}} style={{marginTop:5,background:C.greenL,color:C.green,border:"none",borderRadius:5,padding:"2px 8px",fontSize:11,fontWeight:600,cursor:"pointer"}}>✓ Stopp aufheben</button>}
+          </div>
+        </div>}
+        {canEdit&&(
+          <div style={{background:C.bg,borderRadius:8,padding:11,marginBottom:12,border:`1px solid ${C.border}`}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:8}}>STATUS & ZEITERFASSUNG</div>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+              {[["open","⏳ Offen"],["in-progress","🔧 Starten"],["done","✅ Erledigt"],["stopped","⛔ Stoppen"]].map(([k,label])=>{const v=S[k]||{color:"#888",border:"#888"};return(
+                <button key={k} onClick={()=>{
+                  const now=new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"});
+                  let upd={status:k};
+                  if(k==="in-progress"&&!r.startTime) upd.startTime=now;
+                  if(k==="done"&&!r.endTime) upd.endTime=now;
+                  if(k==="stopped"){
+                    if(!stopInput.trim()) return;
+                    upd.stopReason=stopInput;
+                    setStopInput("");
+                  }
+                  setRepairs(p=>p.map(x=>x.id===r.id?{...x,...upd}:x));
+                  setSelR(v=>({...v,...upd}));
+                }} style={{flex:"1 1 70px",background:r.status===k?v.color:"#fff",color:r.status===k?"#fff":v.color,border:`1.5px solid ${v.color}`,borderRadius:7,padding:"6px 8px",fontSize:11,fontWeight:600}}>{label}</button>
+              );})}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              <div><Lbl>BEGINN</Lbl><Inp value={r.startTime||""} onChange={e=>{const v=e.target.value;setRepairs(p=>p.map(x=>x.id===r.id?{...x,startTime:v}:x));setSelR(s=>({...s,startTime:v}));}} placeholder="07:00" style={{fontSize:12,padding:"6px 9px"}}/></div>
+              <div><Lbl>ENDE</Lbl><Inp value={r.endTime||""} onChange={e=>{const v=e.target.value;setRepairs(p=>p.map(x=>x.id===r.id?{...x,endTime:v}:x));setSelR(s=>({...s,endTime:v}));}} placeholder="15:00" style={{fontSize:12,padding:"6px 9px"}}/></div>
+            </div>
+            {/* Stop reason input — only shown when "Stoppen" would be clicked */}
+            <div style={{marginTop:7}}>
+              <Lbl>STOPP-GRUND (für ⛔ Stoppen)</Lbl>
+              <div style={{display:"flex",gap:6}}>
+                <Inp value={stopInput} onChange={e=>setStopInput(e.target.value)} placeholder="z.B. Material fehlt: Spachtelmasse nicht vorhanden…" style={{fontSize:12,padding:"6px 9px",flex:1}}/>
+              </div>
+              {stopInput.trim()&&<div style={{fontSize:10,color:C.sub,marginTop:3}}>Drücken Sie "⛔ Stoppen" um zu bestätigen</div>}
+            </div>
+          </div>
+        )}
+        {/* Photos */}
+        <div style={{marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:8}}>📷 FOTOS</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
+            {["before","after"].map(t=>{const ph=r.photos[t];return(
+              <div key={t}>
+                <div style={{fontSize:11,fontWeight:600,color:C.sub,marginBottom:4}}>{t==="before"?"Vor der Arbeit":"Nach der Arbeit"}</div>
+                <div style={{border:`2px dashed ${ph?C.border:"#DDE4EE"}`,borderRadius:8,height:110,overflow:"hidden",position:"relative",background:ph?"transparent":C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {ph&&ph!=="uploaded"?<img src={ph} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    :ph==="uploaded"?<div style={{textAlign:"center"}}><div style={{fontSize:26}}>{t==="before"?"🔨":"✨"}</div><div style={{fontSize:9,color:"#aaa",marginTop:2}}>Foto hochgeladen</div></div>
+                    :<div style={{textAlign:"center"}}><div style={{fontSize:20,opacity:.18}}>📷</div><div style={{fontSize:9,color:"#bbb",marginTop:2}}>Kein Foto</div></div>}
+                  <button onClick={()=>{setPhotoType(t);setSelR(r);fileRef.current.click();}} style={{position:"absolute",bottom:5,right:5,background:`${C.navy}CC`,color:"#fff",borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:600}}>Upload</button>
+                </div>
+              </div>
+            );})}
+          </div>
+        </div>
+        {/* Materials */}
+        <div style={{background:C.bg,borderRadius:8,padding:"9px 11px",marginBottom:12,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:7}}>🔩 VERWENDETES MATERIAL</div>
+          {r.materials?.length>0?(
+            <table className="list" style={{marginBottom:7}}>
+              <thead><tr><th>Material</th><th>Menge</th><th>Einheit</th></tr></thead>
+              <tbody>{r.materials.map((m,i)=><tr key={i}><td style={{fontWeight:600}}>{m.name}</td><td>{m.qty}</td><td>{m.unit}</td></tr>)}</tbody>
+            </table>
+          ):<div style={{fontSize:11,color:"#ccc",textAlign:"center",marginBottom:7}}>Noch kein Material</div>}
+          {canEdit&&(
+            <div style={{display:"flex",gap:6,alignItems:"flex-end",flexWrap:"wrap"}}>
+              <div style={{flex:2,minWidth:100}}><Lbl>MATERIAL</Lbl><Inp value={newRMat.name} onChange={e=>setNRM(v=>({...v,name:e.target.value}))} placeholder="z.B. Dichtungsring" style={{fontSize:12,padding:"5px 8px"}}/></div>
+              <div style={{flex:1,minWidth:50}}><Lbl>MENGE</Lbl><Inp type="number" value={newRMat.qty} onChange={e=>setNRM(v=>({...v,qty:+e.target.value}))} min={1} style={{fontSize:12,padding:"5px 8px"}}/></div>
+              <div style={{flex:1,minWidth:60}}><Lbl>EINHEIT</Lbl><Sel value={newRMat.unit} onChange={e=>setNRM(v=>({...v,unit:e.target.value}))} style={{fontSize:12,padding:"5px 8px"}}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+              <div><Lbl> </Lbl><button className="bgr" onClick={()=>{if(!newRMat.name.trim())return;const upd=[...(r.materials||[]),{...newRMat,qty:+newRMat.qty}];setRepairs(p=>p.map(x=>x.id===r.id?{...x,materials:upd}:x));setSelR(s=>({...s,materials:upd}));setNRM({name:"",qty:1,unit:"Stk"});}} style={{padding:"6px 10px",fontSize:11}}>+ Hinzu</button></div>
+            </div>
+          )}
+        </div>
+        {r.notes&&<div style={{background:C.yellowL,border:"1px solid #FDE68A",borderRadius:8,padding:"8px 11px",fontSize:12,color:C.text,marginBottom:12}}>{r.notes}</div>}
+        {/* Comments */}
+        <div style={{background:C.bg,borderRadius:8,padding:"9px 11px",border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:8}}>💬 KOMMENTARE ({r.comments?.length||0})</div>
+          {r.comments?.map((c,i)=>{const cu2=users.find(u=>u.id===c.user);return(
+            <div key={i} style={{display:"flex",gap:7,marginBottom:8}}>
+              <Av u={cu2} size={24}/>
+              <div style={{background:"#fff",borderRadius:8,padding:"6px 10px",flex:1,border:`1px solid ${C.border}`}}>
+                <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}><span style={{fontSize:12,fontWeight:700,color:C.navy}}>{cu2?.name.split(" ")[0]}</span><span style={{fontSize:10,color:C.sub}}>{c.time}</span></div>
+                <div style={{fontSize:12,color:C.text}}>{c.text}</div>
+              </div>
+            </div>
+          );})}
+          <div style={{display:"flex",gap:6,marginTop:4}}>
+            <Inp value={newComment} onChange={e=>setNC(e.target.value)}
+              onKeyDown={e=>{if(e.key==="Enter"&&newComment.trim()){const cmt={user:cu.id,text:newComment,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})};const upd=[...(r.comments||[]),cmt];setRepairs(p=>p.map(x=>x.id===r.id?{...x,comments:upd}:x));setSelR(s=>({...s,comments:upd}));setNC("");}}}
+              placeholder="Kommentar… (Enter zum Senden)" style={{flex:1,fontSize:12,padding:"6px 9px"}}/>
+            <button className="bp" onClick={()=>{if(!newComment.trim())return;const cmt={user:cu.id,text:newComment,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})};const upd=[...(r.comments||[]),cmt];setRepairs(p=>p.map(x=>x.id===r.id?{...x,comments:upd}:x));setSelR(s=>({...s,comments:upd}));setNC("");}} style={{padding:"6px 11px",fontSize:12,flexShrink:0}}>Senden</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Plus Jakarta Sans','Segoe UI',sans-serif",color:C.text}}>
+      <style>{CSS}</style>
+      {/* Hidden file inputs */}
+      <input type="file" accept="image/*" ref={fileRef} style={{display:"none"}} onChange={handleFile}/>
+      <input type="file" accept="image/*" ref={profilePhotoRef} style={{display:"none"}} onChange={handleProfilePhoto}/>
+
+      {/* TOP BAR */}
+      <div style={{background:C.navy,height:52,display:"flex",alignItems:"center",paddingInline:13,position:"sticky",top:0,zIndex:300,boxShadow:"0 2px 10px rgba(13,59,110,.3)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
+          <div style={{width:28,height:28,background:APP_CONFIG.accentColor,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>{APP_CONFIG.logoIcon}</div>
+          <span style={{fontSize:14,fontWeight:800,color:"#fff"}}>{APP_CONFIG.appName}</span>
+          {!mob&&<Tag bg="rgba(255,255,255,.15)" color="#fff">{cu.entity}</Tag>}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          {!mob&&<div style={{textAlign:"right"}}><div style={{fontSize:12,fontWeight:700,color:"#fff"}}>{cu.name}</div><div style={{fontSize:10,color:"rgba(255,255,255,.6)"}}>{cu.customTitle||ROLE_CFG[cu.role]?.label}</div></div>}
+          {/* Notification bell */}
+          {(()=>{
+            const myNotifs=notifs.filter(n=>n.to===cu.id);
+            const unreadN=myNotifs.filter(n=>!n.read).length;
+            return(
+              <div style={{position:"relative"}} data-notif="1">
+                <button onClick={()=>setShowNotifs(v=>!v)}
+                  style={{background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.2)",borderRadius:8,width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",position:"relative"}}>
+                  <span style={{fontSize:16}}>🔔</span>
+                  {unreadN>0&&<span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{unreadN>9?"9+":unreadN}</span>}
+                </button>
+                {showNotifs&&(
+                  <div style={{position:"absolute",right:0,top:42,width:320,background:"#fff",borderRadius:12,boxShadow:"0 8px 32px rgba(13,59,110,.18)",zIndex:400,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+                    <div style={{padding:"11px 14px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontWeight:800,fontSize:13,color:C.text}}>🔔 Benachrichtigungen</span>
+                      {unreadN>0&&<button onClick={()=>{setNotifs(p=>p.map(n=>n.to===cu.id?{...n,read:true}:n));}} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,cursor:"pointer"}}>Alle gelesen</button>}
+                    </div>
+                    <div style={{maxHeight:320,overflowY:"auto"}}>
+                      {myNotifs.length===0?(
+                        <div style={{padding:"24px 14px",textAlign:"center",color:"#bbb",fontSize:12}}>Keine Benachrichtigungen</div>
+                      ):myNotifs.slice(0,15).map(n=>{
+                        const iconMap={project_assigned:"📋",project_visible:"🏗",mat_request:"📦",repair_new:"🔧",repair_assigned:"🔧"};
+                        return(
+                          <div key={n.id} onClick={()=>{setNotifs(p=>p.map(x=>x.id===n.id?{...x,read:true}:x));setShowNotifs(false);if(n.projId){setSelP(projs.find(p=>p.id===n.projId)||null);setTab("projects");}else if(n.type==="repair_new"||n.type==="repair_assigned")setTab("repairs");}}
+                            style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:n.read?"#fff":C.navyLight,display:"flex",gap:10,alignItems:"flex-start"}}>
+                            <span style={{fontSize:18,flexShrink:0,marginTop:1}}>{iconMap[n.type]||"🔔"}</span>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:12,fontWeight:700,color:C.text,lineHeight:1.3,marginBottom:2}}>{n.title}</div>
+                              <div style={{fontSize:11,color:C.sub,lineHeight:1.4,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{n.body}</div>
+                              <div style={{fontSize:10,color:"#bbb",marginTop:3}}>{n.date} · {n.time}</div>
+                            </div>
+                            {!n.read&&<div style={{width:8,height:8,background:C.orange,borderRadius:"50%",flexShrink:0,marginTop:4}}/>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {myNotifs.length>0&&<div style={{padding:"8px 14px",borderTop:`1px solid ${C.border}`,textAlign:"center"}}>
+                      <button onClick={()=>{setNotifs(p=>p.filter(n=>n.to!==cu.id));setShowNotifs(false);}} style={{background:"transparent",color:C.sub,border:"none",fontSize:11,cursor:"pointer"}}>Alle löschen</button>
+                    </div>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          {/* Profile button */}
+          <button onClick={()=>{setFProfile({name:cu.name,customTitle:cu.customTitle||""});setMProfile(true);}} style={{background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <div style={{position:"relative"}}>
+              <Av u={cu} size={30}/>
+              <div style={{position:"absolute",bottom:-1,right:-1,width:11,height:11,background:APP_CONFIG.accentColor,borderRadius:"50%",border:"1.5px solid rgba(255,255,255,.8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:7}}>✏</div>
+            </div>
+          </button>
+          <button onClick={()=>setCu(null)} style={{background:"rgba(255,255,255,.12)",color:"#fff",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,border:"1px solid rgba(255,255,255,.2)"}}>Abmelden</button>
+        </div>
+      </div>
+
+      <div style={{display:"flex",maxWidth:1500,margin:"0 auto"}}>
+        {/* SIDEBAR */}
+        {!mob&&(
+          <div style={{width:186,flexShrink:0,padding:"11px 8px",position:"sticky",top:52,height:"calc(100vh - 52px)",overflowY:"auto",background:"#fff",borderRight:`1px solid ${C.border}`}}>
+            <div style={{background:ROLE_CFG[cu.role]?.bg,borderRadius:8,padding:"7px 9px",marginBottom:9,border:`1px solid ${C.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:7}}><Av u={cu} size={24}/><div><div style={{fontSize:11,fontWeight:700,color:C.text}}>{cu.name.split(" ")[0]}</div><div style={{fontSize:9,color:C.sub}}>{cu.customTitle||ROLE_CFG[cu.role]?.label}</div></div></div>
+            </div>
+            {NAV.map(n=>(
+              <button key={n.id} className={`ni${tab===n.id?" act":""}`} onClick={()=>setTab(n.id)}
+                style={{width:"100%",display:"flex",alignItems:"center",gap:7,padding:"6px 9px",borderRadius:7,background:"transparent",color:tab===n.id?"#fff":C.sub,fontSize:12,fontWeight:600,marginBottom:1}}>
+                <span style={{width:16,textAlign:"center",fontSize:12}}>{n.icon}</span>
+                <span style={{flex:1,textAlign:"left"}}>{n.label}</span>
+                {(n.badge??0)>0&&<span style={{background:tab===n.id?"rgba(255,255,255,.25)":APP_CONFIG.accentColor,color:"#fff",borderRadius:8,padding:"0 5px",fontSize:9,fontWeight:700}}>{n.badge}</span>}
+              </button>
+            ))}
+            <div style={{marginTop:10,background:C.navyLight,borderRadius:8,padding:"8px 9px",border:`1px solid ${C.border}`}}>
+              <div style={{fontSize:9,fontWeight:700,color:C.navy,letterSpacing:".5px",marginBottom:5}}>{APP_CONFIG.appName.toUpperCase()}</div>
+              <div style={{fontSize:10,color:C.sub,lineHeight:1.8}}>
+                <div>📍 {APP_CONFIG.companyAddress.split(",")[0]}</div>
+                <div>📞 {APP_CONFIG.companyPhone}</div>
+                <div>🕐 {APP_CONFIG.companyHours}</div>
+              </div>
+              <div style={{marginTop:7,paddingTop:6,borderTop:`1px solid ${C.border}`,fontSize:9,color:"#bbb"}}>
+                Powered by <a href={APP_CONFIG.supportUrl} target="_blank" rel="noreferrer" style={{color:C.orange,fontWeight:700,textDecoration:"none"}}>{APP_CONFIG.supportCompany}</a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MAIN */}
+        <div style={{flex:1,minWidth:0,padding:mob?"10px 10px 70px":"16px 14px 24px",overflowX:"hidden"}}>
+
+          {/* ══ DASHBOARD ══ */}
+          {tab==="dashboard"&&(
+            <div>
+              <h1 style={{fontSize:mob?19:22,fontWeight:800,marginBottom:3}}>Guten Tag, {cu.name.split(" ")[0]} 👋</h1>
+              <p style={{color:C.sub,fontSize:12,marginBottom:13}}>{new Date().toLocaleDateString("de-DE",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+              <div style={{background:ROLE_CFG[cu.role]?.bg,border:`1px solid ${C.border}`,borderRadius:9,padding:"8px 12px",marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:15}}>{ROLE_CFG[cu.role]?.icon}</span>
+                <div><div style={{fontSize:12,fontWeight:700,color:ROLE_CFG[cu.role]?.color}}>{ROLE_CFG[cu.role]?.label} – {cu.entity}</div>
+                  <div style={{fontSize:11,color:C.sub}}>{isRoot(cu)?"Vollzugriff":`Zugriff: ${ALL_PERMS.filter(p=>hasPerm(cu,p.key)).map(p=>p.icon).join(" ")}`}</div></div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
+                {[
+                  {l:"Projekte",v:myProjs.length,i:"🏗",c:C.navy,b:C.navyLight},
+                  {l:"Aufträge offen",v:myRepairs.filter(r=>r.status==="open").length,i:"🔧",c:C.yellow,b:C.yellowL},
+                  {l:"Proj. gestoppt",v:myProjs.filter(p=>p.stopReason).length,i:"⛔",c:C.red,b:C.redL},
+                  {l:"Lager Warnung",v:lowStock.length,i:"📦",c:C.orange,b:C.orangeLight},
+                ].map(s=>(
+                  <div key={s.l} className="ch" style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`}}>
+                    <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
+                    <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+                    <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              {myProjs.filter(p=>p.stopReason).length>0&&(
+                <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
+                  <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
+                  {myProjs.filter(p=>p.stopReason).map(p=>(
+                    <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                      <span style={{fontSize:12,fontWeight:600}}>{p.name}</span>
+                      <span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
+                      <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+                  <div style={{fontWeight:800,fontSize:13}}>Meine Projekte</div>
+                  {hasPerm(cu,"projects")&&<button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle</button>}
+                </div>
+                {myProjs.slice(0,3).map(p=>(
+                  <div key={p.id} className="ch" onClick={()=>{setSelP(p);if(hasPerm(cu,"projects"))setTab("projects");}} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:8,border:`1px solid ${C.border}`,marginBottom:3,cursor:"pointer",background:C.bg}}>
+                    <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div><div style={{fontSize:10,color:C.sub}}>{p.location} · {totalHrs(p.worklog)}h / {p.expectedHours}h</div></div>
+                    <SB status={p.status}/>
+                  </div>
+                ))}
+              </div>
+              {hasPerm(cu,"schedule")&&(
+                <div style={{background:"#fff",borderRadius:10,padding:11,border:`1px solid ${C.border}`}}>
+                  <div style={{fontWeight:800,fontSize:13,marginBottom:7}}>📅 Meine Woche</div>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                    {DAYS.map((d,i)=>{const s=mySched.find(s=>s.day===i);const sc=s?SHIFTS_C[s.type]:null;return(
+                      <div key={i} style={{flex:"1 1 46px",minWidth:42,background:sc?sc.bg:C.bg,borderRadius:6,padding:"5px 3px",textAlign:"center",border:`1px solid ${C.border}`}}>
+                        <div style={{fontSize:9,fontWeight:700,color:C.sub}}>{d}</div>
+                        <div style={{fontSize:9,fontWeight:600,color:sc?.color||"#ccc",marginTop:1}}>{s?s.shift:"–"}</div>
+                      </div>
+                    );})}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ AUFGABEN ══ */}
+          {tab==="tasks"&&hasPerm(cu,"tasks")&&(
+            <div>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Aufgaben</h1>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:9}}>
+                {myTasks.map(t=>{const done=t.checklist.filter(c=>c.done).length;return(
+                  <div key={t.id} className="ch" style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><div style={{fontWeight:700,fontSize:13,flex:1,lineHeight:1.3}}>{t.title}</div><SB status={t.status}/></div>
+                    <div style={{display:"flex",gap:4,marginBottom:9,flexWrap:"wrap"}}><Tag>{t.dept}</Tag><Tag bg={C.yellowL} color={C.yellow}>📅 {t.due}</Tag></div>
+                    <div style={{background:C.bg,borderRadius:7,padding:8,border:`1px solid ${C.border}`}}>
+                      <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:5}}>CHECKLISTE {done}/{t.checklist.length}</div>
+                      {t.checklist.map((c,i)=>(
+                        <div key={i} onClick={()=>setTasks(p=>p.map(task=>task.id===t.id?{...task,checklist:task.checklist.map((ch,ci)=>ci===i?{...ch,done:!ch.done}:ch)}:task))}
+                          style={{display:"flex",alignItems:"center",gap:6,padding:"3px 0",cursor:"pointer"}}>
+                          <div style={{width:13,height:13,border:`2px solid ${c.done?C.orange:C.border}`,borderRadius:3,background:c.done?C.orange:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                            {c.done&&<span style={{color:"#fff",fontSize:8}}>✓</span>}
+                          </div>
+                          <span style={{fontSize:11,color:c.done?"#aaa":C.text,textDecoration:c.done?"line-through":"none"}}>{c.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{marginTop:7,background:C.border,borderRadius:3,height:3}}><div style={{width:`${Math.round((done/t.checklist.length)*100)}%`,height:"100%",background:C.orange,borderRadius:3,transition:"width .3s"}}/></div>
+                  </div>
+                );})}
+              </div>
+            </div>
+          )}
+
+          {/* ══ NACHRICHTEN ══ */}
+          {tab==="messages"&&hasPerm(cu,"messages")&&(
+            <div>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Nachrichten</h1>
+              {mob?(
+                chatPanel&&selChat?<div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",height:"calc(100vh - 168px)",overflow:"hidden"}}><ChatWin/></div>:(
+                  <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 9px"}}>
+                    {myCons.map(c=>{const cvs=convWith(c.id);const last=cvs[cvs.length-1];const unr=cvs.filter(m=>m.to===cu.id&&!m.read).length;return(
+                      <div key={c.id} onClick={()=>{setSelChat(c);setChatPanel(true);setMsgs(p=>p.map(m=>m.from===c.id&&m.to===cu.id?{...m,read:true}:m));}}
+                        style={{display:"flex",alignItems:"center",gap:8,padding:"8px",borderRadius:8,marginBottom:3,cursor:"pointer",border:`1.5px solid ${C.border}`,background:C.bg}}>
+                        <div style={{position:"relative"}}><Av u={c} size={32}/><div style={{position:"absolute",bottom:0,right:0,width:8,height:8,background:"#10B981",border:"1.5px solid #fff",borderRadius:"50%"}}/></div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontSize:12,fontWeight:700}}>{c.name}</div>{unr>0&&<span style={{background:C.orange,color:"#fff",borderRadius:8,padding:"0 5px",fontSize:10,fontWeight:700}}>{unr}</span>}</div>
+                          <div style={{display:"flex",gap:3,alignItems:"center"}}><RB role={c.role}/><Tag bg="#F9FAFB" color={C.sub}>{c.entity}</Tag></div>
+                          <div style={{fontSize:10,color:C.sub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{last?last.text:"–"}</div>
+                        </div>
+                      </div>
+                    );})}
+                  </div>
+                )
+              ):(
+                <div style={{display:"flex",gap:12,height:"calc(100vh - 142px)"}}>
+                  <div style={{width:250,flexShrink:0,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflowY:"auto"}}>
+                    <div style={{padding:"10px 9px 0"}}>
+                      {myCons.map(c=>{const cvs=convWith(c.id);const last=cvs[cvs.length-1];const unr=cvs.filter(m=>m.to===cu.id&&!m.read).length;return(
+                        <div key={c.id} onClick={()=>{setSelChat(c);setMsgs(p=>p.map(m=>m.from===c.id&&m.to===cu.id?{...m,read:true}:m));}}
+                          style={{display:"flex",alignItems:"center",gap:7,padding:"7px 8px",borderRadius:8,marginBottom:2,cursor:"pointer",background:selChat?.id===c.id?C.navyLight:"transparent",border:`1.5px solid ${selChat?.id===c.id?C.navy:"transparent"}`,transition:"all .15s"}}>
+                          <div style={{position:"relative"}}><Av u={c} size={30}/><div style={{position:"absolute",bottom:0,right:0,width:8,height:8,background:"#10B981",border:"1.5px solid #fff",borderRadius:"50%"}}/></div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontSize:12,fontWeight:700}}>{c.name}</div>{unr>0&&<span style={{background:C.orange,color:"#fff",borderRadius:8,padding:"0 5px",fontSize:9,fontWeight:700}}>{unr}</span>}</div>
+                            <div style={{display:"flex",gap:3,marginTop:1}}><RB role={c.role}/></div>
+                            <div style={{fontSize:10,color:C.sub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{last?last.text:"–"}</div>
+                          </div>
+                        </div>
+                      );})}
+                      <div style={{height:8}}/>
+                    </div>
+                  </div>
+                  <div style={{flex:1,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}><ChatWin/></div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ TEAM-FEED ══ */}
+          {tab==="feed"&&hasPerm(cu,"feed")&&(
+            <div style={{maxWidth:590}}>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Team-Feed</h1>
+              <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <Av u={cu} size={28}/>
+                  <textarea value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Update teilen…" rows={2} style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:13,background:C.bg,resize:"none",color:C.text}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"flex-end",marginTop:7}}><button className="bo" onClick={()=>{if(!newPost.trim())return;setFeed(p=>[{id:p.length+1,author:cu.id,type:"update",text:newPost,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),date:"03.05.2026",likes:0,comments:[]},...p]);setNewPost("");}} style={{opacity:newPost.trim()?1:.5}}>Posten</button></div>
+              </div>
+              {feed.map(f=>{const a=users.find(u=>u.id===f.author);return(
+                <div key={f.id} style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`,marginBottom:8}}>
+                  <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap",alignItems:"center"}}>
+                    <Av u={a} size={30}/>
+                    <div style={{flex:1}}><div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><div style={{fontWeight:700,fontSize:13}}>{a?.name}</div><RB role={a?.role}/></div><div style={{fontSize:10,color:C.sub}}>{f.date} · {f.time}</div></div>
+                    <span style={{background:f.type==="announcement"?C.navyLight:f.type==="repair"?C.greenL:C.orangeLight,color:f.type==="announcement"?C.navy:f.type==="repair"?C.green:C.orange,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700}}>
+                      {f.type==="announcement"?"📢 Ankündigung":f.type==="repair"?"🔧 Auftrag":"📌 Update"}
+                    </span>
+                  </div>
+                  <p style={{fontSize:13,color:C.text,lineHeight:1.6}}>{f.text}</p>
+                  <div style={{display:"flex",gap:10,marginTop:8,paddingTop:8,borderTop:`1px solid ${C.border}`}}>
+                    <button onClick={()=>setFeed(p=>p.map(x=>x.id===f.id?{...x,likes:x.likes+1}:x))} style={{background:"transparent",color:C.sub,fontSize:12}}>👍 {f.likes}</button>
+                    <button style={{background:"transparent",color:C.sub,fontSize:12}}>💬 {f.comments.length}</button>
+                  </div>
+                </div>
+              );})}
+            </div>
+          )}
+
+          {/* ══ FOTOGALERIE ══ */}
+          {tab==="gallery"&&hasPerm(cu,"gallery")&&(
+            <div>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Fotogalerie</h1>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:9}}>
+                {myRepairs.map(r=>(
+                  <div key={r.id} className="ch" style={{background:"#fff",borderRadius:10,overflow:"hidden",border:`1px solid ${C.border}`}}>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",height:95}}>
+                      {["before","after"].map(t=>(
+                        <div key={t} style={{background:t==="before"?C.yellowL:C.greenL,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRight:t==="before"?`1px solid ${C.border}`:"none",position:"relative",overflow:"hidden"}}>
+                          {r.photos[t]&&r.photos[t]!=="uploaded"?<img src={r.photos[t]} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                            :r.photos[t]==="uploaded"?<><span style={{fontSize:20}}>{t==="before"?"🔨":"✨"}</span></>
+                            :<span style={{fontSize:16,opacity:.15}}>📷</span>}
+                          <span style={{position:"absolute",bottom:2,right:2,fontSize:7,fontWeight:700,background:t==="before"?C.orange:C.green,color:"#fff",borderRadius:3,padding:"1px 3px"}}>{t==="before"?"VOR":"NACH"}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{padding:"7px 9px"}}><div style={{fontSize:11,fontWeight:700,marginBottom:3}}>{r.title}</div><SB status={r.status}/></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ══ PROJEKTE ══ */}
+          {tab==="projects"&&hasPerm(cu,"projects")&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <div><h1 style={{fontSize:mob?18:20,fontWeight:800}}>Projekte</h1>
+                  <p style={{color:C.sub,fontSize:12,marginTop:2}}>{myProjs.filter(p=>p.status==="active").length} aktiv</p></div>
+                {isRoot(cu)&&<button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}}>+ Neues Projekt</button>}
+              </div>
+              {mob?(
+                pPanel&&selP?<div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,height:"calc(100vh - 170px)",overflow:"hidden"}}><ProjDetail proj={selP}/></div>:(
+                  <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 9px"}}>
+                    {myProjs.map(p=>(
+                      <div key={p.id} className="ch" onClick={()=>{setSelP(p);setPPanel(true);}} style={{padding:"10px",borderRadius:8,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:4,cursor:"pointer",background:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}><div style={{fontSize:12,fontWeight:700,flex:1,lineHeight:1.3}}>{p.name}</div><SB status={p.status}/></div>
+                        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}><Tag bg="#F9FAFB" color={C.sub}>📍 {p.location}</Tag><Tag>{p.entity}</Tag></div>
+                        <div style={{fontSize:10,color:C.sub,marginTop:4}}>{totalHrs(p.worklog)}h / {p.expectedHours}h · {p.area}m²</div>
+                        {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:3}}>⛔ {p.stopReason.slice(0,45)}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )
+              ):(
+                <div style={{display:"flex",gap:12}}>
+                  <div style={{width:290,flexShrink:0,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflowY:"auto",maxHeight:"calc(100vh - 150px)"}}>
+                    <div style={{padding:"10px 9px 0"}}>
+                      {myProjs.map(p=>(
+                        <div key={p.id} className="ch" onClick={()=>setSelP(p)} style={{padding:"10px",borderRadius:8,border:`1.5px solid ${selP?.id===p.id?C.navy:p.stopReason?"#FECACA":C.border}`,marginBottom:4,cursor:"pointer",background:selP?.id===p.id?C.navyLight:C.bg,transition:"all .15s"}}>
+                          <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}><div style={{fontSize:12,fontWeight:700,flex:1,lineHeight:1.3}}>{p.name}</div><SB status={p.status}/></div>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:3}}><Tag bg="#F9FAFB" color={C.sub}>{p.location}</Tag></div>
+                          <div style={{fontSize:10,color:C.sub}}>{totalHrs(p.worklog)}h / {p.expectedHours}h · {p.area}m²</div>
+                          {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:2}}>⛔ {p.stopReason.slice(0,38)}</div>}
+                        </div>
+                      ))}
+                      <div style={{height:10}}/>
+                    </div>
+                  </div>
+                  <div style={{flex:1,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,minWidth:0,maxHeight:"calc(100vh - 150px)",overflow:"hidden"}}><ProjDetail proj={selP}/></div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ AUFTRÄGE ══ */}
+          {tab==="repairs"&&hasPerm(cu,"repairs")&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <div>
+                  <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Aufträge & Reparaturen</h1>
+                  <p style={{color:C.sub,fontSize:12,marginTop:2}}>
+                    {myRepairs.filter(r=>r.status==="open").length} offen ·{" "}
+                    {myRepairs.filter(r=>r.status==="in-progress").length} aktiv ·{" "}
+                    {myRepairs.filter(r=>r.status==="stopped").length} gestoppt ·{" "}
+                    {myRepairs.filter(r=>r.status==="done").length} erledigt
+                  </p>
+                </div>
+                {(isRoot(cu)||cu.role==="va")&&<button className="bo" onClick={()=>{setFR(BLANK_R);setRMatRows([]);setMAddR(true);}}>+ Neuer Auftrag</button>}
+              </div>
+              {mob?(
+                rPanel&&selR?
+                <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,height:"calc(100vh - 168px)",overflow:"hidden"}}>
+                  <RepairDetail r={selR}/>
+                </div>:(
+                  <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 9px"}}>
+                    {myRepairs.map(r=>{
+                      const asgn=users.find(u=>u.id===r.assignedTo);
+                      return(
+                        <div key={r.id} className="ch" onClick={()=>{setSelR(r);setRPanel(true);setNC("");setNRM({name:"",qty:1,unit:"Stk"});}}
+                          style={{padding:"10px",borderRadius:8,border:`1.5px solid ${r.status==="stopped"?"#FECACA":C.border}`,marginBottom:4,cursor:"pointer",background:C.bg}}>
+                          <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}><div style={{fontSize:12,fontWeight:700,flex:1,lineHeight:1.3}}>{r.title}</div><PD priority={r.priority}/></div>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:3}}><SB status={r.status}/><Tag bg="#F9FAFB" color={C.sub}>📍 {r.room}</Tag></div>
+                          <div style={{display:"flex",alignItems:"center",gap:5}}><Av u={asgn} size={16}/><span style={{fontSize:10,color:C.sub}}>{asgn?.name}</span></div>
+                          {r.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:3}}>⛔ {r.stopReason.slice(0,40)}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
+              ):(
+                <div style={{display:"flex",gap:12,height:"calc(100vh - 150px)"}}>
+                  <div style={{width:290,flexShrink:0,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflowY:"auto"}}>
+                    <div style={{padding:"10px 9px 0"}}>
+                      {myRepairs.map(r=>{
+                        const asgn=users.find(u=>u.id===r.assignedTo);
+                        return(
+                          <div key={r.id} className="ch" onClick={()=>{setSelR(r);setNC("");setNRM({name:"",qty:1,unit:"Stk"});}}
+                            style={{padding:"10px",borderRadius:8,border:`1.5px solid ${selR?.id===r.id?C.navy:r.status==="stopped"?"#FECACA":C.border}`,marginBottom:4,cursor:"pointer",background:selR?.id===r.id?C.navyLight:C.bg,transition:"all .15s"}}>
+                            <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}><div style={{fontSize:12,fontWeight:700,flex:1,lineHeight:1.3}}>{r.title}</div><PD priority={r.priority}/></div>
+                            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:4}}><SB status={r.status}/>{r.type&&<Tag bg={C.orangeLight} color={C.orange}>{r.type}</Tag>}</div>
+                            <div style={{display:"flex",alignItems:"center",gap:5}}>
+                              <Av u={asgn} size={16}/><span style={{fontSize:10,color:C.sub}}>{asgn?.name}</span>
+                              {(r.photos.before||r.photos.after)&&<span style={{fontSize:10,background:C.greenL,color:C.green,borderRadius:4,padding:"0 5px",marginLeft:"auto"}}>📷</span>}
+                              {r.comments?.length>0&&<span style={{fontSize:10,background:C.navyLight,color:C.navy,borderRadius:4,padding:"0 5px"}}>💬{r.comments.length}</span>}
+                            </div>
+                            {r.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:2}}>⛔ {r.stopReason.slice(0,34)}</div>}
+                          </div>
+                        );
+                      })}
+                      <div style={{height:10}}/>
+                    </div>
+                  </div>
+                  <div style={{flex:1,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,minWidth:0,overflow:"hidden"}}>
+                    <RepairDetail r={selR}/>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {/* ══ ARBEITSPLAN ══ */}
+          {tab==="schedule"&&hasPerm(cu,"schedule")&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Arbeitsplan KW 19</h1>
+                {(isRoot(cu)||cu.role==="va")&&<button className="bo" onClick={()=>setMShift(true)}>+ Schicht eintragen</button>}
+              </div>
+              <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",minWidth:500}}>
+                  <thead><tr style={{background:C.navy}}>
+                    <th style={{padding:"8px 11px",textAlign:"left",fontSize:12,color:"#fff",fontWeight:700,minWidth:120}}>Mitarbeiter</th>
+                    {DAYS.map((d,i)=><th key={i} style={{padding:"7px 5px",textAlign:"center",fontSize:11,color:"#fff",fontWeight:700,minWidth:65}}>{d}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {(cu.role==="ma"||cu.role==="hotel"?[cu]:users.filter(u=>u.active&&(isRoot(cu)||u.dept===cu.dept||u.entity===cu.entity))).map(usr=>(
+                      <tr key={usr.id} style={{borderBottom:`1px solid ${C.border}`}}>
+                        <td style={{padding:"7px 11px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><Av u={usr} size={20}/><div><div style={{fontSize:11,fontWeight:700}}>{usr.name.split(" ")[0]}</div><div style={{fontSize:9,color:C.sub}}>{usr.entity}</div></div></div></td>
+                        {DAYS.map((_,di)=>{const s=sched.find(s=>s.userId===usr.id&&s.day===di);const sc=s?SHIFTS_C[s.type]:null;return(
+                          <td key={di} style={{padding:"4px 3px",textAlign:"center"}}>
+                            {sc?<div style={{background:sc.bg,borderRadius:5,padding:"3px 2px"}}><div style={{fontSize:9,fontWeight:700,color:sc.color}}>{s.shift}</div><div style={{fontSize:8,color:sc.color,marginTop:1}}>{sc.label}</div></div>:<div style={{color:"#ddd",fontSize:10}}>–</div>}
+                          </td>
+                        );})}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ══ LAGER ══ */}
+          {tab==="warehouse"&&hasPerm(cu,"warehouse")&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Lagerverwaltung</h1>
+                <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                  <button className="bo" onClick={()=>setMWMat(true)}>+ Material</button>
+                  <button className="bp" onClick={()=>setMOrder(true)}>+ Bestellung</button>
+                  <button onClick={()=>setPdfContent(buildPdfHtml("warehouse",{mats,orders},{by:cu.name}))} style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 11px",fontSize:12,fontWeight:600}}>📄 PDF</button>
+                </div>
+              </div>
+              {lowStock.length>0&&<div style={{background:C.yellowL,border:"1px solid #FDE68A",borderRadius:9,padding:"8px 11px",marginBottom:10,display:"flex",gap:8,alignItems:"center"}}><span style={{fontSize:16}}>⚠</span><div><div style={{fontSize:12,fontWeight:700,color:C.yellow}}>Lagerbestand niedrig</div><div style={{fontSize:11,color:C.sub}}>{lowStock.map(m=>`${m.name} (${m.qty} ${m.unit})`).join(" · ")}</div></div></div>}
+              <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,marginBottom:11,overflow:"auto"}}>
+                <div style={{padding:"10px 12px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13}}>📦 Materialbestand</div>
+                <table className="list">
+                  <thead><tr><th>Material</th><th>Kategorie</th><th>Bestand</th><th>Einheit</th><th>Mindest</th><th>Preis</th><th>Status</th></tr></thead>
+                  <tbody>{mats.map(m=>(
+                    <tr key={m.id}>
+                      <td style={{fontWeight:600}}>{m.name}</td><td><Tag>{m.category}</Tag></td>
+                      <td style={{fontWeight:700,color:m.qty<=m.minQty?C.red:C.text}}>{m.qty}</td>
+                      <td>{m.unit}</td><td style={{color:C.sub}}>{m.minQty}</td><td style={{color:C.sub}}>{m.price.toFixed(2)} €</td>
+                      <td>{m.qty<=m.minQty?<span style={{background:C.redL,color:C.red,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>⚠ Niedrig</span>:<span style={{background:C.greenL,color:C.green,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>✓ OK</span>}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+              <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"auto"}}>
+                <div style={{padding:"10px 12px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13}}>🔄 Bestellungen</div>
+                <table className="list">
+                  <thead><tr><th>Typ</th><th>Material</th><th>Menge</th><th>Einheit</th><th>Lieferant</th><th>Datum</th><th>Betrag</th><th>Status</th></tr></thead>
+                  <tbody>{orders.map(o=>(
+                    <tr key={o.id}>
+                      <td><span style={{background:o.type==="eingang"?C.greenL:C.orangeLight,color:o.type==="eingang"?C.green:C.orange,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{o.type==="eingang"?"📥 Eingang":"📤 Ausgang"}</span></td>
+                      <td style={{fontWeight:600}}>{o.material}</td><td>{o.qty}</td><td>{o.unit}</td><td style={{color:C.sub}}>{o.supplier}</td><td style={{color:C.sub}}>{o.date}</td>
+                      <td style={{fontWeight:700}}>{o.priceTotal?.toFixed(2)||"–"} €</td>
+                      <td><span style={{background:o.status==="ausstehend"?C.yellowL:C.greenL,color:o.status==="ausstehend"?C.yellow:C.green,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{o.status}</span></td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ══ MITARBEITER ══ */}
+          {tab==="users"&&isRoot(cu)&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Mitarbeiterverwaltung</h1>
+                <button className="bo" onClick={()=>{setFUser(BLANK_USER);setMUser("new");}}>+ Mitarbeiter hinzufügen</button>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:9}}>
+                {users.map(u=>(
+                  <div key={u.id} className="ch" style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`,opacity:u.active?1:.6}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <Av u={u} size={36}/><div style={{flex:1}}><div style={{fontWeight:700,fontSize:14}}>{u.name}</div><RB role={u.role}/></div>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:u.active?"#10B981":"#D1D5DB"}}/>
+                    </div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}><Tag>{u.dept}</Tag><Tag bg="#F9FAFB" color={C.sub}>{u.entity}</Tag></div>
+                    <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",marginBottom:8,border:`1px solid ${C.border}`}}>
+                      <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:4}}>BERECHTIGUNGEN</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                        {isRoot(u)?<span style={{background:C.orangeLight,color:C.orange,borderRadius:4,padding:"1px 5px",fontSize:10,fontWeight:700}}>👑 Vollzugriff</span>
+                        :ALL_PERMS.map(p=>(
+                          <span key={p.key} title={p.label} style={{background:u.perms?.[p.key]?C.greenL:C.redL,color:u.perms?.[p.key]?C.green:C.red,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:600}}>
+                            {u.perms?.[p.key]?"✓":"✗"} {p.icon}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:5}}>
+                      <button onClick={()=>{setFUser({...u});setMUser(u);}} style={{flex:1,background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"5px",fontSize:11,fontWeight:600}}>✏ Bearbeiten</button>
+                      <button onClick={()=>setUsers(p=>p.map(x=>x.id===u.id?{...x,active:!x.active}:x))} style={{flex:1,background:u.active?C.redL:C.greenL,color:u.active?C.red:C.green,border:`1px solid ${u.active?"#FECACA":"#6EE7B7"}`,borderRadius:7,padding:"5px",fontSize:11,fontWeight:600}}>
+                        {u.active?"Deaktivieren":"Aktivieren"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ══ BERICHTE ══ */}
+          {tab==="reports"&&hasPerm(cu,"reports")&&(
+            <div>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Berichte & PDF-Export</h1>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:9}}>
+                {[
+                  {t:"Lager & Bestellungen",d:"Materialien & Bestellübersicht",i:"📦",f:()=>setPdfContent(buildPdfHtml("warehouse",{mats,orders},{by:cu.name}))},
+                  ...myProjs.map(p=>({t:`Projekt: ${p.name.slice(0,22)}`,d:`${p.startDate} · ${totalHrs(p.worklog)}h / ${p.expectedHours}h geplant`,i:"🏗",f:()=>setPdfContent(buildPdfHtml("project",p,{by:cu.name}))})),
+                ].map((r,i)=>(
+                  <div key={i} className="ch" style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`}}>
+                    <div style={{fontSize:22,marginBottom:7}}>{r.i}</div>
+                    <div style={{fontWeight:700,fontSize:13,marginBottom:3}}>{r.t}</div>
+                    <div style={{fontSize:11,color:C.sub,marginBottom:10,lineHeight:1.4}}>{r.d}</div>
+                    <button onClick={r.f} className="bp" style={{width:"100%",padding:"7px",fontSize:12}}>📄 PDF erstellen</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ══ SUPPORT ══ */}
+          {tab==="support"&&(
+            <div style={{maxWidth:600}}>
+              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:4}}>Support & Hilfe</h1>
+              <p style={{color:C.sub,fontSize:12,marginBottom:18}}>Bei technischen Problemen oder Fragen zur Anwendung</p>
+
+              {/* Main support card */}
+              <div style={{background:"#fff",borderRadius:14,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:12,boxShadow:"0 2px 12px rgba(13,59,110,.06)"}}>
+                <div style={{background:`linear-gradient(135deg,${C.navy},#1A5C9A)`,padding:"20px 22px",display:"flex",alignItems:"center",gap:14}}>
+                  <div style={{width:50,height:50,background:"rgba(255,255,255,.15)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🔵</div>
+                  <div>
+                    <div style={{fontSize:18,fontWeight:800,color:"#fff"}}>{APP_CONFIG.supportCompany}</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,.65)",marginTop:2}}>Offizieller Support-Partner für {APP_CONFIG.appName}</div>
+                  </div>
+                </div>
+
+                <div style={{padding:"18px 20px"}}>
+                  {/* Contact options */}
+                  {[
+                    {icon:"✉️", label:"E-Mail", value:APP_CONFIG.supportEmail, sub:"Für detaillierte Anfragen und Dokumente", href:`mailto:${APP_CONFIG.supportEmail}`, btnLabel:"E-Mail senden", btnStyle:"bo"},
+                    {icon:"📞", label:"Telefon", value:APP_CONFIG.supportPhone, sub:APP_CONFIG.supportHours, href:`tel:${APP_CONFIG.supportPhone.replace(/\s/g,"")}`, btnLabel:"Anrufen", btnStyle:"bgr"},
+                    {icon:"🌐", label:"Website", value:APP_CONFIG.supportUrl.replace("https://",""), sub:APP_CONFIG.supportNote, href:APP_CONFIG.supportUrl, btnLabel:"Website öffnen", btnStyle:"bp"},
+                  ].map((c,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"13px 0",borderBottom:i<2?`1px solid ${C.border}`:"none"}}>
+                      <div style={{width:42,height:42,background:C.bg,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{c.icon}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:".4px",marginBottom:2}}>{c.label.toUpperCase()}</div>
+                        <div style={{fontSize:14,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.value}</div>
+                        <div style={{fontSize:11,color:C.sub,marginTop:1}}>{c.sub}</div>
+                      </div>
+                      <a href={c.href} target={c.btnStyle==="bp"?"_blank":"_self"} rel="noreferrer"
+                        style={{background:c.btnStyle==="bo"?C.orange:c.btnStyle==="bgr"?C.green:C.navy,color:"#fff",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:600,textDecoration:"none",whiteSpace:"nowrap",flexShrink:0}}>
+                        {c.btnLabel}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Response time badge */}
+              <div style={{background:C.greenL,border:`1px solid #6EE7B7`,borderRadius:10,padding:"11px 16px",display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                <span style={{fontSize:20}}>⚡</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:C.green}}>Schnelle Antwortzeit</div>
+                  <div style={{fontSize:12,color:C.sub}}>{APP_CONFIG.supportNote} — {APP_CONFIG.supportHours}</div>
+                </div>
+              </div>
+
+              {/* App info */}
+              <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:"13px 16px"}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:".4px",marginBottom:10}}>APP-INFORMATIONEN</div>
+                {[
+                  ["Anwendung",  APP_CONFIG.appName],
+                  ["Version",    "1.0.0"],
+                  ["Betreiber",  APP_CONFIG.companyName],
+                  ["Support",    APP_CONFIG.supportCompany],
+                  ["Plattform",  APP_CONFIG.supportUrl],
+                ].map(([k,v])=>(
+                  <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1px solid ${C.border}`,fontSize:13}}>
+                    <span style={{color:C.sub}}>{k}</span>
+                    <span style={{fontWeight:600,color:C.text}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {mob&&(
+        <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:`2px solid ${C.border}`,padding:"4px 0",zIndex:300,display:"flex",justifyContent:"space-around",alignItems:"center",boxShadow:"0 -2px 8px rgba(13,59,110,.1)"}}>
+          {[...NAV.slice(0,5), NAV.find(n=>n.id==="support")].filter(Boolean).map(n=>(
+            <button key={n.id} onClick={()=>{setTab(n.id);if(n.id!=="repairs")setRPanel(false);if(n.id!=="projects")setPPanel(false);if(n.id!=="messages"){setSelChat(null);setChatPanel(false);}}}
+              style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1,background:"transparent",padding:"3px 3px",position:"relative",minWidth:34}}>
+              <span style={{fontSize:14,opacity:tab===n.id?1:.35}}>{n.icon}</span>
+              <span style={{fontSize:8,fontWeight:700,color:tab===n.id?C.navy:"#aaa"}}>{n.label}</span>
+              {(n.badge??0)>0&&<span style={{position:"absolute",top:0,right:1,background:C.orange,color:"#fff",borderRadius:6,padding:"0 3px",fontSize:8,fontWeight:700}}>{n.badge}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ══ MODALS ══ */}
+
+      {/* ADD/EDIT USER */}
+      {mUser&&<Modal title={mUser==="new"?"👤 Mitarbeiter hinzufügen":"✏ Mitarbeiter bearbeiten"} onClose={()=>setMUser(null)} w={500}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:11}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>NAME</Lbl><Inp value={fUser.name} onChange={e=>setFUser(v=>({...v,name:e.target.value}))} placeholder="Vor- und Nachname"/></div>
+          <div><Lbl>ROLLE</Lbl><Sel value={fUser.role} onChange={e=>setFUser(v=>({...v,role:e.target.value}))}>{Object.entries(ROLE_CFG).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}</Sel></div>
+          <div><Lbl>ABTEILUNG</Lbl><Sel value={fUser.dept} onChange={e=>setFUser(v=>({...v,dept:e.target.value}))}>{DEPTS.map(d=><option key={d}>{d}</option>)}</Sel></div>
+          <div><Lbl>EINHEIT / FIRMA</Lbl><Sel value={fUser.entity} onChange={e=>setFUser(v=>({...v,entity:e.target.value}))}>{ENTITIES.map(e=><option key={e}>{e}</option>)}</Sel></div>
+          <div><Lbl>PIN (4–6 stellig)</Lbl><Inp type="password" value={fUser.pin} onChange={e=>setFUser(v=>({...v,pin:e.target.value}))} placeholder="z.B. 7890" maxLength={6}/></div>
+        </div>
+        {(fUser.role!=="admin"&&fUser.role!=="it")&&(
+          <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:12,border:`1px solid ${C.border}`}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:9}}>🔐 BERECHTIGUNGEN</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {ALL_PERMS.map(p=>(
+                <label key={p.key} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",borderRadius:7,background:"#fff",border:`1.5px solid ${fUser.perms?.[p.key]?C.navy:C.border}`,cursor:"pointer"}} onClick={()=>setFUser(v=>({...v,perms:{...v.perms,[p.key]:!v.perms?.[p.key]}}))}>
+                  <div style={{width:17,height:17,borderRadius:4,background:fUser.perms?.[p.key]?C.navy:"#fff",border:`2px solid ${fUser.perms?.[p.key]?C.navy:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+                    {fUser.perms?.[p.key]&&<span style={{color:"#fff",fontSize:10,lineHeight:1}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:12,fontWeight:500}}>{p.icon} {p.label}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{marginTop:8,fontSize:10,color:C.sub,background:C.yellowL,borderRadius:5,padding:"4px 8px",border:"1px solid #FDE68A"}}>
+              ⚠ Lager & Berichte: Nur Manager & IT haben standardmäßig vollen Zugriff.
+            </div>
+          </div>
+        )}
+        {(fUser.role==="admin"||fUser.role==="it")&&<div style={{background:C.orangeLight,borderRadius:8,padding:"7px 10px",marginBottom:12,border:`1px solid ${C.orange}`}}><span style={{fontSize:12,fontWeight:700,color:C.orange}}>👑 Vollzugriff auf alle Bereiche</span></div>}
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveUser} style={{flex:1,padding:"9px",fontSize:13}}>{mUser==="new"?"Hinzufügen":"Speichern"}</button><button className="bg" onClick={()=>setMUser(null)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* NEW PROJECT - with inline material + request rows that stay open */}
+      {mProj&&<Modal title="🏗 Neues Projekt anlegen" onClose={()=>setMProj(false)} w={620}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:11}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>PROJEKTNAME</Lbl><Inp value={fProj.name} onChange={e=>setFProj(v=>({...v,name:e.target.value}))} placeholder="z.B. Trockenbau Wandesbeker Str."/></div>
+          <div><Lbl>STANDORT / OBJEKT</Lbl><Inp value={fProj.location} onChange={e=>setFProj(v=>({...v,location:e.target.value}))} placeholder="z.B. Wandesbeker Ch. 19"/></div>
+          <div><Lbl>EINHEIT / FIRMA</Lbl><Sel value={fProj.entity} onChange={e=>setFProj(v=>({...v,entity:e.target.value}))}>{ENTITIES.map(e=><option key={e}>{e}</option>)}</Sel></div>
+          <div><Lbl>STARTDATUM</Lbl><Inp value={fProj.startDate} onChange={e=>setFProj(v=>({...v,startDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+          <div><Lbl>ENDDATUM</Lbl><Inp value={fProj.endDate} onChange={e=>setFProj(v=>({...v,endDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+          <div><Lbl>FLÄCHE (m²)</Lbl><Inp type="number" value={fProj.area} onChange={e=>setFProj(v=>({...v,area:e.target.value}))} placeholder="0"/></div>
+          <div><Lbl>ANZAHL RÄUME</Lbl><Inp type="number" value={fProj.rooms} onChange={e=>setFProj(v=>({...v,rooms:e.target.value}))} placeholder="0"/></div>
+          <div><Lbl>ETAGEN</Lbl><Inp type="number" value={fProj.floors} onChange={e=>setFProj(v=>({...v,floors:e.target.value}))} placeholder="1"/></div>
+          <div><Lbl>GEPLANTE STUNDEN</Lbl><Inp type="number" value={fProj.expectedHours} onChange={e=>setFProj(v=>({...v,expectedHours:e.target.value}))} placeholder="40"/></div>
+          <div><Lbl>VERANTWORTLICH</Lbl><Sel value={fProj.responsibleId} onChange={e=>setFProj(v=>({...v,responsibleId:+e.target.value}))}>{users.filter(u=>u.active&&(u.role==="va"||u.role==="admin")).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</Sel></div>
+        </div>
+        {/* Wer kann bearbeiten */}
+        <div style={{marginBottom:11}}>
+          <Lbl>WER DARF BEARBEITEN?</Lbl>
+          <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px 10px",border:`1px solid ${C.border}`}}>
+            {users.filter(u=>u.active).map(u=>{const sel=fProj.editableBy.includes(u.id);return(
+              <div key={u.id} onClick={()=>setFProj(v=>({...v,editableBy:sel?v.editableBy.filter(i=>i!==u.id):[...v.editableBy,u.id]}))}
+                style={{display:"flex",alignItems:"center",gap:5,padding:"4px 8px",borderRadius:6,background:sel?C.navyLight:"#fff",border:`1.5px solid ${sel?C.navy:C.border}`,cursor:"pointer"}}>
+                <Av u={u} size={16}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
+                {sel&&<span style={{fontSize:9,color:C.navy,fontWeight:700}}>✓</span>}
+              </div>
+            );})}
+          </div>
+        </div>
+        {/* Wer kann sehen */}
+        <div style={{marginBottom:11}}>
+          <Lbl>WER DARF SEHEN?</Lbl>
+          <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px 10px",border:`1px solid ${C.border}`}}>
+            {users.filter(u=>u.active).map(u=>{const sel=fProj.visibleTo.includes(u.id)||fProj.editableBy.includes(u.id);return(
+              <div key={u.id} onClick={()=>setFProj(v=>({...v,visibleTo:v.visibleTo.includes(u.id)?v.visibleTo.filter(i=>i!==u.id):[...v.visibleTo,u.id]}))}
+                style={{display:"flex",alignItems:"center",gap:5,padding:"4px 8px",borderRadius:6,background:sel?C.greenL:"#fff",border:`1.5px solid ${sel?C.green:C.border}`,cursor:"pointer"}}>
+                <Av u={u} size={16}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
+                {sel&&<span style={{fontSize:9,color:C.green,fontWeight:700}}>✓</span>}
+              </div>
+            );})}
+          </div>
+        </div>
+        <div style={{marginBottom:11}}><Lbl>NOTIZEN</Lbl><Txt value={fProj.notes} onChange={e=>setFProj(v=>({...v,notes:e.target.value}))} rows={2} placeholder="Beschreibung, besondere Anforderungen…"/></div>
+
+        {/* Inline: Material hinzufügen — bleibt offen */}
+        <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:11,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>📦 MATERIALIEN HINZUFÜGEN</div>
+          {matList.map((m,i)=>(
+            <div key={i} className="row-in" style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+              <span style={{fontSize:12,fontWeight:600,flex:2,minWidth:100}}>{m.name}</span>
+              <span style={{fontSize:11,color:C.sub}}>{m.qty} {m.unit} · {m.pricePerUnit.toFixed(2)}€/Einh. · {m.total.toFixed(2)}€</span>
+              <button onClick={()=>setMatList(p=>p.filter((_,ri)=>ri!==i))} style={{background:C.redL,color:C.red,border:"none",borderRadius:5,padding:"2px 7px",fontSize:11,cursor:"pointer"}}>✕</button>
+            </div>
+          ))}
+          <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr auto",gap:6,alignItems:"end"}}>
+            <div><Lbl>MATERIAL</Lbl><Inp value={newMatRow.name} onChange={e=>setNMR(v=>({...v,name:e.target.value}))} placeholder="Materialname"/></div>
+            <div><Lbl>MENGE</Lbl><Inp type="number" value={newMatRow.qty} onChange={e=>setNMR(v=>({...v,qty:e.target.value}))} min={1}/></div>
+            <div><Lbl>EINHEIT</Lbl><Sel value={newMatRow.unit} onChange={e=>setNMR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+            <div><Lbl>€/Einheit</Lbl><Inp type="number" value={newMatRow.pricePerUnit} onChange={e=>setNMR(v=>({...v,pricePerUnit:+e.target.value}))} step="0.01" min={0}/></div>
+            <div><Lbl>LIEFERANT</Lbl><Inp value={newMatRow.supplier} onChange={e=>setNMR(v=>({...v,supplier:e.target.value}))} placeholder="Lieferant"/></div>
+            <div><Lbl>LIEFERDATUM</Lbl><Inp value={newMatRow.deliveryDate} onChange={e=>setNMR(v=>({...v,deliveryDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+            <div style={{paddingTop:16}}><button className="bgr" onClick={()=>{if(!newMatRow.name.trim())return;const total=+newMatRow.qty*(+newMatRow.pricePerUnit);setMatList(p=>[...p,{...newMatRow,qty:+newMatRow.qty,pricePerUnit:+newMatRow.pricePerUnit,total,status:"ausstehend",note:""}]);setNMR({name:"",qty:1,unit:"Stk",pricePerUnit:0,supplier:"",deliveryDate:"",note:""});}} style={{padding:"9px 11px",whiteSpace:"nowrap"}}>+ Zeile</button></div>
+          </div>
+        </div>
+
+        {/* Inline: Materialanfragen — bleibt offen */}
+        <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:14,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>📋 MATERIALANFRAGEN (optional)</div>
+          {reqList.map((r,i)=>(
+            <div key={i} className="row-in" style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+              <span style={{fontSize:12,fontWeight:600,flex:2}}>{r.material}</span>
+              <span style={{fontSize:11,color:C.sub}}>{r.qty} {r.unit} · {r.urgency==="dringend"?"⚠ Dringend":"Normal"}</span>
+              <button onClick={()=>setReqList(p=>p.filter((_,ri)=>ri!==i))} style={{background:C.redL,color:C.red,border:"none",borderRadius:5,padding:"2px 7px",fontSize:11,cursor:"pointer"}}>✕</button>
+            </div>
+          ))}
+          <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 2fr auto",gap:6,alignItems:"end"}}>
+            <div><Lbl>MATERIAL</Lbl><Inp value={newReqRow.material} onChange={e=>setNRR(v=>({...v,material:e.target.value}))} placeholder="Materialname"/></div>
+            <div><Lbl>MENGE</Lbl><Inp type="number" value={newReqRow.qty} onChange={e=>setNRR(v=>({...v,qty:e.target.value}))} min={1}/></div>
+            <div><Lbl>EINHEIT</Lbl><Sel value={newReqRow.unit} onChange={e=>setNRR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+            <div><Lbl>DRINGLICHKEIT</Lbl><Sel value={newReqRow.urgency} onChange={e=>setNRR(v=>({...v,urgency:e.target.value}))}><option value="normal">Normal</option><option value="dringend">⚠ Dringend</option></Sel></div>
+            <div><Lbl>NOTIZ</Lbl><Inp value={newReqRow.note} onChange={e=>setNRR(v=>({...v,note:e.target.value}))} placeholder="Optional…"/></div>
+            <div style={{paddingTop:16}}><button className="bgr" onClick={()=>{if(!newReqRow.material.trim())return;setReqList(p=>[...p,{...newReqRow,qty:+newReqRow.qty,id:Date.now(),by:cu.id,date:"",status:"ausstehend"}]);setNRR({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});}} style={{padding:"9px 11px",whiteSpace:"nowrap"}}>+ Zeile</button></div>
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveProj} style={{flex:1,padding:"9px",fontSize:13}}>Projekt erstellen</button><button className="bg" onClick={()=>setMProj(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* MATERIALANFRAGE (in existing project) */}
+      {mReq&&<Modal title="📋 Materialanfrage senden" onClose={()=>setMReq(null)} w={520}>
+        <div style={{background:C.navyLight,borderRadius:8,padding:"7px 10px",marginBottom:11,fontSize:12,color:C.navy,fontWeight:600}}>
+          Projekt: {projs.find(p=>p.id===mReq)?.name}
+        </div>
+        <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>Anfragen hinzufügen — Formular bleibt offen bis Sie fertig sind</div>
+        {/* Existing rows */}
+        {projs.find(p=>p.id===mReq)?.requests.map((r,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",background:C.bg,borderRadius:7,marginBottom:4,border:`1px solid ${C.border}`}}>
+            <span style={{fontSize:12,fontWeight:600,flex:2}}>{r.material}</span>
+            <span style={{fontSize:11,color:C.sub}}>{r.qty} {r.unit}</span>
+            <span style={{background:r.urgency==="dringend"?C.redL:C.bg,color:r.urgency==="dringend"?C.red:C.sub,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{r.urgency==="dringend"?"⚠ Dringend":"Normal"}</span>
+            <span style={{background:r.status==="genehmigt"?C.greenL:C.yellowL,color:r.status==="genehmigt"?C.green:C.yellow,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{r.status}</span>
+          </div>
+        ))}
+        {/* Input row */}
+        <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",border:`1px solid ${C.border}`,marginBottom:11}}>
+          <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <div><Lbl>MATERIAL</Lbl><Inp value={newReqRow.material} onChange={e=>setNRR(v=>({...v,material:e.target.value}))} placeholder="z.B. Spachtelmasse"/></div>
+            <div><Lbl>MENGE</Lbl><Inp type="number" value={newReqRow.qty} onChange={e=>setNRR(v=>({...v,qty:e.target.value}))} min={1}/></div>
+            <div><Lbl>EINHEIT</Lbl><Sel value={newReqRow.unit} onChange={e=>setNRR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+            <div><Lbl>DRINGLICHKEIT</Lbl><Sel value={newReqRow.urgency} onChange={e=>setNRR(v=>({...v,urgency:e.target.value}))}><option value="normal">Normal</option><option value="dringend">⚠ Dringend</option></Sel></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"3fr 1fr",gap:8}}>
+            <div><Lbl>NOTIZ (optional)</Lbl><Inp value={newReqRow.note} onChange={e=>setNRR(v=>({...v,note:e.target.value}))} placeholder="z.B. Für zweite Wand benötigt"/></div>
+            <div style={{paddingTop:15}}><button className="bgr" onClick={()=>addProjReq(mReq)} style={{width:"100%",padding:"9px",fontSize:13}}>+ Anfrage<br/><span style={{fontSize:10,opacity:.8}}>& PDF erstellen</span></button></div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:7,marginTop:4}}><button className="bo" onClick={()=>setMReq(null)} style={{flex:1,padding:"8px",fontSize:13}}>Fertig & Schließen</button></div>
+      </Modal>}
+
+      {/* ARBEITSZEIT EINTRAGEN */}
+      {mLog&&<Modal title="⏱ Arbeitszeit eintragen" onClose={()=>setMLog(null)} w={420}>
+        <div style={{background:C.navyLight,borderRadius:8,padding:"7px 10px",marginBottom:11,fontSize:12,color:C.navy,fontWeight:600}}>
+          Projekt: {projs.find(p=>p.id===mLog)?.name}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div><Lbl>VON</Lbl><Inp value={newLogRow.start} onChange={e=>setNLR(v=>({...v,start:e.target.value}))} placeholder="07:00"/></div>
+          <div><Lbl>BIS</Lbl><Inp value={newLogRow.end} onChange={e=>setNLR(v=>({...v,end:e.target.value}))} placeholder="15:00"/></div>
+        </div>
+        {newLogRow.start&&newLogRow.end&&(
+          <div style={{background:C.greenL,borderRadius:7,padding:"6px 9px",marginBottom:9,fontSize:12,color:C.green,fontWeight:700}}>
+            ⏱ Berechnet: {calcDur(newLogRow.start,newLogRow.end)}
+          </div>
+        )}
+        <div style={{marginBottom:13}}><Lbl>NOTIZ</Lbl><Inp value={newLogRow.note} onChange={e=>setNLR(v=>({...v,note:e.target.value}))} placeholder="z.B. Wand 1 fertig, Material verbraucht"/></div>
+        <div style={{display:"flex",gap:7}}><button className="bgr" onClick={()=>addProjLog(mLog)} style={{flex:1,padding:"9px",fontSize:13}}>Stunden speichern</button><button className="bg" onClick={()=>setMLog(null)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* MATERIAL ZU PROJEKT HINZUFÜGEN */}
+      {mMatProj&&<Modal title="📦 Material zum Projekt hinzufügen" onClose={()=>setMMatProj(null)} w={560}>
+        <div style={{background:C.navyLight,borderRadius:8,padding:"7px 10px",marginBottom:11,fontSize:12,color:C.navy,fontWeight:600}}>
+          Projekt: {projs.find(p=>p.id===mMatProj)?.name}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:8,marginBottom:8}}>
+          <div><Lbl>MATERIAL</Lbl><Inp value={newMatRow.name} onChange={e=>setNMR(v=>({...v,name:e.target.value}))} placeholder="Materialname"/></div>
+          <div><Lbl>MENGE</Lbl><Inp type="number" value={newMatRow.qty} onChange={e=>setNMR(v=>({...v,qty:e.target.value}))} min={1}/></div>
+          <div><Lbl>EINHEIT</Lbl><Sel value={newMatRow.unit} onChange={e=>setNMR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+          <div><Lbl>€/EINHEIT</Lbl><Inp type="number" value={newMatRow.pricePerUnit} onChange={e=>setNMR(v=>({...v,pricePerUnit:+e.target.value}))} step="0.01" min={0}/></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 2fr",gap:8,marginBottom:13}}>
+          <div><Lbl>LIEFERANT</Lbl><Inp value={newMatRow.supplier} onChange={e=>setNMR(v=>({...v,supplier:e.target.value}))} placeholder="Lieferant"/></div>
+          <div><Lbl>LIEFERDATUM</Lbl><Inp value={newMatRow.deliveryDate} onChange={e=>setNMR(v=>({...v,deliveryDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+          <div><Lbl>NOTIZ</Lbl><Inp value={newMatRow.note} onChange={e=>setNMR(v=>({...v,note:e.target.value}))} placeholder="Optional…"/></div>
+        </div>
+        {newMatRow.qty&&newMatRow.pricePerUnit?(
+          <div style={{background:C.greenL,borderRadius:7,padding:"6px 9px",marginBottom:11,fontSize:12,color:C.green,fontWeight:700}}>
+            💶 Gesamt: {(+newMatRow.qty*(+newMatRow.pricePerUnit)).toFixed(2)} €
+          </div>
+        ):null}
+        <div style={{display:"flex",gap:7}}><button className="bgr" onClick={()=>addProjMat(mMatProj)} style={{flex:1,padding:"9px",fontSize:13}}>Material hinzufügen</button><button className="bg" onClick={()=>setMMatProj(null)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* NEW REPAIR */}
+      {mAddR&&<Modal title="🔧 Neuer Auftrag" onClose={()=>setMAddR(false)} w={500}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>TITEL</Lbl><Inp value={fR.title} onChange={e=>setFR(v=>({...v,title:e.target.value}))} placeholder="z.B. Wasserleck Zimmer 204"/></div>
+          <div><Lbl>ZIMMER / OBJEKT</Lbl><Inp value={fR.room} onChange={e=>setFR(v=>({...v,room:e.target.value}))} placeholder="z.B. Zi. 204"/></div>
+          <div><Lbl>TYP</Lbl><Sel value={fR.type} onChange={e=>setFR(v=>({...v,type:e.target.value}))}>{REPAIR_TYPES.map(t=><option key={t}>{t}</option>)}</Sel></div>
+          <div><Lbl>ABTEILUNG</Lbl><Sel value={fR.dept} onChange={e=>setFR(v=>({...v,dept:e.target.value}))}>{DEPTS.map(d=><option key={d}>{d}</option>)}</Sel></div>
+          <div><Lbl>ZUWEISEN AN</Lbl><Sel value={fR.assignedTo} onChange={e=>setFR(v=>({...v,assignedTo:+e.target.value}))}>{users.filter(u=>u.active&&u.role==="ma").map(u=><option key={u.id} value={u.id}>{u.name} ({u.entity})</option>)}</Sel></div>
+        </div>
+        <div style={{marginBottom:9}}><Lbl>PRIORITÄT</Lbl>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {Object.entries(P).map(([k,v])=><button key={k} onClick={()=>setFR(p=>({...p,priority:k}))} style={{flex:"1 1 70px",background:fR.priority===k?v.bg:C.bg,color:v.color,border:`1.5px solid ${fR.priority===k?v.color:C.border}`,borderRadius:7,padding:"6px 4px",fontSize:12,fontWeight:700}}>{v.label}</button>)}
+          </div>
+        </div>
+        <div style={{marginBottom:11}}><Lbl>HINWEISE / BESCHREIBUNG</Lbl><Txt value={fR.notes} onChange={e=>setFR(v=>({...v,notes:e.target.value}))} rows={2} placeholder="z.B. Gast meldet tropfende Decke…"/></div>
+        {/* Material rows — stay open */}
+        <div style={{background:C.bg,borderRadius:8,padding:"9px 11px",marginBottom:13,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.navy,marginBottom:7}}>🔩 MATERIAL (optional — Formular bleibt offen)</div>
+          {rMatRows.map((m,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 7px",background:"#fff",borderRadius:6,marginBottom:4,border:`1px solid ${C.border}`}}>
+              <span style={{flex:2,fontSize:12,fontWeight:600}}>{m.name}</span>
+              <span style={{fontSize:11,color:C.sub}}>{m.qty} {m.unit}</span>
+              <button onClick={()=>setRMatRows(p=>p.filter((_,ri)=>ri!==i))} style={{background:C.redL,color:C.red,border:"none",borderRadius:4,padding:"1px 6px",fontSize:11,cursor:"pointer"}}>✕</button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:6,alignItems:"flex-end",flexWrap:"wrap"}}>
+            <div style={{flex:2,minWidth:100}}><Lbl>MATERIAL</Lbl><Inp value={newRMat.name} onChange={e=>setNRM(v=>({...v,name:e.target.value}))} placeholder="z.B. Dichtungsring" style={{fontSize:12,padding:"5px 8px"}}/></div>
+            <div style={{flex:1,minWidth:50}}><Lbl>MENGE</Lbl><Inp type="number" value={newRMat.qty} onChange={e=>setNRM(v=>({...v,qty:+e.target.value}))} min={1} style={{fontSize:12,padding:"5px 8px"}}/></div>
+            <div style={{flex:1,minWidth:60}}><Lbl>EINHEIT</Lbl><Sel value={newRMat.unit} onChange={e=>setNRM(v=>({...v,unit:e.target.value}))} style={{fontSize:12,padding:"5px 8px"}}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+            <div><button className="bgr" onClick={()=>{if(!newRMat.name.trim())return;setRMatRows(p=>[...p,{...newRMat,qty:+newRMat.qty}]);setNRM({name:"",qty:1,unit:"Stk"});}} style={{padding:"6px 10px",fontSize:11,marginTop:15}}>+ Zeile</button></div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={addRepair} style={{flex:1,padding:"9px",fontSize:13}}>Auftrag erstellen</button><button className="bg" onClick={()=>setMAddR(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* SCHICHT */}
+      {mShift&&<Modal title="📅 Schicht eintragen" onClose={()=>setMShift(false)}>
+        <div style={{marginBottom:9}}><Lbl>MITARBEITER</Lbl><Sel value={newLogRow.userId||cu.id} onChange={e=>setNLR(v=>({...v,userId:+e.target.value}))}>{users.filter(u=>u.active).map(u=><option key={u.id} value={u.id}>{u.name} ({u.entity})</option>)}</Sel></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div><Lbl>TAG</Lbl><Sel value={newLogRow.day||0} onChange={e=>setNLR(v=>({...v,day:+e.target.value}))}>{WDAYS.map((d,i)=><option key={i} value={i}>{d}</option>)}</Sel></div>
+          <div><Lbl>TYP</Lbl><Sel value={newLogRow.type||"work"} onChange={e=>setNLR(v=>({...v,type:e.target.value}))}>{Object.entries(SHIFTS_C).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</Sel></div>
+        </div>
+        <div style={{marginBottom:13}}><Lbl>SCHICHT</Lbl><Inp value={newLogRow.shift||"07:00–15:00"} onChange={e=>setNLR(v=>({...v,shift:e.target.value}))} placeholder="07:00–15:00"/></div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={addShift} style={{flex:1,padding:"9px",fontSize:13}}>Speichern</button><button className="bg" onClick={()=>setMShift(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* WAREHOUSE MATERIAL */}
+      {mWMat&&<Modal title="📦 Material zum Lager hinzufügen" onClose={()=>setMWMat(false)}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>NAME</Lbl><Inp value={newWMatRow.name} onChange={e=>setNWMR(v=>({...v,name:e.target.value}))} placeholder="z.B. Trockenbauplatten"/></div>
+          <div><Lbl>EINHEIT</Lbl><Sel value={newWMatRow.unit} onChange={e=>setNWMR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+          <div><Lbl>KATEGORIE</Lbl><Sel value={newWMatRow.category} onChange={e=>setNWMR(v=>({...v,category:e.target.value}))}>{MAT_CATS.map(c=><option key={c}>{c}</option>)}</Sel></div>
+          <div><Lbl>ANFANGSBESTAND</Lbl><Inp type="number" value={newWMatRow.qty} onChange={e=>setNWMR(v=>({...v,qty:e.target.value}))} min={0}/></div>
+          <div><Lbl>MINDESTBESTAND</Lbl><Inp type="number" value={newWMatRow.minQty} onChange={e=>setNWMR(v=>({...v,minQty:e.target.value}))} min={0}/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>PREIS PRO EINHEIT (€)</Lbl><Inp type="number" value={newWMatRow.price} onChange={e=>setNWMR(v=>({...v,price:e.target.value}))} step="0.01" min={0}/></div>
+        </div>
+        <div style={{display:"flex",gap:7,marginTop:4}}><button className="bo" onClick={addWMat} style={{flex:1,padding:"9px",fontSize:13}}>Hinzufügen</button><button className="bg" onClick={()=>setMWMat(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* ORDER */}
+      {mOrder&&<Modal title="🔄 Bestellung erfassen" onClose={()=>setMOrder(false)} w={500}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div><Lbl>TYP</Lbl><Sel value={newOrderRow.type} onChange={e=>setNOR(v=>({...v,type:e.target.value}))}><option value="eingang">📥 Eingang</option><option value="ausgang">📤 Ausgang</option></Sel></div>
+          <div><Lbl>STATUS</Lbl><Sel value={newOrderRow.status} onChange={e=>setNOR(v=>({...v,status:e.target.value}))}>{["ausstehend","geliefert","abgeschlossen"].map(s=><option key={s}>{s}</option>)}</Sel></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:9,marginBottom:9}}>
+          <div><Lbl>MATERIAL</Lbl><Sel value={newOrderRow.material} onChange={e=>setNOR(v=>({...v,material:e.target.value}))}><option value="">– Auswählen –</option>{mats.map(m=><option key={m.id}>{m.name}</option>)}</Sel></div>
+          <div><Lbl>MENGE</Lbl><Inp type="number" value={newOrderRow.qty} onChange={e=>setNOR(v=>({...v,qty:e.target.value}))} min={1}/></div>
+          <div><Lbl>EINHEIT</Lbl><Sel value={newOrderRow.unit} onChange={e=>setNOR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:9,marginBottom:9}}>
+          <div><Lbl>LIEFERANT / KUNDE</Lbl><Inp value={newOrderRow.supplier} onChange={e=>setNOR(v=>({...v,supplier:e.target.value}))} placeholder="z.B. Bauhaus GmbH"/></div>
+          <div><Lbl>DATUM</Lbl><Inp value={newOrderRow.date} onChange={e=>setNOR(v=>({...v,date:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+          <div><Lbl>BETRAG (€)</Lbl><Inp type="number" value={newOrderRow.priceTotal} onChange={e=>setNOR(v=>({...v,priceTotal:+e.target.value}))} step="0.01" min={0}/></div>
+        </div>
+        <div style={{marginBottom:13}}><Lbl>NOTIZ</Lbl><Inp value={newOrderRow.note} onChange={e=>setNOR(v=>({...v,note:e.target.value}))} placeholder="Optional…"/></div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={addOrder} style={{flex:1,padding:"9px",fontSize:13}}>Bestellung speichern</button><button className="bg" onClick={()=>setMOrder(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* PROFILE EDIT MODAL */}
+      {mProfile&&cu&&<Modal title="👤 Mein Profil bearbeiten" onClose={()=>setMProfile(false)} w={420}>
+        {/* Avatar + photo upload */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,marginBottom:18,padding:"16px 0",background:C.bg,borderRadius:10,border:`1px solid ${C.border}`}}>
+          <div style={{position:"relative"}}>
+            <Av u={cu} size={72}/>
+            <button onClick={()=>profilePhotoRef.current.click()} style={{position:"absolute",bottom:2,right:2,background:APP_CONFIG.accentColor,color:"#fff",border:"2px solid #fff",borderRadius:"50%",width:24,height:24,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>📷</button>
+          </div>
+          <div style={{fontSize:12,color:C.sub}}>Profilbild hochladen</div>
+          <button onClick={()=>profilePhotoRef.current.click()} className="bg" style={{fontSize:11,padding:"5px 12px"}}>📷 Foto auswählen</button>
+        </div>
+        <div style={{marginBottom:11}}>
+          <Lbl>NAME ANZEIGEN</Lbl>
+          <Inp value={fProfile.name} onChange={e=>setFProfile(v=>({...v,name:e.target.value}))} placeholder="Ihr vollständiger Name"/>
+        </div>
+        <div style={{marginBottom:16}}>
+          <Lbl>TITEL / POSITION (optional)</Lbl>
+          <Inp value={fProfile.customTitle} onChange={e=>setFProfile(v=>({...v,customTitle:e.target.value}))} placeholder={`z.B. ${ROLE_CFG[cu.role]?.label}, Teamleiter, Senior…`}/>
+          <div style={{fontSize:10,color:C.sub,marginTop:4}}>Leer lassen um Standard-Rolle zu verwenden</div>
+        </div>
+        <div style={{background:C.bg,borderRadius:8,padding:"8px 11px",marginBottom:14,border:`1px solid ${C.border}`,display:"flex",gap:8,alignItems:"center"}}>
+          <Av u={{...cu,name:fProfile.name||cu.name,avatar:(fProfile.name||cu.name).split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2)}} size={36}/>
+          <div>
+            <div style={{fontWeight:700,fontSize:13}}>{fProfile.name||cu.name}</div>
+            <div style={{fontSize:11,color:C.sub}}>{fProfile.customTitle||ROLE_CFG[cu.role]?.label}</div>
+          </div>
+          <div style={{marginLeft:"auto",fontSize:10,color:C.sub}}>Vorschau</div>
+        </div>
+        <div style={{display:"flex",gap:7}}>
+          <button className="bo" onClick={saveProfile} style={{flex:1,padding:"9px",fontSize:13}}>💾 Speichern</button>
+          <button className="bg" onClick={()=>setMProfile(false)}>Abbrechen</button>
+        </div>
+      </Modal>}
+
+      {/* PDF PREVIEW MODAL */}
+      {pdfContent&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(13,59,110,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:700,padding:14}}
+          onClick={e=>e.target===e.currentTarget&&setPdfContent(null)}>
+          <div style={{background:"#fff",borderRadius:14,width:"100%",maxWidth:720,maxHeight:"90vh",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,.3)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+              <div style={{fontWeight:800,fontSize:14,color:C.text}}>📄 Berichtsvorschau</div>
+              <button onClick={()=>setPdfContent(null)} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:26,height:26,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
+            </div>
+            <div style={{flex:1,overflowY:"auto",padding:"20px 24px"}} dangerouslySetInnerHTML={{__html:pdfContent}}/>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+const container = document.getElementById("root");
+const root = ReactDOM.createRoot(container);
+root.render(React.createElement(App));
+
+</script>
+</body>
+</html>
