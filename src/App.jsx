@@ -604,11 +604,6 @@ export default function App(){
     try{if(u)sessionStorage.setItem("wh_user",JSON.stringify(u));else sessionStorage.removeItem("wh_user");}catch{}
     setCu(u);
   };
-  // Sync cu when users change (e.g. after perm edit)
-  useEffect(()=>{
-    if(cu){const fresh=users.find(u=>u.id===cu.id);if(fresh&&JSON.stringify(fresh)!==JSON.stringify(cu)){setCuPersist(fresh);}}
-  },[users]);
-
   const[li,setLi]      =useState({user:"",pass:""});
   const[err,setErr]    =useState("");
   const[tab,setTab]    =useState("dashboard");
@@ -633,6 +628,11 @@ export default function App(){
   const[mats,setMats]      =useState(INIT_MATS);
   const[orders,setOrders]  =useState(INIT_ORDERS);
   const[sched,setSched]    =useState(INIT_SCHED);
+
+  // Sync cu when users change (e.g. after perm edit)
+  useEffect(()=>{
+    if(cu){const fresh=users.find(u=>u.id===cu.id);if(fresh&&JSON.stringify(fresh)!==JSON.stringify(cu)){setCuPersist(fresh);}}
+  },[users,cu]);
 
   // UI
   const[selP,setSelP]         =useState(null);  // selected project
