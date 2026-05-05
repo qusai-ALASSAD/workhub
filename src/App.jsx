@@ -60,17 +60,20 @@ const ALL_PERMS=[
 
 const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,warehouse:true,reports:true};
 const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false};
+// Partner: sees ONLY their own projects — no internal data
+const PARTNER_PERMS={repairs:false,tasks:false,messages:true,feed:false,gallery:true,projects:true,schedule:false,warehouse:false,reports:false};
 
 const ROLE_CFG={
-  admin:{label:"Manager",    icon:"👑",color:C.orange, bg:C.orangeLight},
-  it:   {label:"IT Support", icon:"🖥",color:C.purple, bg:C.purpleL},
-  va:   {label:"Vorarbeiter",icon:"👥",color:"#2563EB",bg:"#EFF6FF"},
-  ma:   {label:"Mitarbeiter",icon:"👤",color:C.sub,    bg:"#F9FAFB"},
-  hotel:{label:"Hotel Staff",icon:"🏨",color:"#0891B2",bg:"#F0F9FF"},
+  admin:  {label:"Manager",    icon:"👑",color:C.orange,  bg:C.orangeLight},
+  it:     {label:"IT Support", icon:"🖥",color:C.purple,  bg:C.purpleL},
+  va:     {label:"Vorarbeiter",icon:"👥",color:"#2563EB", bg:"#EFF6FF"},
+  ma:     {label:"Mitarbeiter",icon:"👤",color:C.sub,     bg:"#F9FAFB"},
+  hotel:  {label:"Hotel Staff",icon:"🏨",color:"#0891B2", bg:"#F0F9FF"},
+  partner:{label:"Partner",    icon:"🤝",color:"#059669", bg:"#F0FDF4"},
 };
 
-const DEPTS=["Bauhandwerk","Trockenbau","Reinigung","Kabelverlegen","Rezeption","Leitung","IT","Hotel"];
-const ENTITIES=["EMS Hamburg","EMS Zentrale Hamburg","Hotel Hamburg","EMS System"];
+const DEPTS=["Bauhandwerk","Trockenbau","Reinigung","Kabelverlegen","Rezeption","Leitung","IT","Hotel","Extern"];
+const ENTITIES=["EMS Hamburg","EMS Zentrale Hamburg","Hotel Hamburg","EMS System","Kunde GmbH"];
 const DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"];
 const WDAYS=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 const SHIFTS_C={
@@ -83,14 +86,15 @@ const MAT_UNITS=["Stk","Kg","L","m²","m","Pkg","Rolle","Eimer","Box","Palette"]
 const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär","Sonstige"];
 
 const INIT_USERS=[
-  {id:1,name:"Al-Saeed Mohammed",role:"admin",dept:"Leitung",    entity:"EMS Zentrale Hamburg",avatar:"SM",color:C.orange,  active:true,pin:"1234",perms:FULL},
-  {id:2,name:"Support Admin",    role:"it",   dept:"IT",         entity:"EMS System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
-  {id:3,name:"Leon Weber",       role:"va",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
-  {id:4,name:"Sara Demir",       role:"va",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
-  {id:5,name:"Mehmet Yilmaz",    role:"ma",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:6,name:"Klaus Bauer",      role:"ma",   dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:7,name:"Anna Schmidt",     role:"ma",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:8,name:"Panter",           role:"hotel",dept:"Hotel",      entity:"Hotel Hamburg",       avatar:"PA",color:"#0891B2", active:true,pin:"7777",perms:{repairs:true,tasks:false,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:1,name:"Elsaid Mahmoud",   role:"admin",  dept:"Leitung",    entity:"EMS Zentrale Hamburg",avatar:"EM",color:C.orange,  active:true,pin:"1234",perms:FULL},
+  {id:2,name:"Support Admin",    role:"it",     dept:"IT",         entity:"EMS System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
+  {id:3,name:"Leon Weber",       role:"va",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
+  {id:4,name:"Sara Demir",       role:"va",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
+  {id:5,name:"Mehmet Yilmaz",    role:"ma",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:6,name:"Klaus Bauer",      role:"ma",     dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:7,name:"Anna Schmidt",     role:"ma",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:8,name:"Panter",           role:"partner",dept:"Extern",     entity:"Hotel Hamburg",       avatar:"PA",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS},
+  {id:9,name:"Kunde Demo",       role:"partner",dept:"Extern",     entity:"Kunde GmbH",          avatar:"KD",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS},
 ];
 
 const INIT_PROJECTS=[
@@ -192,11 +196,48 @@ const INIT_ORDERS=[
   {id:2,type:"ausgang",material:"Laminat 8mm",      qty:65,unit:"m²", supplier:"Kunde Eilbek", date:"30.04.2026",status:"abgeschlossen",note:"",priceTotal:780},
   {id:3,type:"eingang",material:"Reinigungsmittel", qty:40,unit:"L",  supplier:"OBI Hamburg",  date:"02.05.2026",status:"ausstehend", note:"Lieferung erwartet",priceTotal:180},
 ];
+// Schedule: week-based, each entry has userId, week (YYYY-WW), day (0-6), shift, type, hours
 const INIT_SCHED=[
-  {id:1,userId:5,day:0,shift:"07:00–15:00",type:"work"},{id:2,userId:5,day:1,shift:"07:00–15:00",type:"work"},
-  {id:3,userId:5,day:2,shift:"–",type:"off"},{id:4,userId:5,day:3,shift:"07:00–15:00",type:"work"},{id:5,userId:5,day:4,shift:"07:00–15:00",type:"work"},
-  {id:6,userId:7,day:0,shift:"09:00–17:00",type:"work"},{id:7,userId:7,day:3,shift:"09:00–17:00",type:"work"},{id:8,userId:7,day:4,shift:"–",type:"sick"},
-  {id:9,userId:8,day:0,shift:"08:00–16:00",type:"work"},{id:10,userId:8,day:1,shift:"08:00–16:00",type:"work"},{id:11,userId:8,day:2,shift:"–",type:"vacation"},
+  // Week 19 (KW19) - userId 3 Leon Weber
+  {id:1, userId:3,week:"2026-19",day:0,shift:"07:00–15:00",type:"work",hours:8},
+  {id:2, userId:3,week:"2026-19",day:1,shift:"07:00–15:00",type:"work",hours:8},
+  {id:3, userId:3,week:"2026-19",day:2,shift:"–",           type:"off", hours:0},
+  {id:4, userId:3,week:"2026-19",day:3,shift:"07:00–15:00",type:"work",hours:8},
+  {id:5, userId:3,week:"2026-19",day:4,shift:"07:00–15:00",type:"work",hours:8},
+  // Week 19 - userId 5 Mehmet
+  {id:6, userId:5,week:"2026-19",day:0,shift:"07:00–15:00",type:"work",hours:8},
+  {id:7, userId:5,week:"2026-19",day:1,shift:"07:00–15:00",type:"work",hours:8},
+  {id:8, userId:5,week:"2026-19",day:2,shift:"–",           type:"off", hours:0},
+  {id:9, userId:5,week:"2026-19",day:3,shift:"07:00–15:30",type:"work",hours:8.5},
+  {id:10,userId:5,week:"2026-19",day:4,shift:"07:00–15:00",type:"work",hours:8},
+  // Week 19 - userId 7 Anna
+  {id:11,userId:7,week:"2026-19",day:0,shift:"09:00–17:00",type:"work",hours:8},
+  {id:12,userId:7,week:"2026-19",day:1,shift:"09:00–17:00",type:"work",hours:8},
+  {id:13,userId:7,week:"2026-19",day:2,shift:"–",           type:"vacation",hours:0},
+  {id:14,userId:7,week:"2026-19",day:3,shift:"09:00–17:00",type:"work",hours:8},
+  {id:15,userId:7,week:"2026-19",day:4,shift:"–",           type:"sick",hours:0},
+  // Week 19 - userId 6 Klaus
+  {id:16,userId:6,week:"2026-19",day:0,shift:"08:00–16:00",type:"work",hours:8},
+  {id:17,userId:6,week:"2026-19",day:1,shift:"08:00–16:00",type:"work",hours:8},
+  {id:18,userId:6,week:"2026-19",day:2,shift:"08:00–16:00",type:"work",hours:8},
+  {id:19,userId:6,week:"2026-19",day:3,shift:"–",           type:"off", hours:0},
+  {id:20,userId:6,week:"2026-19",day:4,shift:"08:00–16:00",type:"work",hours:8},
+  // Week 18 (previous week) for monthly stats
+  {id:21,userId:3,week:"2026-18",day:0,shift:"07:00–15:00",type:"work",hours:8},
+  {id:22,userId:3,week:"2026-18",day:1,shift:"07:00–15:00",type:"work",hours:8},
+  {id:23,userId:3,week:"2026-18",day:2,shift:"07:00–15:00",type:"work",hours:8},
+  {id:24,userId:3,week:"2026-18",day:3,shift:"07:00–15:00",type:"work",hours:8},
+  {id:25,userId:3,week:"2026-18",day:4,shift:"07:00–15:00",type:"work",hours:8},
+  {id:26,userId:5,week:"2026-18",day:0,shift:"07:00–15:00",type:"work",hours:8},
+  {id:27,userId:5,week:"2026-18",day:1,shift:"07:00–15:00",type:"work",hours:8},
+  {id:28,userId:5,week:"2026-18",day:2,shift:"07:00–15:00",type:"work",hours:8},
+  {id:29,userId:5,week:"2026-18",day:3,shift:"–",           type:"vacation",hours:0},
+  {id:30,userId:5,week:"2026-18",day:4,shift:"07:00–15:00",type:"work",hours:8},
+  {id:31,userId:7,week:"2026-18",day:0,shift:"09:00–17:00",type:"work",hours:8},
+  {id:32,userId:7,week:"2026-18",day:1,shift:"09:00–17:00",type:"work",hours:8},
+  {id:33,userId:7,week:"2026-18",day:2,shift:"09:00–17:00",type:"work",hours:8},
+  {id:34,userId:7,week:"2026-18",day:3,shift:"09:00–17:00",type:"work",hours:8},
+  {id:35,userId:7,week:"2026-18",day:4,shift:"09:00–17:00",type:"work",hours:8},
 ];
 
 const S={open:{label:"Offen",color:"#D97706",bg:"#FFFBEB",border:"#FDE68A"},"in-progress":{label:"In Bearbeitung",color:"#2563EB",bg:"#EFF6FF",border:"#BFDBFE"},done:{label:"Erledigt",color:"#059669",bg:"#F0FDF4",border:"#6EE7B7"},active:{label:"Aktiv",color:"#2563EB",bg:"#EFF6FF",border:"#BFDBFE"},stopped:{label:"Gestoppt",color:"#DC2626",bg:"#FEF2F2",border:"#FECACA"}};
@@ -251,50 +292,302 @@ function Sec({title,icon,children,collapsible=false}){
 }
 
 // ── PDF ───────────────────────────────────────────────────────────
-// PDF is shown as an in-app modal (window.open not allowed in artifacts)
-const buildPdfHtml=(type,data,meta)=>{
-  const now=new Date().toLocaleDateString("de-DE");
-  let rows="";
-  if(type==="project"){
-    const p=data;const hrs=totalHrs(p.worklog);const matTotal=p.materials.reduce((a,m)=>a+m.total,0);
-    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Projektbericht: ${p.name}</h2>
-    <p><b>Standort:</b> ${p.location} | <b>Zeitraum:</b> ${p.startDate}–${p.endDate||"laufend"} | <b>Fläche:</b> ${p.area}m² | <b>Räume:</b> ${p.rooms} | <b>Etagen:</b> ${p.floors}</p>
-    <p><b>Geplant:</b> ${p.expectedHours}h | <b>Geleistet:</b> ${hrs}h | <b>Diff:</b> ${hrs-p.expectedHours>0?"+":""}${hrs-p.expectedHours}h | <b>Material:</b> ${matTotal.toFixed(2)} €</p>
-    ${p.stopReason?`<p style="color:#DC2626">⛔ ${p.stopReason}</p>`:""}
-    <h3 style="margin:10px 0 4px">Materialien</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Menge</th><th>Einheit</th><th>Preis</th><th>Gesamt</th><th>Lieferant</th></tr>
-    ${p.materials.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td><td style="padding:4px 8px">${m.pricePerUnit.toFixed(2)}€</td><td style="padding:4px 8px;font-weight:700">${m.total.toFixed(2)}€</td><td style="padding:4px 8px">${m.supplier}</td></tr>`).join("")}</table>
-    <h3 style="margin:10px 0 4px">Arbeitsprotokoll</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">MA</th><th>Datum</th><th>Von</th><th>Bis</th><th>Stunden</th><th>Notiz</th></tr>
-    ${p.worklog.map(l=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">#${l.userId}</td><td style="padding:4px 8px">${l.date}</td><td style="padding:4px 8px">${l.start}</td><td style="padding:4px 8px">${l.end}</td><td style="padding:4px 8px;font-weight:700">${l.hours}h</td><td style="padding:4px 8px">${l.note||"–"}</td></tr>`).join("")}
-    <tr style="background:#E8F0F9;font-weight:700"><td colspan="4" style="padding:4px 8px">GESAMT</td><td style="padding:4px 8px">${hrs}h / ${p.expectedHours}h</td><td></td></tr></table>`;
-  }
-  if(type==="repair"){const r=data;const dur=r.startTime&&r.endTime?calcDur(r.startTime,r.endTime):"laufend";
-    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Auftragsbericht: ${r.title}</h2>
-    <p><b>Zimmer:</b> ${r.room} | <b>Typ:</b> ${r.type||"–"} | <b>Priorität:</b> ${P[r.priority]?.label} | <b>Status:</b> ${S[r.status]?.label}</p>
-    <p><b>Erstellt:</b> ${r.createdAt} | <b>Beginn:</b> ${r.startTime||"–"} | <b>Ende:</b> ${r.endTime||"–"} | <b>Dauer:</b> ${dur}</p>
-    ${r.notes?`<p><b>Hinweise:</b> ${r.notes}</p>`:""}
-    ${r.stopReason?`<p style="color:#DC2626">⛔ Stopp: ${r.stopReason}</p>`:""}
-    <h3 style="margin:10px 0 4px">Material</h3>
-    ${r.materials?.length?`<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Menge</th><th>Einheit</th></tr>${r.materials.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td></tr>`).join("")}</table>`:"<p>Kein Material</p>"}
-    <p><b>Fotos:</b> Vorher: ${r.photos?.before?"✓":"✗"} | Nachher: ${r.photos?.after?"✓":"✗"}</p>`;
-  }
-  if(type==="warehouse"){
-    rows=`<h2 style="color:#0D3B6E;margin:14px 0 6px">Lagerbestand</h2>
-    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Material</th><th>Kategorie</th><th>Bestand</th><th>Einheit</th><th>Mindest</th><th>Status</th></tr>
-    ${data.mats.map(m=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${m.name}</td><td style="padding:4px 8px">${m.category}</td><td style="padding:4px 8px;font-weight:700;color:${m.qty<=m.minQty?"#DC2626":"#059669"}">${m.qty}</td><td style="padding:4px 8px">${m.unit}</td><td style="padding:4px 8px">${m.minQty}</td><td style="padding:4px 8px">${m.qty<=m.minQty?"⚠ Niedrig":"✓ OK"}</td></tr>`).join("")}</table>
-    <h3 style="margin:10px 0 4px">Bestellungen</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#0D3B6E;color:#fff"><th style="padding:5px 8px;text-align:left">Typ</th><th>Material</th><th>Menge</th><th>Lieferant</th><th>Datum</th><th>Betrag</th><th>Status</th></tr>
-    ${data.orders.map(o=>`<tr style="border-bottom:1px solid #ddd"><td style="padding:4px 8px">${o.type==="eingang"?"📥":"📤"}</td><td style="padding:4px 8px">${o.material}</td><td style="padding:4px 8px">${o.qty}</td><td style="padding:4px 8px">${o.supplier}</td><td style="padding:4px 8px">${o.date}</td><td style="padding:4px 8px">${o.priceTotal?.toFixed(2)||"–"}€</td><td style="padding:4px 8px">${o.status}</td></tr>`).join("")}</table>`;
-  }
-  return `<div style="font-family:Arial,sans-serif;font-size:13px;color:#0D1F35">
-    <div style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:3px solid #F5831F">
-      <div><b style="font-size:16px;color:#0D3B6E">${APP_CONFIG.logoIcon} ${APP_CONFIG.appName}</b><br><span style="font-size:10px;color:#5A7090">${APP_CONFIG.companyName} · ${APP_CONFIG.companyCity}</span></div>
-      <div style="text-align:right;font-size:10px;color:#5A7090">Erstellt: ${now}<br>von: ${meta?.by||"–"}</div>
+const pdfCSS=`
+  body{font-family:Arial,sans-serif;font-size:12px;color:#0D1F35;margin:0;padding:0}
+  .page{max-width:900px;margin:0 auto;padding:32px 36px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:4px solid #F5831F;margin-bottom:20px}
+  .logo-box{display:flex;align-items:center;gap:12px}
+  .logo-icon{width:44px;height:44px;background:#0D3B6E;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .app-name{font-size:20px;font-weight:800;color:#0D3B6E;line-height:1}
+  .app-sub{font-size:10px;color:#5A7090;margin-top:3px}
+  .meta-box{text-align:right;font-size:10px;color:#5A7090;line-height:1.8}
+  .section{margin-bottom:22px}
+  .section-title{font-size:11px;font-weight:700;color:#0D3B6E;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #E8F0F9}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:#F2F5F9;border-radius:8px;padding:10px 12px;border-left:4px solid #0D3B6E}
+  .kpi-val{font-size:20px;font-weight:800;color:#0D3B6E}
+  .kpi-lbl{font-size:10px;color:#5A7090;margin-top:2px}
+  .kpi.warn{border-left-color:#F5831F}.kpi.warn .kpi-val{color:#F5831F}
+  .kpi.ok{border-left-color:#059669}.kpi.ok .kpi-val{color:#059669}
+  .kpi.danger{border-left-color:#DC2626}.kpi.danger .kpi-val{color:#DC2626}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .info-row{background:#F9FAFB;border-radius:6px;padding:7px 10px;display:flex;gap:8px}
+  .info-lbl{font-size:10px;color:#5A7090;font-weight:700;min-width:90px}
+  .info-val{font-size:12px;color:#0D1F35;font-weight:600}
+  .stop-box{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;gap:10px}
+  .stop-icon{font-size:20px}
+  .stop-title{font-weight:700;color:#DC2626;font-size:12px}
+  .stop-text{color:#DC2626;font-size:12px;margin-top:2px}
+  .progress-bar-wrap{background:#E8F0F9;border-radius:4px;height:10px;margin:6px 0}
+  .progress-bar-fill{height:100%;border-radius:4px;background:#F5831F}
+  table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px}
+  th{background:#0D3B6E;color:#fff;padding:7px 10px;text-align:left;font-size:10px;font-weight:700}
+  td{padding:6px 10px;border-bottom:1px solid #E8F0F9}
+  tr:nth-child(even) td{background:#F9FAFB}
+  .total-row td{background:#E8F0F9;font-weight:700;color:#0D3B6E}
+  .badge{display:inline-block;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700}
+  .badge-ok{background:#F0FDF4;color:#059669}
+  .badge-warn{background:#FFFBEB;color:#D97706}
+  .badge-danger{background:#FEF2F2;color:#DC2626}
+  .badge-blue{background:#EFF6FF;color:#2563EB}
+  .badge-orange{background:#FEF0E3;color:#F5831F}
+  .comment-box{background:#F9FAFB;border-radius:6px;padding:8px 11px;margin-bottom:6px;border-left:3px solid #0D3B6E}
+  .comment-author{font-weight:700;color:#0D3B6E;font-size:11px}
+  .comment-time{font-size:10px;color:#aaa;margin-left:6px}
+  .comment-text{font-size:12px;color:#0D1F35;margin-top:3px}
+  .footer{margin-top:28px;padding-top:12px;border-top:2px solid #E8F0F9;display:flex;justify-content:space-between;font-size:10px;color:#aaa}
+  .checklist-item{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .check-box{width:14px;height:14px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+  .check-done{background:#059669;color:#fff}
+  .check-open{background:#fff;border:2px solid #DDE4EE;color:transparent}
+`;
+
+const pdfHeader=(meta,subtitle)=>`
+  <div class="header">
+    <div class="logo-box">
+      <div class="logo-icon">${APP_CONFIG.logoIcon}</div>
+      <div>
+        <div class="app-name">${APP_CONFIG.appName}</div>
+        <div class="app-sub">${APP_CONFIG.companyName} · ${APP_CONFIG.companyCity}</div>
+      </div>
     </div>
-    ${rows}
-    <p style="margin-top:16px;font-size:10px;color:#aaa;border-top:1px solid #ddd;padding-top:8px">${APP_CONFIG.companyName} · ${APP_CONFIG.companyEmail} · ${APP_CONFIG.companyPhone}</p>
+    <div class="meta-box">
+      <div style="font-size:13px;font-weight:700;color:#0D1F35">${subtitle}</div>
+      <div>Erstellt am: <b>${new Date().toLocaleDateString("de-DE")}</b></div>
+      <div>Uhrzeit: <b>${new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</b></div>
+      <div>Erstellt von: <b>${meta?.by||"–"}</b></div>
+    </div>
   </div>`;
+
+const pdfFooter=()=>`
+  <div class="footer">
+    <div>${APP_CONFIG.companyName} · ${APP_CONFIG.companyAddress}</div>
+    <div>${APP_CONFIG.companyPhone} · ${APP_CONFIG.companyEmail}</div>
+  </div>`;
+
+const buildPdfHtml=(type,data,meta,extraData={})=>{
+  let body="";
+
+  // ── PROJECT ──────────────────────────────────────────────────────
+  if(type==="project"){
+    const p=data;
+    const hrs=totalHrs(p.worklog);
+    const matTotal=p.materials.reduce((a,m)=>a+m.total,0);
+    const pct=p.expectedHours?Math.min(100,Math.round((hrs/p.expectedHours)*100)):0;
+    const overBudget=hrs>p.expectedHours;
+    const statusColors={active:"badge-blue",done:"badge-ok",stopped:"badge-danger"};
+
+    body=`
+      ${pdfHeader(meta,"Projektbericht")}
+
+      ${p.stopReason?`<div class="stop-box"><div class="stop-icon">⛔</div><div><div class="stop-title">Projekt gestoppt</div><div class="stop-text">${p.stopReason}</div></div></div>`:""}
+
+      <div class="section">
+        <div class="section-title">📊 Kennzahlen</div>
+        <div class="kpi-grid">
+          <div class="kpi ${overBudget?"danger":"ok"}"><div class="kpi-val">${hrs}h</div><div class="kpi-lbl">Geleistete Stunden</div></div>
+          <div class="kpi"><div class="kpi-val">${p.expectedHours}h</div><div class="kpi-lbl">Geplante Stunden</div></div>
+          <div class="kpi ${overBudget?"danger":"ok"}"><div class="kpi-val">${overBudget?"+":""}${hrs-p.expectedHours}h</div><div class="kpi-lbl">Differenz</div></div>
+          <div class="kpi warn"><div class="kpi-val">${matTotal.toFixed(2)} €</div><div class="kpi-lbl">Materialkosten</div></div>
+        </div>
+        <div style="margin-bottom:6px;font-size:11px;font-weight:600">Fortschritt: ${pct}%</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:${overBudget?"#DC2626":"#F5831F"}"></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🏗 Projektdetails</div>
+        <div class="info-grid">
+          <div class="info-row"><span class="info-lbl">Projektname</span><span class="info-val">${p.name}</span></div>
+          <div class="info-row"><span class="info-lbl">Standort</span><span class="info-val">📍 ${p.location}</span></div>
+          <div class="info-row"><span class="info-lbl">Einheit</span><span class="info-val">${p.entity}</span></div>
+          <div class="info-row"><span class="info-lbl">Status</span><span class="info-val"><span class="badge ${statusColors[p.status]||"badge-blue"}">${p.status==="active"?"Aktiv":p.status==="done"?"Erledigt":"Gestoppt"}</span></span></div>
+          <div class="info-row"><span class="info-lbl">Zeitraum</span><span class="info-val">${p.startDate} – ${p.endDate||"laufend"}</span></div>
+          <div class="info-row"><span class="info-lbl">Fläche / Räume</span><span class="info-val">${p.area} m² · ${p.rooms} Räume · ${p.floors} Etagen</span></div>
+        </div>
+        ${p.notes?`<div style="background:#FFFBEB;border-radius:6px;padding:8px 11px;border-left:3px solid #D97706;font-size:12px">📝 ${p.notes}</div>`:""}
+      </div>
+
+      <div class="section">
+        <div class="section-title">📦 Materialien & Lieferungen (${p.materials.length} Positionen)</div>
+        ${p.materials.length?`
+        <table>
+          <tr><th>#</th><th>Material</th><th>Menge</th><th>Einheit</th><th>Preis/Einh.</th><th>Gesamt</th><th>Lieferant</th><th>Lieferdatum</th><th>Status</th></tr>
+          ${p.materials.map((m,i)=>`<tr>
+            <td>${i+1}</td><td style="font-weight:600">${m.name}</td><td>${m.qty}</td><td>${m.unit}</td>
+            <td>${m.pricePerUnit.toFixed(2)} €</td><td style="font-weight:700">${m.total.toFixed(2)} €</td>
+            <td>${m.supplier||"–"}</td><td>${m.deliveryDate||"–"}</td>
+            <td><span class="badge ${m.status==="geliefert"?"badge-ok":"badge-warn"}">${m.status}</span></td>
+          </tr>`).join("")}
+          <tr class="total-row"><td colspan="5">GESAMT MATERIAL</td><td>${matTotal.toFixed(2)} €</td><td colspan="3"></td></tr>
+        </table>`:"<p style='color:#aaa;font-size:11px'>Keine Materialien eingetragen.</p>"}
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 Materialanfragen (${p.requests.length})</div>
+        ${p.requests.length?`
+        <table>
+          <tr><th>Material</th><th>Menge</th><th>Einheit</th><th>Dringlichkeit</th><th>Von</th><th>Datum</th><th>Status</th><th>Notiz</th></tr>
+          ${p.requests.map(r=>`<tr>
+            <td style="font-weight:600">${r.material}</td><td>${r.qty}</td><td>${r.unit}</td>
+            <td><span class="badge ${r.urgency==="dringend"?"badge-danger":"badge-blue"}">${r.urgency==="dringend"?"⚠ Dringend":"Normal"}</span></td>
+            <td>MA #${r.by}</td><td>${r.date}</td>
+            <td><span class="badge ${r.status==="genehmigt"?"badge-ok":"badge-warn"}">${r.status}</span></td>
+            <td style="color:#888">${r.note||"–"}</td>
+          </tr>`).join("")}
+        </table>`:"<p style='color:#aaa;font-size:11px'>Keine Anfragen.</p>"}
+      </div>
+
+      <div class="section">
+        <div class="section-title">⏱ Arbeitsprotokoll (${p.worklog.length} Einträge · ${hrs}h gesamt)</div>
+        ${p.worklog.length?`
+        <table>
+          <tr><th>Mitarbeiter</th><th>Datum</th><th>Von</th><th>Bis</th><th>Stunden</th><th>Notiz</th></tr>
+          ${p.worklog.map(l=>`<tr>
+            <td>MA #${l.userId}</td><td>${l.date}</td><td>${l.start}</td><td>${l.end}</td>
+            <td style="font-weight:700">${l.hours}h</td><td style="color:#888">${l.note||"–"}</td>
+          </tr>`).join("")}
+          <tr class="total-row"><td colspan="4">GESAMT</td><td>${hrs}h / ${p.expectedHours}h geplant</td><td></td></tr>
+        </table>`:"<p style='color:#aaa;font-size:11px'>Keine Einträge.</p>"}
+      </div>
+      ${pdfFooter()}`;
+  }
+
+  // ── REPAIR ───────────────────────────────────────────────────────
+  if(type==="repair"){
+    const r=data;
+    const dur=r.startTime&&r.endTime?calcDur(r.startTime,r.endTime):"–";
+    const prioColors={urgent:"badge-danger",high:"badge-orange",medium:"badge-warn",low:"badge-blue"};
+    const statColors={open:"badge-warn","in-progress":"badge-blue",done:"badge-ok",stopped:"badge-danger"};
+
+    body=`
+      ${pdfHeader(meta,"Auftragsbericht")}
+
+      ${r.stopReason?`<div class="stop-box"><div class="stop-icon">⛔</div><div><div class="stop-title">Auftrag gestoppt</div><div class="stop-text">${r.stopReason}</div></div></div>`:""}
+
+      <div class="section">
+        <div class="section-title">📊 Kurzübersicht</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val">${r.status==="done"?"✓":r.status==="stopped"?"⛔":"⏳"}</div><div class="kpi-lbl">Status: ${r.status==="open"?"Offen":r.status==="in-progress"?"Aktiv":r.status==="done"?"Erledigt":"Gestoppt"}</div></div>
+          <div class="kpi"><div class="kpi-val">${r.priority==="urgent"?"🚨":r.priority==="high"?"⚠":r.priority==="medium"?"◦":"✓"}</div><div class="kpi-lbl">Priorität: ${r.priority==="urgent"?"Dringend":r.priority==="high"?"Hoch":r.priority==="medium"?"Mittel":"Niedrig"}</div></div>
+          <div class="kpi ok"><div class="kpi-val">${r.startTime||"–"}</div><div class="kpi-lbl">Beginn</div></div>
+          <div class="kpi ${r.endTime?"ok":"warn"}"><div class="kpi-val">${r.endTime||"–"}</div><div class="kpi-lbl">Ende · Dauer: ${dur}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🔧 Auftragsdetails</div>
+        <div class="info-grid">
+          <div class="info-row"><span class="info-lbl">Titel</span><span class="info-val">${r.title}</span></div>
+          <div class="info-row"><span class="info-lbl">Zimmer / Objekt</span><span class="info-val">📍 ${r.room}</span></div>
+          <div class="info-row"><span class="info-lbl">Typ</span><span class="info-val">${r.type||"–"}</span></div>
+          <div class="info-row"><span class="info-lbl">Abteilung</span><span class="info-val">${r.dept}</span></div>
+          <div class="info-row"><span class="info-lbl">Priorität</span><span class="info-val"><span class="badge ${prioColors[r.priority]||"badge-blue"}">${r.priority==="urgent"?"🚨 Dringend":r.priority==="high"?"⚠ Hoch":r.priority==="medium"?"Mittel":"Niedrig"}</span></span></div>
+          <div class="info-row"><span class="info-lbl">Status</span><span class="info-val"><span class="badge ${statColors[r.status]||"badge-blue"}">${r.status==="open"?"Offen":r.status==="in-progress"?"In Bearbeitung":r.status==="done"?"Erledigt":"Gestoppt"}</span></span></div>
+          <div class="info-row"><span class="info-lbl">Erstellt am</span><span class="info-val">${r.createdAt}</span></div>
+          <div class="info-row"><span class="info-lbl">Zeiterfassung</span><span class="info-val">${r.startTime||"–"} → ${r.endTime||"–"} (${dur})</span></div>
+          <div class="info-row"><span class="info-lbl">Fotos</span><span class="info-val">Vorher: ${r.photos?.before?'<span class="badge badge-ok">✓ Hochgeladen</span>':'<span class="badge badge-danger">✗ Fehlt</span>'} &nbsp; Nachher: ${r.photos?.after?'<span class="badge badge-ok">✓ Hochgeladen</span>':'<span class="badge badge-danger">✗ Fehlt</span>'}</span></div>
+        </div>
+        ${r.notes?`<div style="background:#FFFBEB;border-radius:6px;padding:8px 11px;border-left:3px solid #D97706;font-size:12px;margin-top:8px">📝 Hinweise: ${r.notes}</div>`:""}
+      </div>
+
+      <div class="section">
+        <div class="section-title">🔩 Verwendetes Material (${r.materials?.length||0} Positionen)</div>
+        ${r.materials?.length?`
+        <table>
+          <tr><th>#</th><th>Material</th><th>Menge</th><th>Einheit</th></tr>
+          ${r.materials.map((m,i)=>`<tr><td>${i+1}</td><td style="font-weight:600">${m.name}</td><td>${m.qty}</td><td>${m.unit}</td></tr>`).join("")}
+        </table>`:"<p style='color:#aaa;font-size:11px'>Kein Material verwendet.</p>"}
+      </div>
+
+      <div class="section">
+        <div class="section-title">💬 Kommentare (${r.comments?.length||0})</div>
+        ${r.comments?.length?r.comments.map(c=>`
+          <div class="comment-box">
+            <div><span class="comment-author">Mitarbeiter #${c.user}</span><span class="comment-time">${c.time}</span></div>
+            <div class="comment-text">${c.text}</div>
+          </div>`).join(""):"<p style='color:#aaa;font-size:11px'>Keine Kommentare.</p>"}
+      </div>
+      ${pdfFooter()}`;
+  }
+
+  // ── MATERIAL REQUEST ─────────────────────────────────────────────
+  if(type==="material_request"){
+    const d=data;
+    body=`
+      ${pdfHeader(meta,"Materialanfrage")}
+      <div class="section">
+        <div class="section-title">📋 Anfragedetails</div>
+        <div class="info-grid">
+          <div class="info-row"><span class="info-lbl">Projekt</span><span class="info-val">${d.projName}</span></div>
+          <div class="info-row"><span class="info-lbl">Angefragt von</span><span class="info-val">${d.byName}</span></div>
+          <div class="info-row"><span class="info-lbl">Material</span><span class="info-val" style="font-weight:700">${d.material}</span></div>
+          <div class="info-row"><span class="info-lbl">Menge</span><span class="info-val">${d.qty} ${d.unit}</span></div>
+          <div class="info-row"><span class="info-lbl">Dringlichkeit</span><span class="info-val"><span class="badge ${d.urgency==="dringend"?"badge-danger":"badge-blue"}">${d.urgency==="dringend"?"⚠ DRINGEND":"Normal"}</span></span></div>
+          <div class="info-row"><span class="info-lbl">Datum</span><span class="info-val">${d.date||new Date().toLocaleDateString("de-DE")}</span></div>
+        </div>
+        ${d.note?`<div style="background:#FFFBEB;border-radius:6px;padding:8px 11px;border-left:3px solid #D97706;font-size:12px;margin-top:8px">📝 Notiz: ${d.note}</div>`:""}
+      </div>
+      <div style="background:#EFF6FF;border-radius:8px;padding:12px 16px;border:1px solid #BFDBFE">
+        <div style="font-size:11px;font-weight:700;color:#1D4ED8;margin-bottom:4px">⏳ Wartet auf Genehmigung</div>
+        <div style="font-size:11px;color:#3B82F6">Bitte von zuständigem Manager bestätigen.</div>
+      </div>
+      ${pdfFooter()}`;
+  }
+
+  // ── WAREHOUSE ────────────────────────────────────────────────────
+  if(type==="warehouse"){
+    const {mats,orders}=data;
+    const totalVal=mats.reduce((a,m)=>a+(m.qty*m.price),0);
+    const lowItems=mats.filter(m=>m.qty<=m.minQty);
+    const totalOrders=orders.reduce((a,o)=>a+(o.priceTotal||0),0);
+
+    body=`
+      ${pdfHeader(meta,"Lager- & Bestellbericht")}
+
+      <div class="section">
+        <div class="section-title">📊 Lagerübersicht</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val">${mats.length}</div><div class="kpi-lbl">Materialarten</div></div>
+          <div class="kpi ok"><div class="kpi-val">${mats.filter(m=>m.qty>m.minQty).length}</div><div class="kpi-lbl">Bestand OK</div></div>
+          <div class="kpi danger"><div class="kpi-val">${lowItems.length}</div><div class="kpi-lbl">Bestand niedrig</div></div>
+          <div class="kpi warn"><div class="kpi-val">${totalVal.toFixed(0)} €</div><div class="kpi-lbl">Lagerwert gesamt</div></div>
+        </div>
+        ${lowItems.length?`<div class="stop-box" style="background:#FFFBEB;border-color:#FDE68A"><div class="stop-icon">⚠</div><div><div class="stop-title" style="color:#D97706">Nachbestellung erforderlich</div><div class="stop-text" style="color:#D97706">${lowItems.map(m=>`${m.name} (${m.qty}/${m.minQty} ${m.unit})`).join(" · ")}</div></div></div>`:""}
+      </div>
+
+      <div class="section">
+        <div class="section-title">📦 Materialbestand (${mats.length} Positionen)</div>
+        <table>
+          <tr><th>#</th><th>Material</th><th>Kategorie</th><th>Bestand</th><th>Einheit</th><th>Mindest</th><th>Preis/Einh.</th><th>Gesamtwert</th><th>Status</th></tr>
+          ${mats.map((m,i)=>`<tr>
+            <td>${i+1}</td><td style="font-weight:600">${m.name}</td><td>${m.category}</td>
+            <td style="font-weight:700;color:${m.qty<=m.minQty?"#DC2626":"#059669"}">${m.qty}</td>
+            <td>${m.unit}</td><td style="color:#888">${m.minQty}</td>
+            <td>${m.price.toFixed(2)} €</td><td style="font-weight:700">${(m.qty*m.price).toFixed(2)} €</td>
+            <td><span class="badge ${m.qty<=m.minQty?"badge-danger":"badge-ok"}">${m.qty<=m.minQty?"⚠ Niedrig":"✓ OK"}</span></td>
+          </tr>`).join("")}
+          <tr class="total-row"><td colspan="7">GESAMT LAGERWERT</td><td>${totalVal.toFixed(2)} €</td><td></td></tr>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🔄 Bestellungen (${orders.length} Einträge)</div>
+        <table>
+          <tr><th>Typ</th><th>Material</th><th>Menge</th><th>Einheit</th><th>Lieferant</th><th>Datum</th><th>Betrag</th><th>Status</th></tr>
+          ${orders.map(o=>`<tr>
+            <td><span class="badge ${o.type==="eingang"?"badge-ok":"badge-orange"}">${o.type==="eingang"?"📥 Eingang":"📤 Ausgang"}</span></td>
+            <td style="font-weight:600">${o.material}</td><td>${o.qty}</td><td>${o.unit}</td>
+            <td>${o.supplier}</td><td>${o.date}</td>
+            <td style="font-weight:700">${o.priceTotal?.toFixed(2)||"–"} €</td>
+            <td><span class="badge ${o.status==="geliefert"||o.status==="abgeschlossen"?"badge-ok":"badge-warn"}">${o.status}</span></td>
+          </tr>`).join("")}
+          <tr class="total-row"><td colspan="6">GESAMT BESTELLUNGEN</td><td>${totalOrders.toFixed(2)} €</td><td></td></tr>
+        </table>
+      </div>
+      ${pdfFooter()}`;
+  }
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${pdfCSS}</style></head><body><div class="page">${body}</div></body></html>`;
 };
 
 
@@ -303,11 +596,33 @@ const buildPdfHtml=(type,data,meta)=>{
 // MAIN APP
 // ══════════════════════════════════════════════════════
 export default function App(){
-  const[cu,setCu]      =useState(null);
+  // ── Session persistence — survive page refresh ──────────────────
+  const[cu,setCu]=useState(()=>{
+    try{const s=sessionStorage.getItem("wh_user");return s?JSON.parse(s):null;}catch{return null;}
+  });
+  const setCuPersist=(u)=>{
+    try{if(u)sessionStorage.setItem("wh_user",JSON.stringify(u));else sessionStorage.removeItem("wh_user");}catch{}
+    setCu(u);
+  };
+  // Sync cu when users change (e.g. after perm edit)
+  useEffect(()=>{
+    if(cu){const fresh=users.find(u=>u.id===cu.id);if(fresh&&JSON.stringify(fresh)!==JSON.stringify(cu)){setCuPersist(fresh);}}
+  },[users]);
+
   const[li,setLi]      =useState({user:"",pass:""});
   const[err,setErr]    =useState("");
   const[tab,setTab]    =useState("dashboard");
   const[pdfContent,setPdfContent]=useState(null);
+  const[notifs,setNotifs]=useState([
+    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:"Elsaid Mahmoud hat Sie als Verantwortlichen für „Trockenbau Wandesbeker Str.“ eingesetzt.",projId:1,time:"08:00",date:"01.05.2026",read:false},
+    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:"Elsaid Mahmoud hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: „Wasserleck – Zimmer 204“ (Zi. 204).",projId:null,time:"08:10",date:"01.05.2026",read:false},
+    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:"Anna Schmidt hat eine Anfrage für „Reinigungsmittel Typ B“ (20 L) im Projekt „Grundreinigung Bürokomplex Hamm“ gestellt.",projId:2,time:"09:30",date:"03.05.2026",read:false},
+    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:"Panter hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: „Türschloss defekt – Zi. 205“ in Zi. 205.",projId:null,time:"09:45",date:"03.05.2026",read:false},
+  ]);
+  const[showNotifs,setShowNotifs]=useState(false);
+
+  // Quick-perm modal from dashboard
+  const[mQuickPerm,setMQuickPerm]=useState(null); // user to edit perms
 
   const[users,setUsers]    =useState(INIT_USERS);
   const[projs,setProjs]    =useState(INIT_PROJECTS);
@@ -373,17 +688,40 @@ export default function App(){
   const[mProfile,setMProfile]=useState(false);
   const[fProfile,setFProfile]=useState({name:"",customTitle:""});
 
+  const[mAddTask,setMAddTask]=useState(false);
+  const[mEditTask,setMEditTask]=useState(null);
+  const BLANK_TASK={title:"",dept:"Bauhandwerk",status:"open",due:"",assignedTo:3,recurring:"",checklist:[]};
+  const[fTask,setFTask]=useState(BLANK_TASK);
+  const[newCheckItem,setNCI]=useState("");
+
+  // Partner requests system
+  const[partnerRequests,setPartnerRequests]=useState([]);
+  const[mApprove,setMApprove]=useState(null); // request to approve
+  const[fApprove,setFApprove]=useState({responsibleId:3,editableBy:[],visibleTo:[],rejectReason:""});
+  const[mPartnerRepair,setMPartnerRepair]=useState(false); // partner repair request modal
+  const BLANK_PARTNER_REPAIR={title:"",location:"",description:"",urgency:"normal",contactName:"",contactPhone:""};
+  const[fPartnerRepair,setFPartnerRepair]=useState(BLANK_PARTNER_REPAIR);
+
+  const[chatSearch,setChatSearch]=useState("");
+
   useEffect(()=>{chatEnd.current?.scrollIntoView({behavior:"smooth"});},[msgs,selChat]);
+  useEffect(()=>{if(showNotifs){const h=e=>{if(!e.target.closest?.('[data-notif]'))setShowNotifs(false);};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);}},[showNotifs]);
 
   const isRoot=u=>u&&(u.role==="admin"||u.role==="it");
+  const isPartner=u=>u&&u.role==="partner";
   const hasPerm=(u,k)=>u&&(isRoot(u)||!!u.perms?.[k]);
   const canEditProj=(u,p)=>u&&(isRoot(u)||p.editableBy?.includes(u.id));
-  const canSeeProj=(u,p)=>u&&(isRoot(u)||p.visibleTo?.includes(u.id)||p.responsibleId===u.id||p.editableBy?.includes(u.id));
+  const canSeeProj=(u,p)=>{
+    if(!u) return false;
+    if(isRoot(u)) return true;
+    if(isPartner(u)) return p.createdBy===u.id||p.visibleTo?.includes(u.id)||p.editableBy?.includes(u.id);
+    return p.visibleTo?.includes(u.id)||p.responsibleId===u.id||p.editableBy?.includes(u.id);
+  };
 
   const login=()=>{
     const f=users.find(u=>u.name.toLowerCase().includes(li.user.toLowerCase())||li.user===String(u.id));
-    if(f&&f.active&&(li.pass===f.pin||li.pass==="1234")){setErr("");setCu(f);}
-    else if(li.user.toLowerCase()==="admin"&&li.pass==="1234"){setErr("");setCu(users[0]);}
+    if(f&&f.active&&(li.pass===f.pin||li.pass==="1234")){setErr("");setCuPersist(f);}
+    else if(li.user.toLowerCase()==="admin"&&li.pass==="1234"){setErr("");setCuPersist(users[0]);}
     else setErr("Falscher Benutzername oder PIN.");
   };
 
@@ -426,15 +764,90 @@ export default function App(){
 
   const saveProj=()=>{
     if(!fProj.name.trim())return;
-    setProjs(p=>[...p,{id:p.length+1,...fProj,
+    // Partner: submit as pending request — admin must approve & assign
+    if(isPartner(cu)){
+      const req={
+        id:Date.now(), type:"project_request", createdBy:cu.id, createdByName:cu.name, entity:cu.entity,
+        name:fProj.name, location:fProj.location, notes:fProj.notes,
+        startDate:fProj.startDate, endDate:fProj.endDate,
+        area:+fProj.area||0, rooms:+fProj.rooms||0, floors:+fProj.floors||0,
+        expectedHours:+fProj.expectedHours||0,
+        status:"pending",
+        date:new Date().toLocaleDateString("de-DE"),
+        time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
+      };
+      setPartnerRequests(p=>[req,...p]);
+      notifyAdmins("partner_request","🤝 Neue Projektanfrage von Partner",
+        `${cu.name} (${cu.entity}) hat eine neue Projektanfrage gestellt: „${fProj.name}" · ${fProj.location}`);
+      setMProj(false);setFProj(BLANK_PROJ);
+      return;
+    }
+    // Admin/internal: create directly
+    const newProj={id:projs.length+1,...fProj,
       area:+fProj.area||0,rooms:+fProj.rooms||0,floors:+fProj.floors||0,expectedHours:+fProj.expectedHours||0,
       responsibleId:+fProj.responsibleId,
       editableBy:fProj.editableBy.map(Number),visibleTo:fProj.visibleTo.map(Number),
-      status:"active",materials:matList,requests:reqList,worklog:[],stopReason:"",totalCost:0}]);
+      createdBy:cu.id,
+      status:"active",materials:matList,requests:reqList,worklog:[],stopReason:"",totalCost:0};
+    setProjs(p=>[...p,newProj]);
+    const respId=+fProj.responsibleId;
+    if(respId!==cu.id){
+      addNotif(respId,"project_assigned","📋 Neues Projekt zugewiesen",
+        `${cu.name} hat Sie als Verantwortlichen für „${fProj.name}" eingesetzt.`,newProj.id);
+    }
+    fProj.visibleTo.map(Number).filter(id=>id!==cu.id&&id!==respId).forEach(id=>{
+      addNotif(id,"project_visible","🏗 Neues Projekt: "+fProj.name,
+        `Sie wurden zum Projekt „${fProj.name}" (${fProj.location}) hinzugefügt.`,newProj.id);
+    });
     setMatList([]);setReqList([]);setMProj(false);setFProj(BLANK_PROJ);
   };
 
+  // Accept partner request — admin assigns responsible + team
+  const approvePartnerReq=(req,responsibleId,editableBy,visibleTo)=>{
+    const newProj={
+      id:projs.length+1, name:req.name, location:req.location, entity:req.entity||"EMS Hamburg",
+      area:req.area, rooms:req.rooms, floors:req.floors, expectedHours:req.expectedHours,
+      notes:req.notes, startDate:req.startDate, endDate:req.endDate,
+      responsibleId:+responsibleId,
+      editableBy:[+responsibleId,...editableBy.map(Number)],
+      visibleTo:[req.createdBy,+responsibleId,...visibleTo.map(Number)],
+      createdBy:req.createdBy,
+      status:"active",materials:[],requests:[],worklog:[],stopReason:"",totalCost:0,
+    };
+    setProjs(p=>[...p,newProj]);
+    setPartnerRequests(p=>p.map(r=>r.id===req.id?{...r,status:"approved",projId:newProj.id}:r));
+    // Notify partner
+    addNotif(req.createdBy,"partner_approved","✅ Projektanfrage genehmigt",
+      `Ihre Anfrage „${req.name}" wurde genehmigt und das Projekt wurde gestartet.`,newProj.id);
+    // Notify assigned team
+    addNotif(+responsibleId,"project_assigned","📋 Projekt zugewiesen: "+req.name,
+      `Ihnen wurde ein neues Projekt zugewiesen: „${req.name}" (${req.location})`,newProj.id);
+    editableBy.map(Number).forEach(id=>{
+      if(id!==+responsibleId) addNotif(id,"project_visible","🏗 Neues Projekt: "+req.name,
+        `Sie wurden zum Projekt „${req.name}" hinzugefügt.`,newProj.id);
+    });
+    setMApprove(null);
+  };
+
+  const rejectPartnerReq=(req,reason)=>{
+    setPartnerRequests(p=>p.map(r=>r.id===req.id?{...r,status:"rejected",rejectReason:reason}:r));
+    addNotif(req.createdBy,"partner_rejected","❌ Projektanfrage abgelehnt",
+      `Ihre Anfrage „${req.name}" wurde leider abgelehnt.${reason?` Grund: ${reason}`:""}`);
+    setMApprove(null);
+  };
+
   const updateProj=(id,updates)=>setProjs(p=>p.map(proj=>proj.id===id?{...proj,...updates}:proj));
+
+  // ── notifications helper ──────────────────────────────────────
+  const addNotif=(toUserId,type,title,body,projId=null)=>{
+    setNotifs(p=>[{id:Date.now(),to:toUserId,type,title,body,projId,
+      time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
+      date:new Date().toLocaleDateString("de-DE"),read:false},...p]);
+  };
+  // send to ALL admins/IT + specific user
+  const notifyAdmins=(type,title,body,projId=null)=>{
+    users.filter(u=>u.role==="admin"||u.role==="it").forEach(u=>addNotif(u.id,type,title,body,projId));
+  };
 
   const addProjReq=(projId)=>{
     if(!newReqRow.material.trim())return;
@@ -442,9 +855,19 @@ export default function App(){
     setProjs(p=>p.map(proj=>proj.id===projId?{...proj,requests:[...proj.requests,row]}:proj));
     if(selP?.id===projId)setSelP(prev=>({...prev,requests:[...prev.requests,row]}));
     setNRR({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});
-    // auto-PDF
     const proj=projs.find(p=>p.id===projId);
-    if(proj)setPdfContent(buildPdfHtml("material_request",{...row,projName:proj.name,byName:cu.name},{by:cu.name}));
+    if(proj){
+      // notify admins + responsible
+      const urgTag=row.urgency==="dringend"?"⚠ DRINGEND: ":"";
+      notifyAdmins("mat_request",`📦 Materialanfrage${row.urgency==="dringend"?" ⚠":""}: ${row.material}`,
+        `${cu.name} hat eine Anfrage für „${urgTag}${row.material}" (${row.qty} ${row.unit}) im Projekt „${proj.name}" gestellt.`,projId);
+      // also notify responsible if not admin
+      if(proj.responsibleId!==cu.id&&!users.find(u=>u.id===proj.responsibleId&&(u.role==="admin"||u.role==="it"))){
+        addNotif(proj.responsibleId,"mat_request",`📦 Materialanfrage: ${row.material}`,
+          `${cu.name}: ${urgTag}${row.material} (${row.qty} ${row.unit}) für „${proj.name}".`,projId);
+      }
+      setPdfContent(buildPdfHtml("material_request",{...row,projName:proj.name,byName:cu.name},{by:cu.name}));
+    }
   };
 
   const addProjLog=(projId)=>{
@@ -467,9 +890,18 @@ export default function App(){
 
   const addRepair=()=>{
     if(!fR.title.trim())return;
-    setRepairs(p=>[...p,{id:p.length+1,...fR,status:"open",reporter:cu.id,
+    const newR={id:repairs.length+1,...fR,status:"open",reporter:cu.id,
       createdAt:new Date().toLocaleDateString("de-DE"),startTime:null,endTime:null,
-      photos:{before:null,after:null},stopReason:"",materials:rMatRows,comments:[]}]);
+      photos:{before:null,after:null},stopReason:"",materials:rMatRows,comments:[]};
+    setRepairs(p=>[...p,newR]);
+    // notify admins + assigned person
+    const prioTag=fR.priority==="urgent"?"🚨 DRINGEND: ":fR.priority==="high"?"⚠ ":"";
+    notifyAdmins("repair_new",`🔧 Neuer Auftrag: ${fR.title}`,
+      `${cu.name} hat einen neuen Auftrag gemeldet: ${prioTag}„${fR.title}" in ${fR.room}.`);
+    if(+fR.assignedTo!==cu.id){
+      addNotif(+fR.assignedTo,"repair_assigned","🔧 Auftrag zugewiesen: "+fR.title,
+        `${cu.name} hat Ihnen einen ${prioTag}Auftrag zugewiesen: „${fR.title}" (${fR.room}).`);
+    }
     setMAddR(false);setFR(BLANK_R);setRMatRows([]);setNRM({name:"",qty:1,unit:"Stk"});
   };
 
@@ -481,34 +913,101 @@ export default function App(){
     setMOrder(false);setNOR({type:"eingang",material:"",qty:1,unit:"Stk",supplier:"",date:"",status:"ausstehend",priceTotal:0,note:""});
   };
 
+  const submitPartnerRepair=()=>{
+    if(!fPartnerRepair.title.trim())return;
+    const req={
+      id:Date.now(), type:"repair_request", createdBy:cu.id, createdByName:cu.name, entity:cu.entity,
+      ...fPartnerRepair,
+      status:"pending",
+      date:new Date().toLocaleDateString("de-DE"),
+      time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
+    };
+    setPartnerRequests(p=>[req,...p]);
+    notifyAdmins("partner_repair","🔧 Reparaturanfrage von Partner",
+      `${cu.name} (${cu.entity}): „${fPartnerRepair.title}" · ${fPartnerRepair.location} · ${fPartnerRepair.urgency==="dringend"?"⚠ DRINGEND":""}`);
+    setMPartnerRepair(false);
+    setFPartnerRepair(BLANK_PARTNER_REPAIR);
+  };
+
+  const saveTask=()=>{
+    if(!fTask.title.trim())return;
+    if(mEditTask==="new"){
+      setTasks(p=>[...p,{id:p.length+1,...fTask,assignedTo:+fTask.assignedTo}]);
+    } else {
+      setTasks(p=>p.map(t=>t.id===mEditTask.id?{...t,...fTask,assignedTo:+fTask.assignedTo}:t));
+    }
+    setMAddTask(false);setMEditTask(null);setFTask(BLANK_TASK);setNCI("");
+  };
+  const deleteTask=(id)=>setTasks(p=>p.filter(t=>t.id!==id));
+
   const addWMat=()=>{
     if(!newWMatRow.name.trim())return;
     setMats(p=>[...p,{id:p.length+1,...newWMatRow,qty:+newWMatRow.qty,minQty:+newWMatRow.minQty,price:+newWMatRow.price}]);
     setMWMat(false);setNWMR({name:"",unit:"Stk",qty:0,minQty:5,price:0,category:"Bau"});
   };
 
+  // Schedule week navigation
+  const getWeekKey=(date)=>{
+    const d=new Date(date);
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate()+4-(d.getDay()||7));
+    const yearStart=new Date(d.getFullYear(),0,1);
+    const kw=Math.ceil((((d-yearStart)/86400000)+1)/7);
+    return `${d.getFullYear()}-${String(kw).padStart(2,'0')}`;
+  };
+  const[selWeek,setSelWeek]=useState(()=>getWeekKey(new Date()));
+  const[schedTab,setSchedTab]=useState("week"); // "week" | "month" | "stats"
+
+  const getWeekDates=(weekKey)=>{
+    const[year,kw]=weekKey.split("-").map(Number);
+    const jan1=new Date(year,0,1);
+    const days=(kw-1)*7;
+    const monday=new Date(jan1.getTime()+days*86400000);
+    monday.setDate(monday.getDate()+(1-monday.getDay()+7)%7 - (monday.getDay()===0?6:0));
+    return Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d;});
+  };
+
+  const prevWeek=()=>{
+    const[y,w]=selWeek.split("-").map(Number);
+    const d=new Date(y,0,1);d.setDate(d.getDate()+(w-2)*7);
+    setSelWeek(getWeekKey(d));
+  };
+  const nextWeek=()=>{
+    const[y,w]=selWeek.split("-").map(Number);
+    const d=new Date(y,0,1);d.setDate(d.getDate()+w*7);
+    setSelWeek(getWeekKey(d));
+  };
+
   const addShift=()=>{
-    const uid=+newLogRow.userId||cu.id;const day=+newLogRow.day||0;
-    const idx=sched.findIndex(s=>s.userId===uid&&s.day===day);
-    const row={userId:uid,day,shift:newLogRow.shift,type:newLogRow.type};
-    if(idx>=0)setSched(p=>p.map((s,i)=>i===idx?{...s,...row}:s));
+    const uid=+newLogRow.userId||cu.id;
+    const day=+newLogRow.day||0;
+    const week=newLogRow.week||selWeek;
+    const hrs=newLogRow.hours||(()=>{try{const[sh,sm]=(newLogRow.shift||"").split("–")[0].split(":").map(Number),[eh,em]=(newLogRow.shift||"").split("–")[1]?.split(":")||[0,0];return Math.max(0,((+eh*60+(+em))-(sh*60+sm))/60);}catch{return 0;}})();
+    const idx=sched.findIndex(s=>s.userId===uid&&s.day===day&&s.week===week);
+    const row={userId:uid,day,week,shift:newLogRow.shift||"07:00–15:00",type:newLogRow.type||"work",hours:+newLogRow.hours||hrs};
+    if(idx>=0) setSched(p=>p.map((s,i)=>i===idx?{...s,...row}:s));
     else setSched(p=>[...p,{id:p.length+1,...row}]);
+    // Notify employee
+    if(uid!==cu.id){
+      addNotif(uid,"schedule_update","📅 Arbeitsplan aktualisiert",
+        `${cu.name} hat Ihren Schichtplan für ${WDAYS[day]} (KW ${week.split("-")[1]}) ${idx>=0?"geändert":"eingetragen"}: ${row.shift} (${SHIFTS_C[row.type]?.label})`);
+    }
     setMShift(false);setNLR({start:"07:00",end:"15:00",note:""});
   };
 
   const NAV=[];
   NAV.push({id:"dashboard",icon:"▦",label:"Übersicht"});
-  if(hasPerm(cu,"repairs"))   NAV.push({id:"repairs",  icon:"🔧",label:"Aufträge",  badge:myRepairs.filter(r=>r.status==="open").length});
-  if(hasPerm(cu,"tasks"))     NAV.push({id:"tasks",    icon:"✓", label:"Aufgaben"});
-  if(hasPerm(cu,"messages"))  NAV.push({id:"messages", icon:"✉", label:"Nachrichten",badge:unread});
-  if(hasPerm(cu,"feed"))      NAV.push({id:"feed",     icon:"◉", label:"Team-Feed"});
-  if(hasPerm(cu,"gallery"))   NAV.push({id:"gallery",  icon:"📷",label:"Fotogalerie"});
-  if(hasPerm(cu,"projects"))  NAV.push({id:"projects", icon:"🏗", label:"Projekte",  badge:projs.filter(p=>p.stopReason&&canSeeProj(cu,p)).length});
-  if(hasPerm(cu,"schedule"))  NAV.push({id:"schedule", icon:"📅",label:"Arbeitsplan"});
-  if(hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
-  if(isRoot(cu))               NAV.push({id:"users",   icon:"👥",label:"Mitarbeiter"});
-  if(hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
-  NAV.push({id:"support", icon:"🆘",label:"Support"});
+  if(!isPartner(cu)&&hasPerm(cu,"repairs"))   NAV.push({id:"repairs",  icon:"🔧",label:"Aufträge",  badge:myRepairs.filter(r=>r.status==="open").length});
+  if(!isPartner(cu)&&hasPerm(cu,"tasks"))     NAV.push({id:"tasks",    icon:"✓", label:"Aufgaben"});
+  if(hasPerm(cu,"messages"))                  NAV.push({id:"messages", icon:"✉", label:"Nachrichten",badge:unread});
+  if(!isPartner(cu)&&hasPerm(cu,"feed"))      NAV.push({id:"feed",     icon:"◉", label:"Team-Feed"});
+  if(hasPerm(cu,"gallery"))                   NAV.push({id:"gallery",  icon:"📷",label:"Fotogalerie"});
+  if(hasPerm(cu,"projects"))                  NAV.push({id:"projects", icon:"🏗", label:"Projekte",  badge:projs.filter(p=>p.stopReason&&canSeeProj(cu,p)).length});
+  if(!isPartner(cu)&&hasPerm(cu,"schedule"))  NAV.push({id:"schedule", icon:"📅",label:"Arbeitsplan"});
+  if(!isPartner(cu)&&hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
+  if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
+  if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
+  NAV.push({id:"support",icon:"🆘",label:"Support"});
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -902,6 +1401,50 @@ export default function App(){
         </div>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
           {!mob&&<div style={{textAlign:"right"}}><div style={{fontSize:12,fontWeight:700,color:"#fff"}}>{cu.name}</div><div style={{fontSize:10,color:"rgba(255,255,255,.6)"}}>{cu.customTitle||ROLE_CFG[cu.role]?.label}</div></div>}
+          {/* Notification bell */}
+          {(()=>{
+            const myNotifs=notifs.filter(n=>n.to===cu.id);
+            const unreadN=myNotifs.filter(n=>!n.read).length;
+            return(
+              <div style={{position:"relative"}} data-notif="1">
+                <button onClick={()=>setShowNotifs(v=>!v)}
+                  style={{background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.2)",borderRadius:8,width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",position:"relative"}}>
+                  <span style={{fontSize:16}}>🔔</span>
+                  {unreadN>0&&<span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{unreadN>9?"9+":unreadN}</span>}
+                </button>
+                {showNotifs&&(
+                  <div style={{position:"absolute",right:0,top:42,width:320,background:"#fff",borderRadius:12,boxShadow:"0 8px 32px rgba(13,59,110,.18)",zIndex:400,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+                    <div style={{padding:"11px 14px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontWeight:800,fontSize:13,color:C.text}}>🔔 Benachrichtigungen</span>
+                      {unreadN>0&&<button onClick={()=>{setNotifs(p=>p.map(n=>n.to===cu.id?{...n,read:true}:n));}} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,cursor:"pointer"}}>Alle gelesen</button>}
+                    </div>
+                    <div style={{maxHeight:320,overflowY:"auto"}}>
+                      {myNotifs.length===0?(
+                        <div style={{padding:"24px 14px",textAlign:"center",color:"#bbb",fontSize:12}}>Keine Benachrichtigungen</div>
+                      ):myNotifs.slice(0,15).map(n=>{
+                        const iconMap={project_assigned:"📋",project_visible:"🏗",mat_request:"📦",repair_new:"🔧",repair_assigned:"🔧",schedule_update:"📅",partner_request:"🤝",partner_repair:"🔧",partner_approved:"✅",partner_rejected:"❌",perm_update:"🔐"};
+                        return(
+                          <div key={n.id} onClick={()=>{setNotifs(p=>p.map(x=>x.id===n.id?{...x,read:true}:x));setShowNotifs(false);if(n.projId){setSelP(projs.find(p=>p.id===n.projId)||null);setTab("projects");}else if(n.type==="repair_new"||n.type==="repair_assigned")setTab("repairs");}}
+                            style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:n.read?"#fff":C.navyLight,display:"flex",gap:10,alignItems:"flex-start"}}>
+                            <span style={{fontSize:18,flexShrink:0,marginTop:1}}>{iconMap[n.type]||"🔔"}</span>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:12,fontWeight:700,color:C.text,lineHeight:1.3,marginBottom:2}}>{n.title}</div>
+                              <div style={{fontSize:11,color:C.sub,lineHeight:1.4,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{n.body}</div>
+                              <div style={{fontSize:10,color:"#bbb",marginTop:3}}>{n.date} · {n.time}</div>
+                            </div>
+                            {!n.read&&<div style={{width:8,height:8,background:C.orange,borderRadius:"50%",flexShrink:0,marginTop:4}}/>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {myNotifs.length>0&&<div style={{padding:"8px 14px",borderTop:`1px solid ${C.border}`,textAlign:"center"}}>
+                      <button onClick={()=>{setNotifs(p=>p.filter(n=>n.to!==cu.id));setShowNotifs(false);}} style={{background:"transparent",color:C.sub,border:"none",fontSize:11,cursor:"pointer"}}>Alle löschen</button>
+                    </div>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {/* Profile button */}
           <button onClick={()=>{setFProfile({name:cu.name,customTitle:cu.customTitle||""});setMProfile(true);}} style={{background:"none",border:"none",cursor:"pointer",padding:0}}>
             <div style={{position:"relative"}}>
@@ -909,7 +1452,7 @@ export default function App(){
               <div style={{position:"absolute",bottom:-1,right:-1,width:11,height:11,background:APP_CONFIG.accentColor,borderRadius:"50%",border:"1.5px solid rgba(255,255,255,.8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:7}}>✏</div>
             </div>
           </button>
-          <button onClick={()=>setCu(null)} style={{background:"rgba(255,255,255,.12)",color:"#fff",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,border:"1px solid rgba(255,255,255,.2)"}}>Abmelden</button>
+          <button onClick={()=>setCuPersist(null)} style={{background:"rgba(255,255,255,.12)",color:"#fff",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:600,border:"1px solid rgba(255,255,255,.2)"}}>Abmelden</button>
         </div>
       </div>
 
@@ -952,72 +1495,351 @@ export default function App(){
               <p style={{color:C.sub,fontSize:12,marginBottom:13}}>{new Date().toLocaleDateString("de-DE",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
               <div style={{background:ROLE_CFG[cu.role]?.bg,border:`1px solid ${C.border}`,borderRadius:9,padding:"8px 12px",marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:15}}>{ROLE_CFG[cu.role]?.icon}</span>
-                <div><div style={{fontSize:12,fontWeight:700,color:ROLE_CFG[cu.role]?.color}}>{ROLE_CFG[cu.role]?.label} – {cu.entity}</div>
-                  <div style={{fontSize:11,color:C.sub}}>{isRoot(cu)?"Vollzugriff":`Zugriff: ${ALL_PERMS.filter(p=>hasPerm(cu,p.key)).map(p=>p.icon).join(" ")}`}</div></div>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
-                {[
-                  {l:"Projekte",v:myProjs.length,i:"🏗",c:C.navy,b:C.navyLight},
-                  {l:"Aufträge offen",v:myRepairs.filter(r=>r.status==="open").length,i:"🔧",c:C.yellow,b:C.yellowL},
-                  {l:"Proj. gestoppt",v:myProjs.filter(p=>p.stopReason).length,i:"⛔",c:C.red,b:C.redL},
-                  {l:"Lager Warnung",v:lowStock.length,i:"📦",c:C.orange,b:C.orangeLight},
-                ].map(s=>(
-                  <div key={s.l} className="ch" style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`}}>
-                    <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
-                    <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
-                    <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:ROLE_CFG[cu.role]?.color}}>{ROLE_CFG[cu.role]?.label} – {cu.entity}</div>
+                  <div style={{fontSize:11,color:C.sub}}>
+                    {isRoot(cu)?"Vollzugriff":isPartner(cu)?"Projektzugang – nur eigene Projekte sichtbar":`Zugriff: ${ALL_PERMS.filter(p=>hasPerm(cu,p.key)).map(p=>p.icon).join(" ")}`}
                   </div>
-                ))}
+                </div>
               </div>
-              {myProjs.filter(p=>p.stopReason).length>0&&(
-                <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
-                  <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
-                  {myProjs.filter(p=>p.stopReason).map(p=>(
-                    <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
-                      <span style={{fontSize:12,fontWeight:600}}>{p.name}</span>
-                      <span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
-                      <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
+
+              {/* ── PARTNER DASHBOARD ── */}
+              {isPartner(cu)&&(
+                <div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
+                    {[
+                      {l:"Meine Projekte",   v:myProjs.length,                                     i:"🏗",c:C.navy,  b:C.navyLight},
+                      {l:"Aktiv",            v:myProjs.filter(p=>p.status==="active").length,       i:"✅",c:C.green, b:C.greenL},
+                      {l:"Gestoppt",         v:myProjs.filter(p=>p.status==="stopped").length,      i:"⛔",c:C.red,   b:C.redL},
+                      {l:"Abgeschlossen",    v:myProjs.filter(p=>p.status==="done").length,         i:"🏁",c:C.sub,   b:"#F9FAFB"},
+                    ].map(s=>(
+                      <div key={s.l} className="ch" style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`}}>
+                        <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
+                        <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+                        <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Stopped projects warning */}
+                  {myProjs.filter(p=>p.stopReason).length>0&&(
+                    <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
+                      <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
+                      {myProjs.filter(p=>p.stopReason).map(p=>(
+                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                          <span style={{fontSize:12,fontWeight:600}}>{p.name}</span>
+                          <span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
+                          <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Partner projects list */}
+                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+                      <div style={{fontWeight:800,fontSize:13}}>Meine Projekte</div>
+                      <button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}} style={{fontSize:11,padding:"4px 10px"}}>+ Neues Projekt</button>
+                    </div>
+                    {myProjs.length===0?(
+                      <div style={{textAlign:"center",color:"#bbb",padding:"24px 0",fontSize:12}}>
+                        <div style={{fontSize:32,marginBottom:8}}>🏗</div>
+                        Noch keine Projekte — erstellen Sie Ihr erstes Projekt!
+                      </div>
+                    ):myProjs.map(p=>{
+                      const hrs=totalHrs(p.worklog);
+                      const pct=p.expectedHours?Math.min(100,Math.round((hrs/p.expectedHours)*100)):0;
+                      return(
+                        <div key={p.id} className="ch" onClick={()=>{setSelP(p);setTab("projects");}}
+                          style={{padding:"10px 11px",borderRadius:8,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:5,cursor:"pointer",background:C.bg}}>
+                          <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:4}}>
+                            <div style={{fontSize:13,fontWeight:700,flex:1,lineHeight:1.3}}>{p.name}</div>
+                            <SB status={p.status}/>
+                          </div>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
+                            <Tag bg="#F9FAFB" color={C.sub}>📍 {p.location}</Tag>
+                            <Tag bg="#F9FAFB" color={C.sub}>📅 {p.startDate}</Tag>
+                          </div>
+                          {/* Progress */}
+                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.sub,marginBottom:3}}>
+                            <span>Fortschritt</span><span>{pct}% · {hrs}h / {p.expectedHours}h</span>
+                          </div>
+                          <div style={{background:C.border,borderRadius:3,height:5}}>
+                            <div style={{width:`${pct}%`,height:"100%",background:hrs>p.expectedHours?C.red:C.orange,borderRadius:3,transition:"width .3s"}}/>
+                          </div>
+                          {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:4}}>⛔ {p.stopReason}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Partner action buttons */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                    <button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMProj(true);}}
+                      style={{padding:"12px",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+                      <span style={{fontSize:22}}>🏗</span>
+                      <span style={{fontSize:12,fontWeight:700}}>Neues Projekt anfragen</span>
+                    </button>
+                    <button onClick={()=>{setFPartnerRepair(BLANK_PARTNER_REPAIR);setMPartnerRepair(true);}}
+                      style={{background:C.navy,color:"#fff",border:"none",borderRadius:10,padding:"12px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+                      <span style={{fontSize:22}}>🔧</span>
+                      <span style={{fontSize:12,fontWeight:700}}>Reparatur/Störung melden</span>
+                    </button>
+                  </div>
+                  <div style={{background:C.greenL,border:"1px solid #6EE7B7",borderRadius:10,padding:"11px 14px",display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
+                    <span style={{fontSize:20}}>🤝</span>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:700,color:C.green}}>Partner-Zugang</div>
+                      <div style={{fontSize:11,color:C.sub,marginTop:2,lineHeight:1.6}}>
+                        Sie sehen ausschließlich Ihre eigenen Projekte. Bei Fragen: <b>{APP_CONFIG.supportEmail}</b>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* My requests history */}
+                  {partnerRequests.filter(r=>r.createdBy===cu.id).length>0&&(
+                    <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`}}>
+                      <div style={{fontWeight:800,fontSize:13,marginBottom:9}}>📬 Meine Anfragen</div>
+                      {partnerRequests.filter(r=>r.createdBy===cu.id).map(r=>(
+                        <div key={r.id} style={{padding:"9px 10px",borderRadius:8,border:`1.5px solid ${r.status==="approved"?C.green:r.status==="rejected"?C.red:C.border}`,marginBottom:5,background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.bg}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:12,fontWeight:700}}>{r.type==="repair_request"?"🔧":"🏗"} {r.name||r.title}</div>
+                              <div style={{fontSize:10,color:C.sub,marginTop:2}}>{r.date} · {r.time}{r.location?` · 📍 ${r.location}`:""}</div>
+                              {r.rejectReason&&<div style={{fontSize:11,color:C.red,marginTop:3}}>Grund: {r.rejectReason}</div>}
+                            </div>
+                            <span style={{background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.yellowL,color:r.status==="approved"?C.green:r.status==="rejected"?C.red:C.yellow,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
+                              {r.status==="approved"?"✅ Genehmigt":r.status==="rejected"?"❌ Abgelehnt":"⏳ Ausstehend"}
+                            </span>
+                          </div>
+                          {r.status==="approved"&&r.projId&&(
+                            <button onClick={()=>{setSelP(projs.find(p=>p.id===r.projId)||null);setTab("projects");}}
+                              style={{marginTop:6,background:C.navy,color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                              🏗 Projekt öffnen
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-              <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-                  <div style={{fontWeight:800,fontSize:13}}>Meine Projekte</div>
-                  {hasPerm(cu,"projects")&&<button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle</button>}
-                </div>
-                {myProjs.slice(0,3).map(p=>(
-                  <div key={p.id} className="ch" onClick={()=>{setSelP(p);if(hasPerm(cu,"projects"))setTab("projects");}} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:8,border:`1px solid ${C.border}`,marginBottom:3,cursor:"pointer",background:C.bg}}>
-                    <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div><div style={{fontSize:10,color:C.sub}}>{p.location} · {totalHrs(p.worklog)}h / {p.expectedHours}h</div></div>
-                    <SB status={p.status}/>
+
+              {/* ── INTERNAL DASHBOARD (non-partner) ── */}
+              {!isPartner(cu)&&(<div>
+
+                {/* ── ADMIN / IT DASHBOARD ── */}
+                {isRoot(cu)&&(<div>
+                  {partnerRequests.filter(r=>r.status==="pending").length>0&&(
+                    <div style={{background:C.orangeLight,border:`1px solid ${C.orange}`,borderRadius:10,padding:"10px 13px",marginBottom:10}}>
+                      <div style={{fontSize:13,fontWeight:800,color:C.orange,marginBottom:8}}>🤝 Partner-Anfragen ({partnerRequests.filter(r=>r.status==="pending").length})</div>
+                      {partnerRequests.filter(r=>r.status==="pending").map(r=>(
+                        <div key={r.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 9px",background:"#fff",borderRadius:7,marginBottom:4,border:`1px solid ${C.border}`,flexWrap:"wrap"}}>
+                          <span style={{fontSize:16}}>{r.type==="repair_request"?"🔧":"🏗"}</span>
+                          <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:700}}>{r.name||r.title}</div><div style={{fontSize:10,color:C.sub}}>{r.createdByName} · {r.entity} · {r.date}</div></div>
+                          <button onClick={()=>{setMApprove(r);setFApprove({responsibleId:3,editableBy:[1,3],visibleTo:[1,2,3],rejectReason:"",action:"approve"});}} style={{background:C.green,color:"#fff",border:"none",borderRadius:6,padding:"5px 11px",fontSize:11,fontWeight:600,cursor:"pointer"}}>Bearbeiten →</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
+                    {[
+                      {l:"Projekte gesamt",   v:projs.length,                                         i:"🏗",c:C.navy,  b:C.navyLight,  t:"projects"},
+                      {l:"Aufträge offen",    v:repairs.filter(r=>r.status==="open").length,          i:"🔧",c:C.yellow,b:C.yellowL,    t:"repairs"},
+                      {l:"Projekte gestoppt", v:projs.filter(p=>p.stopReason).length,                 i:"⛔",c:C.red,   b:C.redL,       t:"projects"},
+                      {l:"Lager-Warnung",     v:lowStock.length,                                      i:"📦",c:C.orange,b:C.orangeLight, t:"warehouse"},
+                    ].map(s=>(
+                      <div key={s.l} className="ch" onClick={()=>setTab(s.t)} style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`,cursor:"pointer"}}>
+                        <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
+                        <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+                        <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {hasPerm(cu,"schedule")&&(
-                <div style={{background:"#fff",borderRadius:10,padding:11,border:`1px solid ${C.border}`}}>
-                  <div style={{fontWeight:800,fontSize:13,marginBottom:7}}>📅 Meine Woche</div>
-                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                    {DAYS.map((d,i)=>{const s=mySched.find(s=>s.day===i);const sc=s?SHIFTS_C[s.type]:null;return(
-                      <div key={i} style={{flex:"1 1 46px",minWidth:42,background:sc?sc.bg:C.bg,borderRadius:6,padding:"5px 3px",textAlign:"center",border:`1px solid ${C.border}`}}>
-                        <div style={{fontSize:9,fontWeight:700,color:C.sub}}>{d}</div>
-                        <div style={{fontSize:9,fontWeight:600,color:sc?.color||"#ccc",marginTop:1}}>{s?s.shift:"–"}</div>
+                  {projs.filter(p=>p.stopReason).length>0&&(
+                    <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
+                      <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
+                      {projs.filter(p=>p.stopReason).map(p=>(
+                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                          <span style={{fontSize:12,fontWeight:600}}>{p.name}</span><span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
+                          <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:9,alignItems:"center"}}>
+                      <div style={{fontWeight:800,fontSize:13}}>Alle Projekte</div>
+                      <button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle →</button>
+                    </div>
+                    {projs.slice(0,4).map(p=>{const hrs=totalHrs(p.worklog);const pct=p.expectedHours?Math.min(100,Math.round(hrs/p.expectedHours*100)):0;return(
+                      <div key={p.id} className="ch" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"8px",borderRadius:8,border:`1px solid ${C.border}`,marginBottom:4,cursor:"pointer",background:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:4}}><div style={{fontSize:12,fontWeight:600,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div><SB status={p.status}/></div>
+                        <div style={{fontSize:10,color:C.sub,marginBottom:3}}>📍 {p.location} · {hrs}h / {p.expectedHours}h</div>
+                        <div style={{background:C.border,borderRadius:3,height:4}}><div style={{width:`${pct}%`,height:"100%",background:hrs>p.expectedHours?C.red:C.orange,borderRadius:3}}/></div>
                       </div>
                     );})}
                   </div>
-                </div>
-              )}
+                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                      <div style={{fontWeight:800,fontSize:13}}>🔐 Schnell-Berechtigungen</div>
+                      <button className="bg" onClick={()=>setTab("users")} style={{fontSize:11,padding:"3px 8px"}}>Alle →</button>
+                    </div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:7}}>
+                      {users.filter(u=>u.active&&!isRoot(u)&&u.role!=="partner").map(u=>(
+                        <div key={u.id} style={{background:C.bg,borderRadius:8,padding:"8px 10px",border:`1px solid ${C.border}`}}>
+                          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
+                            <Av u={u} size={24}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:11,fontWeight:700}}>{u.name.split(" ")[0]}</div><div style={{fontSize:9,color:C.sub}}>{u.dept}</div></div>
+                            <button onClick={()=>setMQuickPerm({...u,perms:{...u.perms}})} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:5,padding:"2px 6px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✏</button>
+                          </div>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:2}}>
+                            {ALL_PERMS.map(p=>(
+                              <div key={p.key} title={p.label} onClick={()=>{const updated={...u.perms,[p.key]:!u.perms?.[p.key]};setUsers(prev=>prev.map(x=>x.id===u.id?{...x,perms:updated}:x));}}
+                                style={{background:u.perms?.[p.key]?C.greenL:C.redL,color:u.perms?.[p.key]?C.green:C.red,borderRadius:3,padding:"1px 4px",fontSize:9,fontWeight:600,cursor:"pointer"}}>{p.icon}{u.perms?.[p.key]?"✓":"✗"}</div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>)}
+
+                {/* ── VA DASHBOARD ── */}
+                {cu.role==="va"&&(<div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
+                    {[
+                      {l:"Meine Projekte", v:myProjs.length,                                i:"🏗",c:C.navy,  b:C.navyLight,t:"projects"},
+                      {l:"Aufträge offen", v:myRepairs.filter(r=>r.status==="open").length, i:"🔧",c:C.yellow,b:C.yellowL,  t:"repairs"},
+                      {l:"Aufgaben offen", v:myTasks.filter(t=>t.status!=="done").length,   i:"✓", c:C.purple,b:C.purpleL,  t:"tasks"},
+                      {l:"Team",           v:users.filter(u=>u.active&&u.dept===cu.dept).length,i:"👥",c:"#2563EB",b:"#EFF6FF",t:"schedule"},
+                    ].map(s=>(
+                      <div key={s.l} className="ch" onClick={()=>setTab(s.t)} style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`,cursor:"pointer"}}>
+                        <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
+                        <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+                        <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {myProjs.filter(p=>p.stopReason).length>0&&(<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
+                    <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
+                    {myProjs.filter(p=>p.stopReason).map(p=>(<div key={p.id} style={{display:"flex",gap:6,marginBottom:3,alignItems:"center",flexWrap:"wrap"}}>
+                      <span style={{fontSize:12,fontWeight:600}}>{p.name}</span><span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
+                      <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
+                    </div>))}
+                  </div>)}
+                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:9,alignItems:"center"}}>
+                      <div style={{fontWeight:800,fontSize:13}}>Meine Projekte</div>
+                      <div style={{display:"flex",gap:5}}>
+                        <button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}} style={{fontSize:11,padding:"3px 8px"}}>+ Neu</button>
+                        <button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle →</button>
+                      </div>
+                    </div>
+                    {myProjs.slice(0,4).map(p=>{const hrs=totalHrs(p.worklog);const pct=p.expectedHours?Math.min(100,Math.round(hrs/p.expectedHours*100)):0;return(
+                      <div key={p.id} className="ch" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"9px",borderRadius:8,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:4,cursor:"pointer",background:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:4}}><div style={{fontSize:12,fontWeight:700,flex:1}}>{p.name}</div><SB status={p.status}/></div>
+                        <div style={{fontSize:10,color:C.sub,marginBottom:3}}>📍 {p.location} · {hrs}h / {p.expectedHours}h</div>
+                        <div style={{background:C.border,borderRadius:3,height:4}}><div style={{width:`${pct}%`,height:"100%",background:C.orange,borderRadius:3}}/></div>
+                      </div>
+                    );})}
+                  </div>
+                  {hasPerm(cu,"schedule")&&(<div style={{background:"#fff",borderRadius:10,padding:11,border:`1px solid ${C.border}`}}>
+                    <div style={{fontWeight:800,fontSize:13,marginBottom:7}}>📅 Mein Wochenplan</div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{DAYS.map((d,i)=>{const s=mySched.find(s=>s.day===i);const sc=s?SHIFTS_C[s.type]:null;return(<div key={i} style={{flex:"1 1 40px",background:sc?sc.bg:C.bg,borderRadius:6,padding:"5px 3px",textAlign:"center",border:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.sub}}>{d}</div><div style={{fontSize:8,fontWeight:600,color:sc?.color||"#ccc",marginTop:1}}>{s?s.shift:"–"}</div></div>);})}</div>
+                  </div>)}
+                </div>)}
+
+                {/* ── MA DASHBOARD ── */}
+                {cu.role==="ma"&&(<div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
+                    {[
+                      {l:"Meine Projekte", v:myProjs.length,                                i:"🏗",c:C.navy,  b:C.navyLight,t:"projects"},
+                      {l:"Aufträge offen", v:myRepairs.filter(r=>r.status==="open").length, i:"🔧",c:C.yellow,b:C.yellowL,  t:"repairs"},
+                      {l:"Aufgaben",       v:myTasks.filter(t=>t.status!=="done").length,   i:"✓", c:C.purple,b:C.purpleL,  t:"tasks"},
+                      {l:"Nachrichten",    v:msgs.filter(m=>m.to===cu.id&&!m.read).length,  i:"✉", c:C.green, b:C.greenL,   t:"messages"},
+                    ].map(s=>(
+                      <div key={s.l} className="ch" onClick={()=>setTab(s.t)} style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`,cursor:"pointer"}}>
+                        <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
+                        <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+                        <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {hasPerm(cu,"projects")&&myProjs.length>0&&(<div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{fontWeight:800,fontSize:13,marginBottom:9}}>🏗 Meine Projekte</div>
+                    {myProjs.map(p=>{const hrs=totalHrs(p.worklog);const pct=p.expectedHours?Math.min(100,Math.round(hrs/p.expectedHours*100)):0;return(
+                      <div key={p.id} style={{padding:"9px",borderRadius:8,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:6,background:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}><div style={{fontSize:12,fontWeight:700,flex:1}}>{p.name}</div><SB status={p.status}/></div>
+                        <div style={{fontSize:10,color:C.sub,marginBottom:4}}>📍 {p.location} · {hrs}h / {p.expectedHours}h</div>
+                        <div style={{background:C.border,borderRadius:3,height:4,marginBottom:7}}><div style={{width:`${pct}%`,height:"100%",background:C.orange,borderRadius:3}}/></div>
+                        {p.stopReason&&<div style={{fontSize:10,color:C.red,marginBottom:6}}>⛔ {p.stopReason}</div>}
+                        <div style={{display:"flex",gap:5}}>
+                          <button onClick={()=>{setSelP(p);setTab("projects");}} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:6,padding:"4px 9px",fontSize:11,fontWeight:600,cursor:"pointer"}}>Details →</button>
+                          <button onClick={()=>{setMReq(p.id);}} style={{background:C.orangeLight,color:C.orange,border:`1px solid ${C.orange}33`,borderRadius:6,padding:"4px 9px",fontSize:11,fontWeight:600,cursor:"pointer"}}>📦 Material anfragen</button>
+                        </div>
+                      </div>
+                    );})}
+                  </div>)}
+                  {hasPerm(cu,"tasks")&&myTasks.filter(t=>t.status!=="done").length>0&&(<div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{fontWeight:800,fontSize:13,marginBottom:9}}>✓ Meine Aufgaben</div>
+                    {myTasks.filter(t=>t.status!=="done").slice(0,3).map(t=>{const done=t.checklist.filter(c=>c.done).length;return(
+                      <div key={t.id} style={{padding:"7px 9px",borderRadius:7,border:`1px solid ${C.border}`,marginBottom:4,background:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:4}}><div style={{fontSize:12,fontWeight:600}}>{t.title}</div><SB status={t.status}/></div>
+                        <div style={{display:"flex",gap:4,marginBottom:4}}><Tag bg={C.yellowL} color={C.yellow}>📅 {t.due}</Tag></div>
+                        <div style={{background:C.border,borderRadius:3,height:3}}><div style={{width:`${t.checklist.length?Math.round(done/t.checklist.length*100):0}%`,height:"100%",background:C.orange,borderRadius:3}}/></div>
+                        <div style={{fontSize:9,color:C.sub,marginTop:2}}>{done}/{t.checklist.length} erledigt</div>
+                      </div>
+                    );})}
+                  </div>)}
+                  {hasPerm(cu,"schedule")&&(<div style={{background:"#fff",borderRadius:10,padding:11,border:`1px solid ${C.border}`}}>
+                    <div style={{fontWeight:800,fontSize:13,marginBottom:7}}>📅 Mein Wochenplan</div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{DAYS.map((d,i)=>{const s=mySched.find(s=>s.day===i);const sc=s?SHIFTS_C[s.type]:null;return(<div key={i} style={{flex:"1 1 40px",background:sc?sc.bg:C.bg,borderRadius:6,padding:"5px 3px",textAlign:"center",border:`1px solid ${C.border}`}}><div style={{fontSize:9,fontWeight:700,color:C.sub}}>{d}</div><div style={{fontSize:8,fontWeight:600,color:sc?.color||"#ccc",marginTop:1}}>{s?s.shift:"–"}</div></div>);})}</div>
+                  </div>)}
+                </div>)}
+              </div>)} {/* end internal dashboard */}
             </div>
           )}
 
           {/* ══ AUFGABEN ══ */}
           {tab==="tasks"&&hasPerm(cu,"tasks")&&(
             <div>
-              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Aufgaben</h1>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:9}}>
-                {myTasks.map(t=>{const done=t.checklist.filter(c=>c.done).length;return(
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <div>
+                  <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Aufgaben</h1>
+                  <p style={{color:C.sub,fontSize:12,marginTop:2}}>{myTasks.filter(t=>t.status==="open").length} offen · {myTasks.filter(t=>t.status==="in-progress").length} aktiv · {myTasks.filter(t=>t.status==="done").length} erledigt</p>
+                </div>
+                {isRoot(cu)&&<button className="bo" onClick={()=>{setFTask(BLANK_TASK);setNCI("");setMEditTask("new");setMAddTask(true);}}>+ Neue Aufgabe</button>}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:9}}>
+                {myTasks.map(t=>{const done=t.checklist.filter(c=>c.done).length;const asgn=users.find(u=>u.id===t.assignedTo);return(
                   <div key={t.id} className="ch" style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><div style={{fontWeight:700,fontSize:13,flex:1,lineHeight:1.3}}>{t.title}</div><SB status={t.status}/></div>
-                    <div style={{display:"flex",gap:4,marginBottom:9,flexWrap:"wrap"}}><Tag>{t.dept}</Tag><Tag bg={C.yellowL} color={C.yellow}>📅 {t.due}</Tag></div>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6,gap:6}}>
+                      <div style={{fontWeight:700,fontSize:13,flex:1,lineHeight:1.3}}>{t.title}</div>
+                      <div style={{display:"flex",gap:4,alignItems:"flex-start",flexShrink:0}}>
+                        <SB status={t.status}/>
+                        {isRoot(cu)&&<>
+                          <button onClick={()=>{setFTask({...t,assignedTo:t.assignedTo});setMEditTask(t);setMAddTask(true);setNCI("");}} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:600,cursor:"pointer"}}>✏</button>
+                          <button onClick={()=>deleteTask(t.id)} style={{background:C.redL,color:C.red,border:"none",borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:600,cursor:"pointer"}}>✕</button>
+                        </>}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:4,marginBottom:9,flexWrap:"wrap"}}>
+                      <Tag>{t.dept}</Tag>
+                      <Tag bg={C.yellowL} color={C.yellow}>📅 {t.due}</Tag>
+                      {t.recurring&&<Tag bg={C.purpleL} color={C.purple}>🔄 {t.recurring}</Tag>}
+                      {asgn&&<div style={{display:"flex",alignItems:"center",gap:4}}><Av u={asgn} size={14}/><span style={{fontSize:10,color:C.sub}}>{asgn.name.split(" ")[0]}</span></div>}
+                    </div>
+                    {/* Status toggle for admin/VA */}
+                    {(isRoot(cu)||t.assignedTo===cu.id||(cu.role==="va"&&t.dept===cu.dept))&&(
+                      <div style={{display:"flex",gap:4,marginBottom:8}}>
+                        {["open","in-progress","done"].map(s=>(
+                          <button key={s} onClick={()=>setTasks(p=>p.map(x=>x.id===t.id?{...x,status:s}:x))}
+                            style={{flex:1,background:t.status===s?S[s]?.color:"#fff",color:t.status===s?"#fff":S[s]?.color,border:`1.5px solid ${S[s]?.color}`,borderRadius:6,padding:"3px 0",fontSize:9,fontWeight:700,cursor:"pointer"}}>
+                            {s==="open"?"Offen":s==="in-progress"?"Aktiv":"Erledigt"}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div style={{background:C.bg,borderRadius:7,padding:8,border:`1px solid ${C.border}`}}>
                       <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:5}}>CHECKLISTE {done}/{t.checklist.length}</div>
                       {t.checklist.map((c,i)=>(
@@ -1030,7 +1852,7 @@ export default function App(){
                         </div>
                       ))}
                     </div>
-                    <div style={{marginTop:7,background:C.border,borderRadius:3,height:3}}><div style={{width:`${Math.round((done/t.checklist.length)*100)}%`,height:"100%",background:C.orange,borderRadius:3,transition:"width .3s"}}/></div>
+                    <div style={{marginTop:7,background:C.border,borderRadius:3,height:3}}><div style={{width:`${t.checklist.length?Math.round((done/t.checklist.length)*100):0}%`,height:"100%",background:C.orange,borderRadius:3,transition:"width .3s"}}/></div>
                   </div>
                 );})}
               </div>
@@ -1038,48 +1860,124 @@ export default function App(){
           )}
 
           {/* ══ NACHRICHTEN ══ */}
-          {tab==="messages"&&hasPerm(cu,"messages")&&(
-            <div>
-              <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:11}}>Nachrichten</h1>
-              {mob?(
-                chatPanel&&selChat?<div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",height:"calc(100vh - 168px)",overflow:"hidden"}}><ChatWin/></div>:(
-                  <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,padding:"10px 9px"}}>
-                    {myCons.map(c=>{const cvs=convWith(c.id);const last=cvs[cvs.length-1];const unr=cvs.filter(m=>m.to===cu.id&&!m.read).length;return(
-                      <div key={c.id} onClick={()=>{setSelChat(c);setChatPanel(true);setMsgs(p=>p.map(m=>m.from===c.id&&m.to===cu.id?{...m,read:true}:m));}}
-                        style={{display:"flex",alignItems:"center",gap:8,padding:"8px",borderRadius:8,marginBottom:3,cursor:"pointer",border:`1.5px solid ${C.border}`,background:C.bg}}>
-                        <div style={{position:"relative"}}><Av u={c} size={32}/><div style={{position:"absolute",bottom:0,right:0,width:8,height:8,background:"#10B981",border:"1.5px solid #fff",borderRadius:"50%"}}/></div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontSize:12,fontWeight:700}}>{c.name}</div>{unr>0&&<span style={{background:C.orange,color:"#fff",borderRadius:8,padding:"0 5px",fontSize:10,fontWeight:700}}>{unr}</span>}</div>
-                          <div style={{display:"flex",gap:3,alignItems:"center"}}><RB role={c.role}/><Tag bg="#F9FAFB" color={C.sub}>{c.entity}</Tag></div>
-                          <div style={{fontSize:10,color:C.sub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{last?last.text:"–"}</div>
-                        </div>
-                      </div>
-                    );})}
+          {tab==="messages"&&hasPerm(cu,"messages")&&(()=>{
+            const filtered=myCons.filter(c=>
+              c.name.toLowerCase().includes(chatSearch.toLowerCase())||
+              c.dept?.toLowerCase().includes(chatSearch.toLowerCase())||
+              c.entity?.toLowerCase().includes(chatSearch.toLowerCase())||
+              ROLE_CFG[c.role]?.label.toLowerCase().includes(chatSearch.toLowerCase())
+            );
+            const totalUnread=myCons.reduce((a,c)=>a+msgs.filter(m=>m.from===c.id&&m.to===cu.id&&!m.read).length,0);
+
+            // Contact list item
+            const ContactItem=({c,compact=false})=>{
+              const cvs=convWith(c.id);
+              const last=cvs[cvs.length-1];
+              const unr=cvs.filter(m=>m.to===cu.id&&!m.read).length;
+              const active=selChat?.id===c.id;
+              return(
+                <div onClick={()=>{setSelChat(c);setChatPanel(true);setMsgs(p=>p.map(m=>m.from===c.id&&m.to===cu.id?{...m,read:true}:m));}}
+                  style={{display:"flex",alignItems:"center",gap:compact?7:8,padding:compact?"7px 8px":"9px 10px",borderRadius:9,marginBottom:3,cursor:"pointer",
+                    background:active?C.navyLight:"transparent",
+                    border:`1.5px solid ${active?C.navy:unr>0?C.orange+"44":"transparent"}`,transition:"all .15s"}}>
+                  <div style={{position:"relative",flexShrink:0}}>
+                    <Av u={c} size={compact?30:34}/>
+                    <div style={{position:"absolute",bottom:0,right:0,width:9,height:9,background:"#10B981",border:"2px solid #fff",borderRadius:"50%"}}/>
                   </div>
-                )
-              ):(
-                <div style={{display:"flex",gap:12,height:"calc(100vh - 142px)"}}>
-                  <div style={{width:250,flexShrink:0,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflowY:"auto"}}>
-                    <div style={{padding:"10px 9px 0"}}>
-                      {myCons.map(c=>{const cvs=convWith(c.id);const last=cvs[cvs.length-1];const unr=cvs.filter(m=>m.to===cu.id&&!m.read).length;return(
-                        <div key={c.id} onClick={()=>{setSelChat(c);setMsgs(p=>p.map(m=>m.from===c.id&&m.to===cu.id?{...m,read:true}:m));}}
-                          style={{display:"flex",alignItems:"center",gap:7,padding:"7px 8px",borderRadius:8,marginBottom:2,cursor:"pointer",background:selChat?.id===c.id?C.navyLight:"transparent",border:`1.5px solid ${selChat?.id===c.id?C.navy:"transparent"}`,transition:"all .15s"}}>
-                          <div style={{position:"relative"}}><Av u={c} size={30}/><div style={{position:"absolute",bottom:0,right:0,width:8,height:8,background:"#10B981",border:"1.5px solid #fff",borderRadius:"50%"}}/></div>
-                          <div style={{flex:1,minWidth:0}}>
-                            <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontSize:12,fontWeight:700}}>{c.name}</div>{unr>0&&<span style={{background:C.orange,color:"#fff",borderRadius:8,padding:"0 5px",fontSize:9,fontWeight:700}}>{unr}</span>}</div>
-                            <div style={{display:"flex",gap:3,marginTop:1}}><RB role={c.role}/></div>
-                            <div style={{fontSize:10,color:C.sub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{last?last.text:"–"}</div>
-                          </div>
-                        </div>
-                      );})}
-                      <div style={{height:8}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:4}}>
+                      <div style={{fontSize:12,fontWeight:700,color:active?C.navy:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
+                      <div style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
+                        {last&&<span style={{fontSize:9,color:"#bbb",whiteSpace:"nowrap"}}>{last.time}</span>}
+                        {unr>0&&<span style={{background:C.orange,color:"#fff",borderRadius:8,padding:"1px 6px",fontSize:9,fontWeight:700,minWidth:18,textAlign:"center"}}>{unr}</span>}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:4,alignItems:"center",marginTop:2}}>
+                      <RB role={c.role}/>
+                      {!compact&&<span style={{fontSize:9,color:C.sub}}>{c.entity}</span>}
+                    </div>
+                    <div style={{fontSize:10,color:last&&!msgs.find(m=>m.id===last?.id)?.read&&last?.to===cu.id?C.text:C.sub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:1,fontWeight:unr>0?600:400}}>
+                      {last?(last.from===cu.id?"Du: ":"")+last.text:"Neues Gespräch starten…"}
                     </div>
                   </div>
-                  <div style={{flex:1,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}><ChatWin/></div>
+                </div>
+              );
+            };
+
+            return(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+                <div>
+                  <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Nachrichten</h1>
+                  {totalUnread>0&&<p style={{color:C.orange,fontSize:12,marginTop:2,fontWeight:600}}>{totalUnread} ungelesene Nachricht{totalUnread>1?"en":""}</p>}
+                </div>
+              </div>
+
+              {mob?(
+                chatPanel&&selChat
+                  ?<div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",height:"calc(100vh - 168px)",overflow:"hidden"}}><ChatWin/></div>
+                  :(
+                    <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+                      {/* Search */}
+                      <div style={{padding:"10px 10px 6px"}}>
+                        <div style={{position:"relative"}}>
+                          <input value={chatSearch} onChange={e=>setChatSearch(e.target.value)}
+                            placeholder="🔍 Suchen nach Name, Abteilung, Rolle…"
+                            style={{width:"100%",border:`1.5px solid ${chatSearch?C.navy:C.border}`,borderRadius:9,padding:"8px 12px 8px 36px",fontSize:12,background:C.bg,color:C.text,boxSizing:"border-box"}}/>
+                          <span style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",fontSize:14,opacity:.5}}>🔍</span>
+                          {chatSearch&&<button onClick={()=>setChatSearch("")} style={{position:"absolute",right:9,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",fontSize:14,color:C.sub}}>×</button>}
+                        </div>
+                        {chatSearch&&<div style={{fontSize:10,color:C.sub,marginTop:4}}>{filtered.length} Ergebnis{filtered.length!==1?"se":""}</div>}
+                      </div>
+                      {/* Contact list */}
+                      <div style={{padding:"4px 8px 10px",maxHeight:"65vh",overflowY:"auto"}}>
+                        {filtered.length===0?(
+                          <div style={{textAlign:"center",padding:"24px 0",color:"#bbb"}}>
+                            <div style={{fontSize:28,marginBottom:6}}>🔍</div>
+                            <div style={{fontSize:12}}>Kein Kontakt gefunden für „{chatSearch}"</div>
+                          </div>
+                        ):filtered.map(c=><ContactItem key={c.id} c={c}/>)}
+                      </div>
+                    </div>
+                  )
+              ):(
+                <div style={{display:"flex",gap:12,height:"calc(100vh - 142px)"}}>
+                  {/* Contact sidebar */}
+                  <div style={{width:270,flexShrink:0,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+                    {/* Search bar */}
+                    <div style={{padding:"10px 10px 6px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+                      <div style={{position:"relative"}}>
+                        <input value={chatSearch} onChange={e=>setChatSearch(e.target.value)}
+                          placeholder="Suchen…"
+                          style={{width:"100%",border:`1.5px solid ${chatSearch?C.navy:C.border}`,borderRadius:8,padding:"7px 10px 7px 32px",fontSize:12,background:C.bg,color:C.text,boxSizing:"border-box"}}/>
+                        <span style={{position:"absolute",left:9,top:"50%",transform:"translateY(-50%)",fontSize:13,opacity:.5}}>🔍</span>
+                        {chatSearch&&<button onClick={()=>setChatSearch("")} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",fontSize:13,color:C.sub}}>×</button>}
+                      </div>
+                      {chatSearch?
+                        <div style={{fontSize:10,color:C.sub,marginTop:3}}>{filtered.length} Ergebnisse</div>:
+                        <div style={{fontSize:10,color:C.sub,marginTop:3}}>{myCons.length} Kontakte{totalUnread>0?` · ${totalUnread} ungelesen`:""}</div>
+                      }
+                    </div>
+                    {/* Contacts */}
+                    <div style={{flex:1,overflowY:"auto",padding:"6px 8px"}}>
+                      {filtered.length===0?(
+                        <div style={{textAlign:"center",padding:"24px 12px",color:"#bbb"}}>
+                          <div style={{fontSize:24,marginBottom:6}}>🔍</div>
+                          <div style={{fontSize:11}}>Niemand gefunden für<br/>„{chatSearch}"</div>
+                          <button onClick={()=>setChatSearch("")} style={{marginTop:8,background:C.navyLight,color:C.navy,border:"none",borderRadius:6,padding:"4px 10px",fontSize:11,cursor:"pointer",fontWeight:600}}>Suche löschen</button>
+                        </div>
+                      ):filtered.map(c=><ContactItem key={c.id} c={c} compact/>)}
+                    </div>
+                  </div>
+                  {/* Chat window */}
+                  <div style={{flex:1,background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
+                    <ChatWin/>
+                  </div>
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* ══ TEAM-FEED ══ */}
           {tab==="feed"&&hasPerm(cu,"feed")&&(
@@ -1245,34 +2143,259 @@ export default function App(){
 
 
           {/* ══ ARBEITSPLAN ══ */}
-          {tab==="schedule"&&hasPerm(cu,"schedule")&&(
+          {tab==="schedule"&&hasPerm(cu,"schedule")&&(()=>{
+            const weekDates=getWeekDates(selWeek);
+            const kw=selWeek.split("-")[1];
+            const month=weekDates[0].getMonth();
+            const year=weekDates[0].getFullYear();
+            const MONTHS=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+            const MONTHS_FULL=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+            // visible users based on role
+            const visibleUsers = cu.role==="ma"
+              ? [cu]
+              : cu.role==="va"
+                ? users.filter(u=>u.active&&(u.id===cu.id||u.dept===cu.dept)&&u.role!=="partner")
+                : users.filter(u=>u.active&&u.role!=="partner"&&u.role!=="it");
+
+            // compute monthly hours for a user
+            const monthlyStats=(userId,m,y)=>{
+              const entries=sched.filter(s=>{
+                if(s.userId!==userId) return false;
+                const[sy,sw]=s.week.split("-").map(Number);
+                const wd=getWeekDates(`${sy}-${String(sw).padStart(2,"0")}`);
+                return wd[s.day]?.getMonth()===m && wd[s.day]?.getFullYear()===y;
+              });
+              return {
+                work:    entries.filter(s=>s.type==="work"),
+                sick:    entries.filter(s=>s.type==="sick"),
+                vacation:entries.filter(s=>s.type==="vacation"),
+                off:     entries.filter(s=>s.type==="off"),
+                hours:   entries.filter(s=>s.type==="work").reduce((a,s)=>a+(s.hours||0),0),
+              };
+            };
+
+            return(
             <div>
+              {/* Header */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
-                <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Arbeitsplan KW 19</h1>
-                {(isRoot(cu)||cu.role==="va")&&<button className="bo" onClick={()=>setMShift(true)}>+ Schicht eintragen</button>}
+                <div>
+                  <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Arbeitsplan</h1>
+                  <p style={{color:C.sub,fontSize:12,marginTop:2}}>KW {kw} · {MONTHS_FULL[weekDates[0].getMonth()]} {year}</p>
+                </div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {(isRoot(cu)||cu.role==="va")&&(
+                    <button className="bo" onClick={()=>{setNLR({userId:isRoot(cu)?visibleUsers[0]?.id||cu.id:cu.id,day:0,week:selWeek,shift:"07:00–15:00",type:"work",hours:8});setMShift(true);}}>+ Schicht</button>
+                  )}                </div>
               </div>
-              <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse",minWidth:500}}>
-                  <thead><tr style={{background:C.navy}}>
-                    <th style={{padding:"8px 11px",textAlign:"left",fontSize:12,color:"#fff",fontWeight:700,minWidth:120}}>Mitarbeiter</th>
-                    {DAYS.map((d,i)=><th key={i} style={{padding:"7px 5px",textAlign:"center",fontSize:11,color:"#fff",fontWeight:700,minWidth:65}}>{d}</th>)}
-                  </tr></thead>
-                  <tbody>
-                    {(cu.role==="ma"||cu.role==="hotel"?[cu]:users.filter(u=>u.active&&(isRoot(cu)||u.dept===cu.dept||u.entity===cu.entity))).map(usr=>(
-                      <tr key={usr.id} style={{borderBottom:`1px solid ${C.border}`}}>
-                        <td style={{padding:"7px 11px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><Av u={usr} size={20}/><div><div style={{fontSize:11,fontWeight:700}}>{usr.name.split(" ")[0]}</div><div style={{fontSize:9,color:C.sub}}>{usr.entity}</div></div></div></td>
-                        {DAYS.map((_,di)=>{const s=sched.find(s=>s.userId===usr.id&&s.day===di);const sc=s?SHIFTS_C[s.type]:null;return(
-                          <td key={di} style={{padding:"4px 3px",textAlign:"center"}}>
-                            {sc?<div style={{background:sc.bg,borderRadius:5,padding:"3px 2px"}}><div style={{fontSize:9,fontWeight:700,color:sc.color}}>{s.shift}</div><div style={{fontSize:8,color:sc.color,marginTop:1}}>{sc.label}</div></div>:<div style={{color:"#ddd",fontSize:10}}>–</div>}
-                          </td>
-                        );})}
+
+              {/* Sub-tabs */}
+              <div style={{display:"flex",gap:4,marginBottom:13,background:C.bg,borderRadius:8,padding:4,border:`1px solid ${C.border}`,width:"fit-content"}}>
+                {[["week","📅 Woche"],["month","📊 Monatsübersicht"],["stats","📈 Statistik"]].map(([id,label])=>(
+                  <button key={id} onClick={()=>setSchedTab(id)}
+                    style={{padding:"5px 12px",borderRadius:6,border:"none",fontSize:12,fontWeight:700,cursor:"pointer",
+                      background:schedTab===id?C.navy:"transparent",color:schedTab===id?"#fff":C.sub}}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── WEEK VIEW ── */}
+              {schedTab==="week"&&(<div>
+                {/* Week navigation */}
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <button onClick={prevWeek} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:7,padding:"5px 12px",fontSize:13,cursor:"pointer",fontWeight:700}}>‹</button>
+                  <div style={{flex:1,textAlign:"center",fontWeight:700,fontSize:13}}>
+                    KW {kw} · {weekDates[0].toLocaleDateString("de-DE",{day:"2-digit",month:"short"})} – {weekDates[6].toLocaleDateString("de-DE",{day:"2-digit",month:"short",year:"numeric"})}
+                  </div>
+                  <button onClick={nextWeek} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:7,padding:"5px 12px",fontSize:13,cursor:"pointer",fontWeight:700}}>›</button>
+                  <button onClick={()=>setSelWeek(getWeekKey(new Date()))} style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontWeight:700}}>Heute</button>
+                </div>
+
+                {/* Legend */}
+                <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:9}}>
+                  {Object.entries(SHIFTS_C).map(([k,v])=>(
+                    <div key={k} style={{display:"flex",alignItems:"center",gap:4,background:v.bg,borderRadius:5,padding:"2px 8px",border:`1px solid ${v.color}33`}}>
+                      <div style={{width:7,height:7,borderRadius:"50%",background:v.color}}/>
+                      <span style={{fontSize:10,fontWeight:600,color:v.color}}>{v.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Table */}
+                <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"auto"}}>
+                  <table style={{width:"100%",borderCollapse:"collapse",minWidth:mob?520:650}}>
+                    <thead>
+                      <tr style={{background:C.navy}}>
+                        <th style={{padding:"9px 12px",textAlign:"left",fontSize:11,color:"#fff",fontWeight:700,minWidth:130,position:"sticky",left:0,background:C.navy,zIndex:2}}>Mitarbeiter</th>
+                        {DAYS.map((d,i)=>(
+                          <th key={i} style={{padding:"7px 5px",textAlign:"center",fontSize:10,color:"#fff",fontWeight:700,minWidth:90}}>
+                            <div>{d}</div>
+                            <div style={{fontSize:9,opacity:.7,fontWeight:400}}>{weekDates[i]?.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div>
+                          </th>
+                        ))}
+                        <th style={{padding:"7px 8px",textAlign:"center",fontSize:10,color:"#fff",fontWeight:700,minWidth:60}}>Σ Std.</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {visibleUsers.map(usr=>{
+                        const weekEntries=DAYS.map((_,di)=>sched.find(s=>s.userId===usr.id&&s.day===di&&s.week===selWeek));
+                        const weekHrs=weekEntries.reduce((a,s)=>a+(s?.hours||0),0);
+                        const canEdit=isRoot(cu)||(cu.role==="va"&&usr.dept===cu.dept);
+                        return(
+                          <tr key={usr.id} style={{borderBottom:`1px solid ${C.border}`}}>
+                            <td style={{padding:"8px 12px",position:"sticky",left:0,background:"#fff",zIndex:1}}>
+                              <div style={{display:"flex",alignItems:"center",gap:7}}>
+                                <Av u={usr} size={24}/>
+                                <div>
+                                  <div style={{fontSize:11,fontWeight:700,color:C.text}}>{usr.name.split(" ")[0]}</div>
+                                  <div style={{fontSize:9,color:C.sub}}>{usr.dept}</div>
+                                </div>
+                              </div>
+                            </td>
+                            {DAYS.map((_,di)=>{
+                              const s=weekEntries[di];
+                              const sc=s?SHIFTS_C[s.type]:null;
+                              return(
+                                <td key={di} style={{padding:"3px",textAlign:"center",verticalAlign:"middle"}}>
+                                  {sc?(
+                                    <div style={{background:sc.bg,borderRadius:6,padding:"5px 3px",border:`1px solid ${sc.color}44`}}>
+                                      <div style={{fontSize:9,fontWeight:700,color:sc.color,lineHeight:1.3}}>{s.shift}</div>
+                                      <div style={{fontSize:8,color:sc.color,marginTop:1}}>{sc.label}</div>
+                                      {s.hours>0&&<div style={{fontSize:8,color:sc.color,opacity:.7}}>{s.hours}h</div>}
+                                      {canEdit&&(
+                                        <div style={{display:"flex",gap:2,justifyContent:"center",marginTop:3}}>
+                                          <button onClick={()=>{setNLR({userId:usr.id,day:di,week:selWeek,shift:s.shift,type:s.type,hours:s.hours});setMShift(true);}}
+                                            style={{background:"rgba(255,255,255,.7)",border:"none",borderRadius:3,padding:"1px 5px",fontSize:8,cursor:"pointer",color:C.navy,fontWeight:700}}>✏</button>
+                                          <button onClick={()=>{
+                                            setSched(p=>p.filter(x=>!(x.userId===usr.id&&x.day===di&&x.week===selWeek)));
+                                            addNotif(usr.id,"schedule_update","📅 Schicht gelöscht",
+                                              `${cu.name} hat Ihre Schicht am ${WDAYS[di]} (KW ${kw}) gelöscht.`);
+                                          }} style={{background:"rgba(220,38,38,.15)",border:"none",borderRadius:3,padding:"1px 5px",fontSize:8,cursor:"pointer",color:C.red,fontWeight:700}}>✕</button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ):(
+                                    canEdit?(
+                                      <button onClick={()=>{setNLR({userId:usr.id,day:di,week:selWeek,shift:"07:00–15:00",type:"work",hours:8});setMShift(true);}}
+                                        style={{background:"transparent",border:`1px dashed ${C.border}`,borderRadius:5,padding:"4px 3px",fontSize:9,color:C.sub,cursor:"pointer",width:"100%"}}>+</button>
+                                    ):<span style={{color:"#ddd",fontSize:11}}>–</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td style={{padding:"4px 8px",textAlign:"center",fontWeight:800,fontSize:13,color:C.navy}}>{weekHrs}h</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>)}
+
+              {/* ── MONTH VIEW ── */}
+              {schedTab==="month"&&(<div>
+                <div style={{fontWeight:700,fontSize:14,marginBottom:11,color:C.navy}}>📊 {MONTHS_FULL[month]} {year} — Monatsübersicht</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
+                  {visibleUsers.map(usr=>{
+                    const st=monthlyStats(usr.id,month,year);
+                    return(
+                      <div key={usr.id} style={{background:"#fff",borderRadius:12,padding:14,border:`1px solid ${C.border}`}}>
+                        <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}>
+                          <Av u={usr} size={36}/>
+                          <div>
+                            <div style={{fontWeight:700,fontSize:13}}>{usr.name}</div>
+                            <div style={{fontSize:11,color:C.sub}}>{usr.dept}</div>
+                          </div>
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                          {[
+                            {l:"Arbeitsstunden",v:`${st.hours}h`,c:C.navy,bg:C.navyLight,i:"⏱"},
+                            {l:"Arbeitstage",v:`${st.work.length}`,c:"#059669",bg:"#F0FDF4",i:"✅"},
+                            {l:"Urlaubstage",v:`${st.vacation.length}`,c:"#D97706",bg:"#FFFBEB",i:"🏖"},
+                            {l:"Krankheitstage",v:`${st.sick.length}`,c:C.red,bg:C.redL,i:"🤒"},
+                          ].map(x=>(
+                            <div key={x.l} style={{background:x.bg,borderRadius:7,padding:"7px 9px",borderLeft:`3px solid ${x.c}`}}>
+                              <div style={{fontSize:9,color:x.c,fontWeight:700,marginBottom:2}}>{x.i} {x.l}</div>
+                              <div style={{fontSize:18,fontWeight:800,color:x.c}}>{x.v}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Progress bar */}
+                        <div>
+                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.sub,marginBottom:3}}>
+                            <span>Auslastung</span>
+                            <span>{Math.round(st.hours/(22*8)*100)}%</span>
+                          </div>
+                          <div style={{background:C.border,borderRadius:4,height:6}}>
+                            <div style={{width:`${Math.min(100,Math.round(st.hours/(22*8)*100))}%`,height:"100%",background:C.orange,borderRadius:4}}/>
+                          </div>
+                          <div style={{fontSize:9,color:C.sub,marginTop:2}}>{st.hours}h von ~176h (22 Arbeitstage)</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>)}
+
+              {/* ── STATS VIEW ── */}
+              {schedTab==="stats"&&(<div>
+                <div style={{fontWeight:700,fontSize:14,marginBottom:11,color:C.navy}}>📈 Jahresstatistik {year}</div>
+                <div style={{background:"#fff",borderRadius:10,border:`1px solid ${C.border}`,overflow:"auto"}}>
+                  <table style={{width:"100%",borderCollapse:"collapse",minWidth:600}}>
+                    <thead>
+                      <tr style={{background:C.navy}}>
+                        <th style={{padding:"9px 12px",textAlign:"left",fontSize:11,color:"#fff",fontWeight:700,position:"sticky",left:0,background:C.navy,minWidth:140}}>Mitarbeiter</th>
+                        {MONTHS.map(m=><th key={m} style={{padding:"7px 6px",textAlign:"center",fontSize:10,color:"#fff",fontWeight:700,minWidth:55}}>{m}</th>)}
+                        <th style={{padding:"7px 8px",textAlign:"center",fontSize:10,color:"#fff",fontWeight:700}}>Gesamt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleUsers.map(usr=>{
+                        const monthHrs=MONTHS.map((_,mi)=>monthlyStats(usr.id,mi,year).hours);
+                        const total=monthHrs.reduce((a,h)=>a+h,0);
+                        return(
+                          <tr key={usr.id} style={{borderBottom:`1px solid ${C.border}`}}>
+                            <td style={{padding:"8px 12px",position:"sticky",left:0,background:"#fff"}}>
+                              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                                <Av u={usr} size={20}/>
+                                <div style={{fontSize:11,fontWeight:700}}>{usr.name.split(" ")[0]}</div>
+                              </div>
+                            </td>
+                            {monthHrs.map((h,mi)=>(
+                              <td key={mi} style={{padding:"5px 6px",textAlign:"center",background:h===0?"transparent":h<80?C.yellowL:C.greenL}}>
+                                <span style={{fontSize:11,fontWeight:h>0?700:400,color:h===0?"#ccc":h<80?C.yellow:C.green}}>{h>0?`${h}h`:"–"}</span>
+                              </td>
+                            ))}
+                            <td style={{padding:"5px 8px",textAlign:"center",fontWeight:800,color:C.navy,fontSize:13}}>{total}h</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Team summary */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8,marginTop:12}}>
+                  {[
+                    {l:"Arbeitsstunden gesamt",v:sched.filter(s=>s.type==="work").reduce((a,s)=>a+(s.hours||0),0)+"h",i:"⏱",c:C.navy,bg:C.navyLight},
+                    {l:"Krankheitstage gesamt",v:sched.filter(s=>s.type==="sick").length,i:"🤒",c:C.red,bg:C.redL},
+                    {l:"Urlaubstage gesamt",v:sched.filter(s=>s.type==="vacation").length,i:"🏖",c:"#D97706",bg:"#FFFBEB"},
+                    {l:"Freie Tage gesamt",v:sched.filter(s=>s.type==="off").length,i:"📆",c:C.sub,bg:"#F9FAFB"},
+                  ].map(s=>(
+                    <div key={s.l} style={{background:"#fff",borderRadius:8,padding:"10px 12px",border:`1px solid ${C.border}`,borderLeft:`4px solid ${s.c}`}}>
+                      <div style={{fontSize:22,marginBottom:4}}>{s.i}</div>
+                      <div style={{fontSize:18,fontWeight:800,color:s.c}}>{s.v}</div>
+                      <div style={{fontSize:10,color:C.sub,marginTop:2,lineHeight:1.4}}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>)}
             </div>
-          )}
+            );
+          })()}
+
+
 
           {/* ══ LAGER ══ */}
           {tab==="warehouse"&&hasPerm(cu,"warehouse")&&(
@@ -1489,25 +2612,30 @@ export default function App(){
         <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveUser} style={{flex:1,padding:"9px",fontSize:13}}>{mUser==="new"?"Hinzufügen":"Speichern"}</button><button className="bg" onClick={()=>setMUser(null)}>Abbrechen</button></div>
       </Modal>}
 
-      {/* NEW PROJECT - with inline material + request rows that stay open */}
-      {mProj&&<Modal title="🏗 Neues Projekt anlegen" onClose={()=>setMProj(false)} w={620}>
+      {/* NEW PROJECT - partner sees simplified form, admin sees full form */}
+      {mProj&&<Modal title={isPartner(cu)?"🤝 Projektanfrage stellen":"🏗 Neues Projekt anlegen"} onClose={()=>setMProj(false)} w={620}>
+        {isPartner(cu)&&(
+          <div style={{background:C.greenL,border:"1px solid #6EE7B7",borderRadius:8,padding:"8px 11px",marginBottom:12,fontSize:12,color:C.green,fontWeight:600}}>
+            🤝 Ihre Anfrage wird an die Verwaltung gesendet und nach Prüfung freigegeben.
+          </div>
+        )}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:11}}>
           <div style={{gridColumn:"1/-1"}}><Lbl>PROJEKTNAME</Lbl><Inp value={fProj.name} onChange={e=>setFProj(v=>({...v,name:e.target.value}))} placeholder="z.B. Trockenbau Wandesbeker Str."/></div>
           <div><Lbl>STANDORT / OBJEKT</Lbl><Inp value={fProj.location} onChange={e=>setFProj(v=>({...v,location:e.target.value}))} placeholder="z.B. Wandesbeker Ch. 19"/></div>
-          <div><Lbl>EINHEIT / FIRMA</Lbl><Sel value={fProj.entity} onChange={e=>setFProj(v=>({...v,entity:e.target.value}))}>{ENTITIES.map(e=><option key={e}>{e}</option>)}</Sel></div>
+          {!isPartner(cu)&&<div><Lbl>EINHEIT / FIRMA</Lbl><Sel value={fProj.entity} onChange={e=>setFProj(v=>({...v,entity:e.target.value}))}>{ENTITIES.map(e=><option key={e}>{e}</option>)}</Sel></div>}
           <div><Lbl>STARTDATUM</Lbl><Inp value={fProj.startDate} onChange={e=>setFProj(v=>({...v,startDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
           <div><Lbl>ENDDATUM</Lbl><Inp value={fProj.endDate} onChange={e=>setFProj(v=>({...v,endDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
           <div><Lbl>FLÄCHE (m²)</Lbl><Inp type="number" value={fProj.area} onChange={e=>setFProj(v=>({...v,area:e.target.value}))} placeholder="0"/></div>
           <div><Lbl>ANZAHL RÄUME</Lbl><Inp type="number" value={fProj.rooms} onChange={e=>setFProj(v=>({...v,rooms:e.target.value}))} placeholder="0"/></div>
           <div><Lbl>ETAGEN</Lbl><Inp type="number" value={fProj.floors} onChange={e=>setFProj(v=>({...v,floors:e.target.value}))} placeholder="1"/></div>
           <div><Lbl>GEPLANTE STUNDEN</Lbl><Inp type="number" value={fProj.expectedHours} onChange={e=>setFProj(v=>({...v,expectedHours:e.target.value}))} placeholder="40"/></div>
-          <div><Lbl>VERANTWORTLICH</Lbl><Sel value={fProj.responsibleId} onChange={e=>setFProj(v=>({...v,responsibleId:+e.target.value}))}>{users.filter(u=>u.active&&(u.role==="va"||u.role==="admin")).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</Sel></div>
+          {!isPartner(cu)&&<div><Lbl>VERANTWORTLICH</Lbl><Sel value={fProj.responsibleId} onChange={e=>setFProj(v=>({...v,responsibleId:+e.target.value}))}>{users.filter(u=>u.active&&(u.role==="va"||u.role==="admin")).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</Sel></div>}
         </div>
-        {/* Wer kann bearbeiten */}
-        <div style={{marginBottom:11}}>
+        {/* Wer kann bearbeiten — nur für interne Nutzer */}
+        {!isPartner(cu)&&<div style={{marginBottom:11}}>
           <Lbl>WER DARF BEARBEITEN?</Lbl>
           <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px 10px",border:`1px solid ${C.border}`}}>
-            {users.filter(u=>u.active).map(u=>{const sel=fProj.editableBy.includes(u.id);return(
+            {users.filter(u=>u.active&&u.role!=="partner").map(u=>{const sel=fProj.editableBy.includes(u.id);return(
               <div key={u.id} onClick={()=>setFProj(v=>({...v,editableBy:sel?v.editableBy.filter(i=>i!==u.id):[...v.editableBy,u.id]}))}
                 style={{display:"flex",alignItems:"center",gap:5,padding:"4px 8px",borderRadius:6,background:sel?C.navyLight:"#fff",border:`1.5px solid ${sel?C.navy:C.border}`,cursor:"pointer"}}>
                 <Av u={u} size={16}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
@@ -1515,12 +2643,12 @@ export default function App(){
               </div>
             );})}
           </div>
-        </div>
-        {/* Wer kann sehen */}
-        <div style={{marginBottom:11}}>
+        </div>}
+        {/* Wer kann sehen — nur für interne Nutzer */}
+        {!isPartner(cu)&&<div style={{marginBottom:11}}>
           <Lbl>WER DARF SEHEN?</Lbl>
           <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px 10px",border:`1px solid ${C.border}`}}>
-            {users.filter(u=>u.active).map(u=>{const sel=fProj.visibleTo.includes(u.id)||fProj.editableBy.includes(u.id);return(
+            {users.filter(u=>u.active&&u.role!=="partner").map(u=>{const sel=fProj.visibleTo.includes(u.id)||fProj.editableBy.includes(u.id);return(
               <div key={u.id} onClick={()=>setFProj(v=>({...v,visibleTo:v.visibleTo.includes(u.id)?v.visibleTo.filter(i=>i!==u.id):[...v.visibleTo,u.id]}))}
                 style={{display:"flex",alignItems:"center",gap:5,padding:"4px 8px",borderRadius:6,background:sel?C.greenL:"#fff",border:`1.5px solid ${sel?C.green:C.border}`,cursor:"pointer"}}>
                 <Av u={u} size={16}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
@@ -1528,8 +2656,8 @@ export default function App(){
               </div>
             );})}
           </div>
-        </div>
-        <div style={{marginBottom:11}}><Lbl>NOTIZEN</Lbl><Txt value={fProj.notes} onChange={e=>setFProj(v=>({...v,notes:e.target.value}))} rows={2} placeholder="Beschreibung, besondere Anforderungen…"/></div>
+        </div>}
+        <div style={{marginBottom:11}}><Lbl>NOTIZEN / BESCHREIBUNG</Lbl><Txt value={fProj.notes} onChange={e=>setFProj(v=>({...v,notes:e.target.value}))} rows={2} placeholder="Beschreibung, besondere Anforderungen…"/></div>
 
         {/* Inline: Material hinzufügen — bleibt offen */}
         <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:11,border:`1px solid ${C.border}`}}>
@@ -1572,7 +2700,7 @@ export default function App(){
           </div>
         </div>
 
-        <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveProj} style={{flex:1,padding:"9px",fontSize:13}}>Projekt erstellen</button><button className="bg" onClick={()=>setMProj(false)}>Abbrechen</button></div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveProj} style={{flex:1,padding:"9px",fontSize:13}}>{isPartner(cu)?"📤 Anfrage absenden":"🏗 Projekt erstellen"}</button><button className="bg" onClick={()=>setMProj(false)}>Abbrechen</button></div>
       </Modal>}
 
       {/* MATERIALANFRAGE (in existing project) */}
@@ -1684,14 +2812,48 @@ export default function App(){
       </Modal>}
 
       {/* SCHICHT */}
-      {mShift&&<Modal title="📅 Schicht eintragen" onClose={()=>setMShift(false)}>
-        <div style={{marginBottom:9}}><Lbl>MITARBEITER</Lbl><Sel value={newLogRow.userId||cu.id} onChange={e=>setNLR(v=>({...v,userId:+e.target.value}))}>{users.filter(u=>u.active).map(u=><option key={u.id} value={u.id}>{u.name} ({u.entity})</option>)}</Sel></div>
+      {mShift&&<Modal title="📅 Schicht eintragen / bearbeiten" onClose={()=>setMShift(false)} w={460}>
+        {(isRoot(cu)||cu.role==="va")&&<div style={{marginBottom:9}}><Lbl>MITARBEITER</Lbl>
+          <Sel value={newLogRow.userId||cu.id} onChange={e=>setNLR(v=>({...v,userId:+e.target.value}))}>
+            {users.filter(u=>u.active&&u.role!=="partner"&&(isRoot(cu)||u.dept===cu.dept)).map(u=><option key={u.id} value={u.id}>{u.name} — {u.dept}</option>)}
+          </Sel>
+        </div>}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
-          <div><Lbl>TAG</Lbl><Sel value={newLogRow.day||0} onChange={e=>setNLR(v=>({...v,day:+e.target.value}))}>{WDAYS.map((d,i)=><option key={i} value={i}>{d}</option>)}</Sel></div>
-          <div><Lbl>TYP</Lbl><Sel value={newLogRow.type||"work"} onChange={e=>setNLR(v=>({...v,type:e.target.value}))}>{Object.entries(SHIFTS_C).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</Sel></div>
+          <div><Lbl>WOCHE (KW)</Lbl>
+            <Inp value={newLogRow.week||selWeek} onChange={e=>setNLR(v=>({...v,week:e.target.value}))} placeholder="2026-19"/>
+          </div>
+          <div><Lbl>TAG</Lbl>
+            <Sel value={newLogRow.day??0} onChange={e=>setNLR(v=>({...v,day:+e.target.value}))}>
+              {WDAYS.map((d,i)=><option key={i} value={i}>{d}</option>)}
+            </Sel>
+          </div>
+          <div><Lbl>TYP</Lbl>
+            <Sel value={newLogRow.type||"work"} onChange={e=>setNLR(v=>({...v,type:e.target.value}))}>
+              {Object.entries(SHIFTS_C).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}
+            </Sel>
+          </div>
+          <div><Lbl>STUNDEN</Lbl>
+            <Inp type="number" value={newLogRow.hours??8} onChange={e=>setNLR(v=>({...v,hours:+e.target.value}))} step="0.5" min={0} max={24}/>
+          </div>
         </div>
-        <div style={{marginBottom:13}}><Lbl>SCHICHT</Lbl><Inp value={newLogRow.shift||"07:00–15:00"} onChange={e=>setNLR(v=>({...v,shift:e.target.value}))} placeholder="07:00–15:00"/></div>
-        <div style={{display:"flex",gap:7}}><button className="bo" onClick={addShift} style={{flex:1,padding:"9px",fontSize:13}}>Speichern</button><button className="bg" onClick={()=>setMShift(false)}>Abbrechen</button></div>
+        <div style={{marginBottom:12}}><Lbl>SCHICHTZEIT (z.B. 07:00–15:00)</Lbl>
+          <Inp value={newLogRow.shift||"07:00–15:00"} onChange={e=>setNLR(v=>({...v,shift:e.target.value}))} placeholder="07:00–15:00"/>
+        </div>
+        {/* Preview */}
+        {(()=>{const sc=SHIFTS_C[newLogRow.type||"work"];return(
+          <div style={{background:sc.bg,border:`1px solid ${sc.color}44`,borderRadius:8,padding:"8px 12px",marginBottom:13,display:"flex",gap:10,alignItems:"center"}}>
+            <div style={{width:10,height:10,borderRadius:"50%",background:sc.color,flexShrink:0}}/>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:sc.color}}>{WDAYS[newLogRow.day??0]} · KW {(newLogRow.week||selWeek).split("-")[1]}</div>
+              <div style={{fontSize:11,color:sc.color}}>{newLogRow.shift||"07:00–15:00"} · {newLogRow.hours??8}h · {sc.label}</div>
+            </div>
+            <div style={{marginLeft:"auto",fontSize:10,color:sc.color,opacity:.7}}>Vorschau</div>
+          </div>
+        );})()}
+        <div style={{display:"flex",gap:7}}>
+          <button className="bo" onClick={addShift} style={{flex:1,padding:"9px",fontSize:13}}>💾 Speichern & Benachrichtigen</button>
+          <button className="bg" onClick={()=>setMShift(false)}>Abbrechen</button>
+        </div>
       </Modal>}
 
       {/* WAREHOUSE MATERIAL */}
@@ -1761,14 +2923,266 @@ export default function App(){
         </div>
       </Modal>}
 
+      {/* ADD/EDIT TASK */}
+      {mAddTask&&isRoot(cu)&&<Modal title={mEditTask==="new"?"✓ Neue Aufgabe":"✏ Aufgabe bearbeiten"} onClose={()=>{setMAddTask(false);setMEditTask(null);setFTask(BLANK_TASK);setNCI("");}} w={500}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>TITEL</Lbl><Inp value={fTask.title} onChange={e=>setFTask(v=>({...v,title:e.target.value}))} placeholder="z.B. Werkzeugkontrolle"/></div>
+          <div><Lbl>ABTEILUNG</Lbl><Sel value={fTask.dept} onChange={e=>setFTask(v=>({...v,dept:e.target.value}))}>{DEPTS.map(d=><option key={d}>{d}</option>)}</Sel></div>
+          <div><Lbl>ZUWEISEN AN</Lbl><Sel value={fTask.assignedTo} onChange={e=>setFTask(v=>({...v,assignedTo:+e.target.value}))}>{users.filter(u=>u.active).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</Sel></div>
+          <div><Lbl>FÄLLIG AM</Lbl><Inp value={fTask.due} onChange={e=>setFTask(v=>({...v,due:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
+          <div><Lbl>WIEDERKEHREND</Lbl><Sel value={fTask.recurring} onChange={e=>setFTask(v=>({...v,recurring:e.target.value}))}><option value="">Einmalig</option><option>Täglich</option><option>Wöchentlich</option><option>Monatlich</option></Sel></div>
+          <div><Lbl>STATUS</Lbl><Sel value={fTask.status} onChange={e=>setFTask(v=>({...v,status:e.target.value}))}><option value="open">Offen</option><option value="in-progress">In Bearbeitung</option><option value="done">Erledigt</option></Sel></div>
+        </div>
+        {/* Checklist builder */}
+        <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:13,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>✓ CHECKLISTE</div>
+          {fTask.checklist.map((c,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 7px",background:"#fff",borderRadius:6,marginBottom:4,border:`1px solid ${C.border}`}}>
+              <span style={{flex:1,fontSize:12}}>{c.text}</span>
+              <button onClick={()=>setFTask(v=>({...v,checklist:v.checklist.filter((_,ri)=>ri!==i)}))} style={{background:C.redL,color:C.red,border:"none",borderRadius:4,padding:"1px 6px",fontSize:11,cursor:"pointer"}}>✕</button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:6,marginTop:6}}>
+            <Inp value={newCheckItem} onChange={e=>setNCI(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&newCheckItem.trim()){setFTask(v=>({...v,checklist:[...v.checklist,{text:newCheckItem,done:false}]}));setNCI("");}}} placeholder="Punkt hinzufügen… (Enter)" style={{fontSize:12,padding:"6px 9px"}}/>
+            <button className="bgr" onClick={()=>{if(!newCheckItem.trim())return;setFTask(v=>({...v,checklist:[...v.checklist,{text:newCheckItem,done:false}]}));setNCI("");}} style={{padding:"6px 11px",fontSize:12,flexShrink:0}}>+ Hinzu</button>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={saveTask} style={{flex:1,padding:"9px",fontSize:13}}>{mEditTask==="new"?"Aufgabe erstellen":"Änderungen speichern"}</button><button className="bg" onClick={()=>{setMAddTask(false);setMEditTask(null);setFTask(BLANK_TASK);setNCI("");}}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* PARTNER REPAIR REQUEST */}
+      {mPartnerRepair&&isPartner(cu)&&<Modal title="🔧 Reparatur / Störung melden" onClose={()=>setMPartnerRepair(false)} w={480}>
+        <div style={{background:C.navyLight,borderRadius:8,padding:"8px 11px",marginBottom:12,fontSize:12,color:C.navy}}>
+          Ihre Meldung wird direkt an die Verwaltung weitergeleitet.
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
+          <div style={{gridColumn:"1/-1"}}><Lbl>TITEL / PROBLEM</Lbl><Inp value={fPartnerRepair.title} onChange={e=>setFPartnerRepair(v=>({...v,title:e.target.value}))} placeholder="z.B. Wasserleck im Keller"/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>ORT / STANDORT</Lbl><Inp value={fPartnerRepair.location} onChange={e=>setFPartnerRepair(v=>({...v,location:e.target.value}))} placeholder="z.B. Gebäude A, Raum 204"/></div>
+          <div><Lbl>DRINGLICHKEIT</Lbl>
+            <div style={{display:"flex",gap:5}}>
+              {["normal","dringend"].map(u=>(
+                <button key={u} onClick={()=>setFPartnerRepair(v=>({...v,urgency:u}))}
+                  style={{flex:1,padding:"8px",borderRadius:7,border:`1.5px solid ${fPartnerRepair.urgency===u?u==="dringend"?C.red:C.navy:C.border}`,background:fPartnerRepair.urgency===u?u==="dringend"?C.redL:C.navyLight:"#fff",color:fPartnerRepair.urgency===u?u==="dringend"?C.red:C.navy:C.sub,fontWeight:700,fontSize:12}}>
+                  {u==="dringend"?"⚠ Dringend":"Normal"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div><Lbl>IHR NAME / KONTAKT</Lbl><Inp value={fPartnerRepair.contactName} onChange={e=>setFPartnerRepair(v=>({...v,contactName:e.target.value}))} placeholder="Ihr Name"/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>TELEFON (optional)</Lbl><Inp value={fPartnerRepair.contactPhone} onChange={e=>setFPartnerRepair(v=>({...v,contactPhone:e.target.value}))} placeholder="+49 ..."/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>BESCHREIBUNG</Lbl><Txt value={fPartnerRepair.description} onChange={e=>setFPartnerRepair(v=>({...v,description:e.target.value}))} rows={3} placeholder="Detaillierte Beschreibung des Problems…"/></div>
+        </div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={submitPartnerRepair} style={{flex:1,padding:"9px",fontSize:13}}>📤 Meldung absenden</button><button className="bg" onClick={()=>setMPartnerRepair(false)}>Abbrechen</button></div>
+      </Modal>}
+
+      {/* APPROVE / REJECT PARTNER REQUEST */}
+      {mApprove&&isRoot(cu)&&<Modal title={`🤝 Anfrage bearbeiten: ${mApprove.name||mApprove.title}`} onClose={()=>setMApprove(null)} w={560}>
+        {/* Request details */}
+        <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",marginBottom:12,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:6}}>ANFRAGE-DETAILS</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+            {[
+              ["Typ", mApprove.type==="repair_request"?"🔧 Reparatur":"🏗 Projekt"],
+              ["Von", `${mApprove.createdByName} (${mApprove.entity})`],
+              ["Datum", mApprove.date+" · "+mApprove.time],
+              ["Standort", mApprove.location||"–"],
+              ...(mApprove.type!=="repair_request"?[
+                ["Fläche", mApprove.area?`${mApprove.area} m²`:"–"],
+                ["Zeitraum", `${mApprove.startDate||"–"} – ${mApprove.endDate||"–"}`],
+              ]:[
+                ["Dringlichkeit", mApprove.urgency==="dringend"?"⚠ DRINGEND":"Normal"],
+                ["Kontakt", mApprove.contactName||"–"],
+              ]),
+            ].map(([k,v])=>(
+              <div key={k} style={{background:"#fff",borderRadius:6,padding:"5px 8px",border:`1px solid ${C.border}`}}>
+                <div style={{fontSize:9,color:C.sub,fontWeight:700}}>{k}</div>
+                <div style={{fontSize:12,fontWeight:600,color:C.text}}>{v}</div>
+              </div>
+            ))}
+          </div>
+          {(mApprove.notes||mApprove.description)&&<div style={{background:C.yellowL,borderRadius:6,padding:"7px 9px",marginTop:7,fontSize:12,border:"1px solid #FDE68A"}}>📝 {mApprove.notes||mApprove.description}</div>}
+        </div>
+
+        {/* Action toggle */}
+        <div style={{display:"flex",gap:6,marginBottom:12}}>
+          <button onClick={()=>setFApprove(v=>({...v,action:"approve"}))}
+            style={{flex:1,padding:"9px",borderRadius:8,border:`1.5px solid ${fApprove.action==="approve"?C.green:C.border}`,background:fApprove.action==="approve"?C.greenL:"#fff",color:fApprove.action==="approve"?C.green:C.sub,fontWeight:700,fontSize:13}}>
+            ✅ Genehmigen & Zuweisen
+          </button>
+          <button onClick={()=>setFApprove(v=>({...v,action:"reject"}))}
+            style={{flex:1,padding:"9px",borderRadius:8,border:`1.5px solid ${fApprove.action==="reject"?C.red:C.border}`,background:fApprove.action==="reject"?C.redL:"#fff",color:fApprove.action==="reject"?C.red:C.sub,fontWeight:700,fontSize:13}}>
+            ❌ Ablehnen
+          </button>
+        </div>
+
+        {fApprove.action==="approve"&&mApprove.type!=="repair_request"&&(
+          <div>
+            <div style={{marginBottom:10}}><Lbl>VERANTWORTLICHER MITARBEITER</Lbl>
+              <Sel value={fApprove.responsibleId} onChange={e=>setFApprove(v=>({...v,responsibleId:+e.target.value}))}>
+                {users.filter(u=>u.active&&(u.role==="va"||u.role==="admin")).map(u=><option key={u.id} value={u.id}>{u.name} ({ROLE_CFG[u.role]?.label})</option>)}
+              </Sel>
+            </div>
+            <div style={{marginBottom:10}}>
+              <Lbl>WER DARF BEARBEITEN?</Lbl>
+              <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px",border:`1px solid ${C.border}`}}>
+                {users.filter(u=>u.active&&u.role!=="partner").map(u=>{const sel=fApprove.editableBy.includes(u.id);return(
+                  <div key={u.id} onClick={()=>setFApprove(v=>({...v,editableBy:sel?v.editableBy.filter(i=>i!==u.id):[...v.editableBy,u.id]}))}
+                    style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:6,background:sel?C.navyLight:"#fff",border:`1.5px solid ${sel?C.navy:C.border}`,cursor:"pointer"}}>
+                    <Av u={u} size={14}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
+                    {sel&&<span style={{fontSize:9,color:C.navy}}>✓</span>}
+                  </div>
+                );})}
+              </div>
+            </div>
+            <div style={{marginBottom:13}}>
+              <Lbl>WER DARF SEHEN?</Lbl>
+              <div style={{display:"flex",flexWrap:"wrap",gap:5,background:C.bg,borderRadius:8,padding:"8px",border:`1px solid ${C.border}`}}>
+                {users.filter(u=>u.active&&u.role!=="partner").map(u=>{const sel=fApprove.visibleTo.includes(u.id);return(
+                  <div key={u.id} onClick={()=>setFApprove(v=>({...v,visibleTo:sel?v.visibleTo.filter(i=>i!==u.id):[...v.visibleTo,u.id]}))}
+                    style={{display:"flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:6,background:sel?C.greenL:"#fff",border:`1.5px solid ${sel?C.green:C.border}`,cursor:"pointer"}}>
+                    <Av u={u} size={14}/><span style={{fontSize:11,fontWeight:600}}>{u.name.split(" ")[0]}</span>
+                    {sel&&<span style={{fontSize:9,color:C.green}}>✓</span>}
+                  </div>
+                );})}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {fApprove.action==="approve"&&mApprove.type==="repair_request"&&(
+          <div style={{marginBottom:13}}>
+            <Lbl>ZUWEISEN AN MITARBEITER</Lbl>
+            <Sel value={fApprove.responsibleId} onChange={e=>setFApprove(v=>({...v,responsibleId:+e.target.value}))}>
+              {users.filter(u=>u.active&&(u.role==="va"||u.role==="ma"||u.role==="admin")).map(u=><option key={u.id} value={u.id}>{u.name} ({ROLE_CFG[u.role]?.label})</option>)}
+            </Sel>
+            <div style={{marginTop:8,fontSize:11,color:C.sub}}>Ein neuer Auftrag wird erstellt und automatisch zugewiesen.</div>
+          </div>
+        )}
+
+        {fApprove.action==="reject"&&(
+          <div style={{marginBottom:13}}>
+            <Lbl>ABLEHNUNGSGRUND (optional)</Lbl>
+            <Txt value={fApprove.rejectReason} onChange={e=>setFApprove(v=>({...v,rejectReason:e.target.value}))} rows={2} placeholder="z.B. Budget nicht verfügbar, falsche Abteilung…"/>
+          </div>
+        )}
+
+        <div style={{display:"flex",gap:7}}>
+          {fApprove.action==="approve"?(
+            <button className="bgr" onClick={()=>{
+              if(mApprove.type==="repair_request"){
+                // Create repair automatically
+                const newR={id:repairs.length+1,title:mApprove.title,room:mApprove.location,dept:"Bauhandwerk",type:"Hausreparatur",
+                  priority:mApprove.urgency==="dringend"?"urgent":"medium",
+                  assignedTo:+fApprove.responsibleId,reporter:mApprove.createdBy,
+                  createdAt:new Date().toLocaleDateString("de-DE"),startTime:null,endTime:null,
+                  photos:{before:null,after:null},stopReason:"",
+                  materials:[],comments:[{user:1,text:`Partneranfrage von ${mApprove.createdByName}: ${mApprove.description||"–"}`,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})}],
+                  notes:mApprove.description||""};
+                setRepairs(p=>[...p,newR]);
+                setPartnerRequests(p=>p.map(r=>r.id===mApprove.id?{...r,status:"approved"}:r));
+                addNotif(mApprove.createdBy,"partner_approved","✅ Reparaturanfrage genehmigt",
+                  `Ihre Meldung „${mApprove.title}" wurde genehmigt und ein Auftrag wurde erstellt.`);
+                addNotif(+fApprove.responsibleId,"repair_assigned","🔧 Auftrag zugewiesen: "+mApprove.title,
+                  `Partneranfrage von ${mApprove.createdByName}: „${mApprove.title}" (${mApprove.location}).`);
+                setMApprove(null);
+              } else {
+                approvePartnerReq(mApprove,fApprove.responsibleId,fApprove.editableBy,fApprove.visibleTo);
+              }
+            }} style={{flex:1,padding:"9px",fontSize:13}}>✅ Genehmigen & Erstellen</button>
+          ):(
+            <button className="bdr" onClick={()=>rejectPartnerReq(mApprove,fApprove.rejectReason)} style={{flex:1,padding:"9px",fontSize:13}}>❌ Ablehnen & Benachrichtigen</button>
+          )}
+          <button className="bg" onClick={()=>setMApprove(null)}>Abbrechen</button>
+        </div>
+      </Modal>}
+
+      {/* QUICK PERMISSIONS MODAL */}
+      {mQuickPerm&&isRoot(cu)&&<Modal title={`🔐 Berechtigungen: ${mQuickPerm.name}`} onClose={()=>setMQuickPerm(null)} w={460}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"9px 12px",background:ROLE_CFG[mQuickPerm.role]?.bg,borderRadius:9,border:`1px solid ${C.border}`}}>
+          <Av u={mQuickPerm} size={38}/>
+          <div>
+            <div style={{fontWeight:700,fontSize:14}}>{mQuickPerm.name}</div>
+            <div style={{display:"flex",gap:5,marginTop:3}}><RB role={mQuickPerm.role}/><Tag bg="#F9FAFB" color={C.sub}>{mQuickPerm.dept}</Tag></div>
+          </div>
+        </div>
+        <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:8}}>ZUGRIFF AUF BEREICHE — Antippen zum Umschalten:</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
+          {ALL_PERMS.map(p=>{
+            const on=mQuickPerm.perms?.[p.key];
+            return(
+              <div key={p.key} onClick={()=>setMQuickPerm(v=>({...v,perms:{...v.perms,[p.key]:!on}}))}
+                style={{display:"flex",alignItems:"center",gap:8,padding:"9px 11px",borderRadius:8,
+                  background:on?C.greenL:C.redL,border:`1.5px solid ${on?"#6EE7B7":"#FECACA"}`,cursor:"pointer",transition:"all .15s"}}>
+                <span style={{fontSize:16}}>{p.icon}</span>
+                <span style={{fontSize:12,fontWeight:600,color:on?C.green:C.red,flex:1}}>{p.label}</span>
+                <span style={{fontSize:14,fontWeight:800,color:on?C.green:C.red}}>{on?"✓":"✗"}</span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Preset buttons */}
+        <div style={{background:C.bg,borderRadius:8,padding:"9px 11px",marginBottom:13,border:`1px solid ${C.border}`}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:6}}>SCHNELL-VORLAGEN</div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {[
+              {l:"Vollzugriff",p:FULL,c:C.orange},
+              {l:"Standard MA",p:DEF,c:C.navy},
+              {l:"Nur Aufträge",p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),repairs:true,messages:true},c:C.sub},
+              {l:"Nur Lesen",p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),messages:true},c:"#888"},
+            ].map(t=>(
+              <button key={t.l} onClick={()=>setMQuickPerm(v=>({...v,perms:t.p}))}
+                style={{background:"#fff",color:t.c,border:`1.5px solid ${t.c}33`,borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                {t.l}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"flex",gap:7}}>
+          <button className="bgr" onClick={()=>{
+            setUsers(p=>p.map(u=>u.id===mQuickPerm.id?{...u,perms:mQuickPerm.perms}:u));
+            addNotif(mQuickPerm.id,"perm_update","🔐 Ihre Berechtigungen wurden aktualisiert",
+              `${cu.name} hat Ihre Zugriffsrechte angepasst.`);
+            setMQuickPerm(null);
+          }} style={{flex:1,padding:"10px",fontSize:13}}>💾 Speichern & Benachrichtigen</button>
+          <button className="bg" onClick={()=>setMQuickPerm(null)}>Abbrechen</button>
+        </div>
+      </Modal>}
+
       {/* PDF PREVIEW MODAL */}
       {pdfContent&&(
         <div style={{position:"fixed",inset:0,background:"rgba(13,59,110,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:700,padding:14}}
           onClick={e=>e.target===e.currentTarget&&setPdfContent(null)}>
           <div style={{background:"#fff",borderRadius:14,width:"100%",maxWidth:720,maxHeight:"90vh",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,.3)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0,gap:8,flexWrap:"wrap"}}>
               <div style={{fontWeight:800,fontSize:14,color:C.text}}>📄 Berichtsvorschau</div>
-              <button onClick={()=>setPdfContent(null)} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:26,height:26,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
+              <div style={{display:"flex",gap:7,alignItems:"center"}}>
+                {/* Download as HTML file */}
+                <button onClick={()=>{
+                  const blob=new Blob([pdfContent],{type:"text/html;charset=utf-8"});
+                  const url=URL.createObjectURL(blob);
+                  const a=document.createElement("a");
+                  a.href=url;
+                  a.download=`Bericht_${new Date().toLocaleDateString("de-DE").replace(/\./g,"-")}.html`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }} style={{background:C.navy,color:"#fff",border:"none",borderRadius:7,padding:"6px 13px",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+                  ⬇ Herunterladen
+                </button>
+                {/* Print / Save as PDF */}
+                <button onClick={()=>{
+                  const win=document.createElement("iframe");
+                  win.style.cssText="position:fixed;width:0;height:0;border:none;";
+                  document.body.appendChild(win);
+                  win.contentDocument.write(pdfContent);
+                  win.contentDocument.close();
+                  win.contentWindow.focus();
+                  win.contentWindow.print();
+                  setTimeout(()=>document.body.removeChild(win),1000);
+                }} style={{background:C.orange,color:"#fff",border:"none",borderRadius:7,padding:"6px 13px",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+                  🖨 Drucken / PDF
+                </button>
+                <button onClick={()=>setPdfContent(null)} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:28,height:28,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
+              </div>
             </div>
             <div style={{flex:1,overflowY:"auto",padding:"20px 24px"}} dangerouslySetInnerHTML={{__html:pdfContent}}/>
           </div>
