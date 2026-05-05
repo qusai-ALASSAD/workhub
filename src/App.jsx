@@ -50,18 +50,18 @@ const ALL_PERMS=[
   {key:"repairs",  label:"Aufträge & Wartung",  icon:"🔧"},
   {key:"tasks",    label:"Aufgaben",             icon:"✓"},
   {key:"messages", label:"Nachrichten",          icon:"✉"},
-  {key:"feed",     label:"Team-Feed",            icon:"◉"},
-  {key:"gallery",  label:"Fotogalerie",          icon:"📷"},
-  {key:"projects", label:"Projekte",             icon:"🏗"},
-  {key:"schedule", label:"Arbeitsplan",          icon:"📅"},
-  {key:"warehouse",label:"Lager & Material",     icon:"📦"},
-  {key:"reports",  label:"Berichte & PDF",       icon:"📋"},
+  {key:"feed",        label:"Team-Feed",              icon:"◉"},
+  {key:"gallery",     label:"Fotogalerie",            icon:"📷"},
+  {key:"projects",    label:"Projekte",               icon:"🏗"},
+  {key:"schedule",    label:"Arbeitsplan sehen",      icon:"📅"},
+  {key:"scheduleEdit",label:"Arbeitsplan bearbeiten", icon:"✏"},
+  {key:"warehouse",   label:"Lager & Material",       icon:"📦"},
+  {key:"reports",     label:"Berichte & PDF",         icon:"📋"},
 ];
 
-const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,warehouse:true,reports:true};
-const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false};
-// Partner: sees ONLY their own projects — no internal data
-const PARTNER_PERMS={repairs:false,tasks:false,messages:true,feed:false,gallery:true,projects:true,schedule:false,warehouse:false,reports:false};
+const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:true,warehouse:true,reports:true};
+const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:false,warehouse:false,reports:false};
+const PARTNER_PERMS={repairs:false,tasks:false,messages:true,feed:false,gallery:true,projects:true,schedule:false,scheduleEdit:false,warehouse:false,reports:false};
 
 const ROLE_CFG={
   admin:  {label:"Manager",    icon:"👑",color:C.orange,  bg:C.orangeLight},
@@ -88,11 +88,11 @@ const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär"
 const INIT_USERS=[
   {id:1,name:"Elsaid Mahmoud",   role:"admin",  dept:"Leitung",    entity:"EMS Zentrale Hamburg",avatar:"EM",color:C.orange,  active:true,pin:"1234",perms:FULL},
   {id:2,name:"Support Admin",    role:"it",     dept:"IT",         entity:"EMS System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
-  {id:3,name:"Leon Weber",       role:"va",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
-  {id:4,name:"Sara Demir",       role:"va",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
-  {id:5,name:"Mehmet Yilmaz",    role:"ma",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:6,name:"Klaus Bauer",      role:"ma",     dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:7,name:"Anna Schmidt",     role:"ma",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:3,name:"Leon Weber",       role:"va",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,scheduleEdit:true,reports:true}},
+  {id:4,name:"Sara Demir",       role:"va",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:{...DEF,scheduleEdit:true}},
+  {id:5,name:"Mehmet Yilmaz",    role:"ma",     dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{...DEF,scheduleEdit:false}},
+  {id:6,name:"Klaus Bauer",      role:"ma",     dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{...DEF,scheduleEdit:false,gallery:false}},
+  {id:7,name:"Anna Schmidt",     role:"ma",     dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{...DEF,scheduleEdit:false}},
   {id:8,name:"Panter",           role:"partner",dept:"Extern",     entity:"Hotel Hamburg",       avatar:"PA",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS},
   {id:9,name:"Kunde Demo",       role:"partner",dept:"Extern",     entity:"Kunde GmbH",          avatar:"KD",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS},
 ];
@@ -604,6 +604,7 @@ export default function App(){
     try{if(u)sessionStorage.setItem("wh_user",JSON.stringify(u));else sessionStorage.removeItem("wh_user");}catch{}
     setCu(u);
   };
+
   const[li,setLi]      =useState({user:"",pass:""});
   const[err,setErr]    =useState("");
   const[tab,setTab]    =useState("dashboard");
@@ -957,6 +958,8 @@ export default function App(){
   };
   const[selWeek,setSelWeek]=useState(()=>getWeekKey(new Date()));
   const[schedTab,setSchedTab]=useState("week"); // "week" | "month" | "stats"
+  const[pendingSched,setPendingSched]=useState([]); // unsaved changes buffer
+  const[schedDirty,setSchedDirty]=useState(false); // has unsaved changes
 
   const getWeekDates=(weekKey)=>{
     const[year,kw]=weekKey.split("-").map(Number);
@@ -983,17 +986,46 @@ export default function App(){
     const day=+newLogRow.day||0;
     const week=newLogRow.week||selWeek;
     const hrs=newLogRow.hours||(()=>{try{const[sh,sm]=(newLogRow.shift||"").split("–")[0].split(":").map(Number),[eh,em]=(newLogRow.shift||"").split("–")[1]?.split(":")||[0,0];return Math.max(0,((+eh*60+(+em))-(sh*60+sm))/60);}catch{return 0;}})();
-    const idx=sched.findIndex(s=>s.userId===uid&&s.day===day&&s.week===week);
     const row={userId:uid,day,week,shift:newLogRow.shift||"07:00–15:00",type:newLogRow.type||"work",hours:+newLogRow.hours||hrs};
-    if(idx>=0) setSched(p=>p.map((s,i)=>i===idx?{...s,...row}:s));
-    else setSched(p=>[...p,{id:p.length+1,...row}]);
-    // Notify employee
-    if(uid!==cu.id){
-      addNotif(uid,"schedule_update","📅 Arbeitsplan aktualisiert",
-        `${cu.name} hat Ihren Schichtplan für ${WDAYS[day]} (KW ${week.split("-")[1]}) ${idx>=0?"geändert":"eingetragen"}: ${row.shift} (${SHIFTS_C[row.type]?.label})`);
-    }
+    // Write to pending buffer — not saved yet
+    setPendingSched(prev=>{
+      const idx=prev.findIndex(s=>s.userId===uid&&s.day===day&&s.week===week);
+      if(idx>=0) return prev.map((s,i)=>i===idx?{...s,...row}:s);
+      return [...prev,{id:Date.now(),...row}];
+    });
+    setSchedDirty(true);
     setMShift(false);setNLR({start:"07:00",end:"15:00",note:""});
   };
+
+  const saveSchedule=()=>{
+    const toSave=[...pendingSched];
+    setSched(prev=>{
+      let updated=[...prev];
+      toSave.forEach(row=>{
+        if(row._deleted){
+          updated=updated.filter(s=>!(s.userId===row.userId&&s.day===row.day&&s.week===row.week));
+        } else {
+          const idx=updated.findIndex(s=>s.userId===row.userId&&s.day===row.day&&s.week===row.week);
+          if(idx>=0) updated=updated.map((s,i)=>i===idx?{...s,...row,_pending:undefined}:s);
+          else updated=[...updated,{...row,_pending:undefined}];
+        }
+      });
+      return updated;
+    });
+    // Send notifications to affected employees
+    const affected=new Set(toSave.map(r=>r.userId).filter(id=>id!==cu.id));
+    affected.forEach(uid=>{
+      const userShifts=toSave.filter(r=>r.userId===uid);
+      const kw=selWeek.split("-")[1];
+      addNotif(uid,"schedule_update","📅 Arbeitsplan aktualisiert",
+        `${cu.name} hat Ihren Schichtplan für KW ${kw} aktualisiert (${userShifts.length} Änderung${userShifts.length>1?"en":""}). Bitte prüfen Sie Ihren Arbeitsplan.`);
+    });
+    setPendingSched([]);
+    setSchedDirty(false);
+  };
+
+  // Discard unsaved changes
+  const discardSchedule=()=>{setPendingSched([]);setSchedDirty(false);};
 
   const NAV=[];
   NAV.push({id:"dashboard",icon:"▦",label:"Übersicht"});
@@ -1003,7 +1035,7 @@ export default function App(){
   if(!isPartner(cu)&&hasPerm(cu,"feed"))      NAV.push({id:"feed",     icon:"◉", label:"Team-Feed"});
   if(hasPerm(cu,"gallery"))                   NAV.push({id:"gallery",  icon:"📷",label:"Fotogalerie"});
   if(hasPerm(cu,"projects"))                  NAV.push({id:"projects", icon:"🏗", label:"Projekte",  badge:projs.filter(p=>p.stopReason&&canSeeProj(cu,p)).length});
-  if(!isPartner(cu)&&hasPerm(cu,"schedule"))  NAV.push({id:"schedule", icon:"📅",label:"Arbeitsplan"});
+  if(!isPartner(cu))                          NAV.push({id:"schedule", icon:"📅",label:"Arbeitsplan"});
   if(!isPartner(cu)&&hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
   if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
@@ -2143,7 +2175,7 @@ export default function App(){
 
 
           {/* ══ ARBEITSPLAN ══ */}
-          {tab==="schedule"&&hasPerm(cu,"schedule")&&(()=>{
+          {tab==="schedule"&&!isPartner(cu)&&(()=>{
             const weekDates=getWeekDates(selWeek);
             const kw=selWeek.split("-")[1];
             const month=weekDates[0].getMonth();
@@ -2157,6 +2189,14 @@ export default function App(){
               : cu.role==="va"
                 ? users.filter(u=>u.active&&(u.id===cu.id||u.dept===cu.dept)&&u.role!=="partner")
                 : users.filter(u=>u.active&&u.role!=="partner"&&u.role!=="it");
+
+            const canEditSchedule=isRoot(cu)||hasPerm(cu,"scheduleEdit");
+
+            const mergedSched=(userId,day,week)=>{
+              const pending=pendingSched.find(s=>s.userId===userId&&s.day===day&&s.week===week);
+              if(pending) return {...pending,_pending:true};
+              return sched.find(s=>s.userId===userId&&s.day===day&&s.week===week)||null;
+            };
 
             // compute monthly hours for a user
             const monthlyStats=(userId,m,y)=>{
@@ -2183,10 +2223,18 @@ export default function App(){
                   <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Arbeitsplan</h1>
                   <p style={{color:C.sub,fontSize:12,marginTop:2}}>KW {kw} · {MONTHS_FULL[weekDates[0].getMonth()]} {year}</p>
                 </div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {(isRoot(cu)||cu.role==="va")&&(
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                  {schedDirty&&canEditSchedule&&(
+                    <div style={{display:"flex",gap:5,alignItems:"center",background:C.yellowL,border:"1px solid #FDE68A",borderRadius:8,padding:"5px 10px"}}>
+                      <span style={{fontSize:11,color:C.yellow,fontWeight:700}}>● {pendingSched.length} ungespeichert</span>
+                      <button onClick={saveSchedule} style={{background:C.green,color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>💾 Speichern</button>
+                      <button onClick={discardSchedule} style={{background:"transparent",color:C.sub,border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 8px",fontSize:11,cursor:"pointer"}}>✕</button>
+                    </div>
+                  )}
+                  {canEditSchedule&&(
                     <button className="bo" onClick={()=>{setNLR({userId:isRoot(cu)?visibleUsers[0]?.id||cu.id:cu.id,day:0,week:selWeek,shift:"07:00–15:00",type:"work",hours:8});setMShift(true);}}>+ Schicht</button>
-                  )}                </div>
+                  )}
+                </div>
               </div>
 
               {/* Sub-tabs */}
@@ -2239,9 +2287,9 @@ export default function App(){
                     </thead>
                     <tbody>
                       {visibleUsers.map(usr=>{
-                        const weekEntries=DAYS.map((_,di)=>sched.find(s=>s.userId===usr.id&&s.day===di&&s.week===selWeek));
+                        const weekEntries=DAYS.map((_,di)=>mergedSched(usr.id,di,selWeek));
                         const weekHrs=weekEntries.reduce((a,s)=>a+(s?.hours||0),0);
-                        const canEdit=isRoot(cu)||(cu.role==="va"&&usr.dept===cu.dept);
+                        const canEdit=canEditSchedule;
                         return(
                           <tr key={usr.id} style={{borderBottom:`1px solid ${C.border}`}}>
                             <td style={{padding:"8px 12px",position:"sticky",left:0,background:"#fff",zIndex:1}}>
@@ -2259,7 +2307,7 @@ export default function App(){
                               return(
                                 <td key={di} style={{padding:"3px",textAlign:"center",verticalAlign:"middle"}}>
                                   {sc?(
-                                    <div style={{background:sc.bg,borderRadius:6,padding:"5px 3px",border:`1px solid ${sc.color}44`}}>
+                                    <div style={{background:sc.bg,borderRadius:6,padding:"5px 3px",border:`1.5px solid ${s._pending?"#D97706":sc.color+"44"}`,boxShadow:s._pending?"0 0 0 2px #FDE68A":""}}>
                                       <div style={{fontSize:9,fontWeight:700,color:sc.color,lineHeight:1.3}}>{s.shift}</div>
                                       <div style={{fontSize:8,color:sc.color,marginTop:1}}>{sc.label}</div>
                                       {s.hours>0&&<div style={{fontSize:8,color:sc.color,opacity:.7}}>{s.hours}h</div>}
@@ -2268,7 +2316,7 @@ export default function App(){
                                           <button onClick={()=>{setNLR({userId:usr.id,day:di,week:selWeek,shift:s.shift,type:s.type,hours:s.hours});setMShift(true);}}
                                             style={{background:"rgba(255,255,255,.7)",border:"none",borderRadius:3,padding:"1px 5px",fontSize:8,cursor:"pointer",color:C.navy,fontWeight:700}}>✏</button>
                                           <button onClick={()=>{
-                                            setSched(p=>p.filter(x=>!(x.userId===usr.id&&x.day===di&&x.week===selWeek)));
+                                            setPendingSched(p=>[...p.filter(x=>!(x.userId===usr.id&&x.day===di&&x.week===selWeek)),{id:Date.now(),userId:usr.id,day:di,week:selWeek,shift:"–",type:"off",hours:0,_deleted:true}]);setSchedDirty(true);
                                             addNotif(usr.id,"schedule_update","📅 Schicht gelöscht",
                                               `${cu.name} hat Ihre Schicht am ${WDAYS[di]} (KW ${kw}) gelöscht.`);
                                           }} style={{background:"rgba(220,38,38,.15)",border:"none",borderRadius:3,padding:"1px 5px",fontSize:8,cursor:"pointer",color:C.red,fontWeight:700}}>✕</button>
