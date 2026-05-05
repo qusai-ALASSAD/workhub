@@ -1538,122 +1538,151 @@ export default function App(){
               {/* ── PARTNER DASHBOARD ── */}
               {isPartner(cu)&&(
                 <div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
-                    {[
-                      {l:"Meine Projekte",   v:myProjs.length,                                     i:"🏗",c:C.navy,  b:C.navyLight},
-                      {l:"Aktiv",            v:myProjs.filter(p=>p.status==="active").length,       i:"✅",c:C.green, b:C.greenL},
-                      {l:"Gestoppt",         v:myProjs.filter(p=>p.status==="stopped").length,      i:"⛔",c:C.red,   b:C.redL},
-                      {l:"Abgeschlossen",    v:myProjs.filter(p=>p.status==="done").length,         i:"🏁",c:C.sub,   b:"#F9FAFB"},
-                    ].map(s=>(
-                      <div key={s.l} className="ch" style={{background:"#fff",borderRadius:10,padding:"11px 10px",border:`1px solid ${C.border}`}}>
-                        <div style={{width:30,height:30,background:s.b,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginBottom:7}}>{s.i}</div>
-                        <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
-                        <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+                  {/* Welcome banner */}
+                  <div style={{background:`linear-gradient(135deg,${C.navy},#1A5C9A)`,borderRadius:14,padding:"16px 16px",marginBottom:14,color:"#fff"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                      <Av u={cu} size={40}/>
+                      <div>
+                        <div style={{fontSize:15,fontWeight:800}}>{cu.name}</div>
+                        <div style={{fontSize:11,opacity:.7}}>{cu.entity} · Partner-Zugang</div>
                       </div>
-                    ))}
+                    </div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                      {[
+                        {l:"Projekte",v:myProjs.length,          i:"🏗"},
+                        {l:"Aktiv",   v:myProjs.filter(p=>p.status==="active").length, i:"✅"},
+                        {l:"Anfragen",v:partnerRequests.filter(r=>r.createdBy===cu.id).length,i:"📬"},
+                      ].map(s=>(
+                        <div key={s.l} style={{background:"rgba(255,255,255,.12)",borderRadius:9,padding:"9px 8px",textAlign:"center"}}>
+                          <div style={{fontSize:18}}>{s.i}</div>
+                          <div style={{fontSize:20,fontWeight:800,marginTop:2}}>{s.v}</div>
+                          <div style={{fontSize:9,opacity:.7,marginTop:1}}>{s.l}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Stopped projects warning */}
+                  {/* Quick action buttons */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                    <button onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}}
+                      style={{background:C.orange,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 4px 14px ${C.orange}44`}}>
+                      <span style={{fontSize:24}}>🏗</span>
+                      <span style={{fontSize:12,fontWeight:700,lineHeight:1.3,textAlign:"center"}}>Projekt anfragen</span>
+                    </button>
+                    <button onClick={()=>{setFPartnerRepair(BLANK_PARTNER_REPAIR);setMPartnerRepair(true);}}
+                      style={{background:C.navy,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 4px 14px ${C.navy}44`}}>
+                      <span style={{fontSize:24}}>🔧</span>
+                      <span style={{fontSize:12,fontWeight:700,lineHeight:1.3,textAlign:"center"}}>Störung melden</span>
+                    </button>
+                  </div>
+
+                  {/* Stopped projects alert */}
                   {myProjs.filter(p=>p.stopReason).length>0&&(
-                    <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,padding:"8px 11px",marginBottom:10}}>
-                      <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:5}}>⛔ Gestoppte Projekte</div>
+                    <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+                      <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>⛔ Gestoppte Projekte</div>
                       {myProjs.filter(p=>p.stopReason).map(p=>(
-                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
-                          <span style={{fontSize:12,fontWeight:600}}>{p.name}</span>
-                          <span style={{fontSize:11,color:C.red,flex:1}}>· {p.stopReason}</span>
+                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                          <span style={{fontSize:12,fontWeight:600,flex:1}}>{p.name}</span>
+                          <span style={{fontSize:11,color:C.red}}>· {p.stopReason}</span>
                           <button className="bp" onClick={()=>{setSelP(p);setTab("projects");}} style={{padding:"2px 8px",fontSize:11}}>Details</button>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Partner projects list */}
-                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-                      <div style={{fontWeight:800,fontSize:13}}>Meine Projekte</div>
-                      <button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}} style={{fontSize:11,padding:"4px 10px"}}>+ Neues Projekt</button>
+                  {/* My projects */}
+                  <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                      <div style={{fontWeight:800,fontSize:13}}>🏗 Meine Projekte</div>
+                      <button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle →</button>
                     </div>
                     {myProjs.length===0?(
-                      <div style={{textAlign:"center",color:"#bbb",padding:"24px 0",fontSize:12}}>
+                      <div style={{textAlign:"center",color:"#bbb",padding:"20px 0",fontSize:12}}>
                         <div style={{fontSize:32,marginBottom:8}}>🏗</div>
-                        Noch keine Projekte — erstellen Sie Ihr erstes Projekt!
+                        Noch keine Projekte
                       </div>
                     ):myProjs.map(p=>{
                       const hrs=totalHrs(p.worklog);
                       const pct=p.expectedHours?Math.min(100,Math.round((hrs/p.expectedHours)*100)):0;
                       return(
                         <div key={p.id} className="ch" onClick={()=>{setSelP(p);setTab("projects");}}
-                          style={{padding:"10px 11px",borderRadius:8,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:5,cursor:"pointer",background:C.bg}}>
-                          <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:4}}>
+                          style={{padding:"11px",borderRadius:9,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:6,cursor:"pointer",background:C.bg}}>
+                          <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}>
                             <div style={{fontSize:13,fontWeight:700,flex:1,lineHeight:1.3}}>{p.name}</div>
                             <SB status={p.status}/>
                           </div>
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:7}}>
                             <Tag bg="#F9FAFB" color={C.sub}>📍 {p.location}</Tag>
                             <Tag bg="#F9FAFB" color={C.sub}>📅 {p.startDate}</Tag>
                           </div>
-                          {/* Progress */}
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.sub,marginBottom:3}}>
-                            <span>Fortschritt</span><span>{pct}% · {hrs}h / {p.expectedHours}h</span>
+                          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.sub,marginBottom:4}}>
+                            <span>Fortschritt</span><span style={{fontWeight:700,color:pct>=100?C.green:C.navy}}>{pct}%</span>
                           </div>
-                          <div style={{background:C.border,borderRadius:3,height:5}}>
-                            <div style={{width:`${pct}%`,height:"100%",background:hrs>p.expectedHours?C.red:C.orange,borderRadius:3,transition:"width .3s"}}/>
+                          <div style={{background:C.border,borderRadius:4,height:6}}>
+                            <div style={{width:`${pct}%`,height:"100%",background:pct>=100?C.green:C.orange,borderRadius:4,transition:"width .3s"}}/>
                           </div>
-                          {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:4}}>⛔ {p.stopReason}</div>}
+                          {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:5}}>⛔ {p.stopReason}</div>}
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Partner action buttons */}
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-                    <button className="bo" onClick={()=>{setFProj(BLANK_PROJ);setMProj(true);}}
-                      style={{padding:"12px",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-                      <span style={{fontSize:22}}>🏗</span>
-                      <span style={{fontSize:12,fontWeight:700}}>Neues Projekt anfragen</span>
-                    </button>
-                    <button onClick={()=>{setFPartnerRepair(BLANK_PARTNER_REPAIR);setMPartnerRepair(true);}}
-                      style={{background:C.navy,color:"#fff",border:"none",borderRadius:10,padding:"12px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-                      <span style={{fontSize:22}}>🔧</span>
-                      <span style={{fontSize:12,fontWeight:700}}>Reparatur/Störung melden</span>
-                    </button>
-                  </div>
-                  <div style={{background:C.greenL,border:"1px solid #6EE7B7",borderRadius:10,padding:"11px 14px",display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
-                    <span style={{fontSize:20}}>🤝</span>
-                    <div>
-                      <div style={{fontSize:12,fontWeight:700,color:C.green}}>Partner-Zugang</div>
-                      <div style={{fontSize:11,color:C.sub,marginTop:2,lineHeight:1.6}}>
-                        Sie sehen ausschließlich Ihre eigenen Projekte. Bei Fragen: <b>{APP_CONFIG.supportEmail}</b>
+                  {/* My requests history */}
+                  <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{fontWeight:800,fontSize:13,marginBottom:10}}>📬 Meine Anfragen</div>
+                    {partnerRequests.filter(r=>r.createdBy===cu.id).length===0?(
+                      <div style={{textAlign:"center",color:"#bbb",padding:"16px 0",fontSize:12}}>Noch keine Anfragen gestellt</div>
+                    ):partnerRequests.filter(r=>r.createdBy===cu.id).map(r=>(
+                      <div key={r.id} style={{padding:"10px",borderRadius:9,border:`1.5px solid ${r.status==="approved"?"#6EE7B7":r.status==="rejected"?"#FECACA":C.border}`,marginBottom:6,background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.bg}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:6,marginBottom:4}}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:12,fontWeight:700}}>{r.type==="repair_request"?"🔧":"🏗"} {r.name||r.title}</div>
+                            <div style={{fontSize:10,color:C.sub,marginTop:2}}>{r.date} · {r.time}{r.location?` · 📍 ${r.location}`:""}</div>
+                          </div>
+                          <span style={{background:r.status==="approved"?C.green:r.status==="rejected"?C.red:C.yellow,color:"#fff",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>
+                            {r.status==="approved"?"✅ OK":r.status==="rejected"?"❌ Abgelehnt":"⏳ Wartet"}
+                          </span>
+                        </div>
+                        {r.rejectReason&&<div style={{fontSize:11,color:C.red,marginTop:3}}>Grund: {r.rejectReason}</div>}
+                        {r.status==="approved"&&r.projId&&(
+                          <button onClick={()=>{setSelP(projs.find(p=>p.id===r.projId)||null);setTab("projects");}}
+                            style={{marginTop:6,background:C.navy,color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                            🏗 Projekt öffnen →
+                          </button>
+                        )}
                       </div>
-                    </div>
+                    ))}
                   </div>
 
-                  {/* My requests history */}
-                  {partnerRequests.filter(r=>r.createdBy===cu.id).length>0&&(
-                    <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`}}>
-                      <div style={{fontWeight:800,fontSize:13,marginBottom:9}}>📬 Meine Anfragen</div>
-                      {partnerRequests.filter(r=>r.createdBy===cu.id).map(r=>(
-                        <div key={r.id} style={{padding:"9px 10px",borderRadius:8,border:`1.5px solid ${r.status==="approved"?C.green:r.status==="rejected"?C.red:C.border}`,marginBottom:5,background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.bg}}>
-                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:12,fontWeight:700}}>{r.type==="repair_request"?"🔧":"🏗"} {r.name||r.title}</div>
-                              <div style={{fontSize:10,color:C.sub,marginTop:2}}>{r.date} · {r.time}{r.location?` · 📍 ${r.location}`:""}</div>
-                              {r.rejectReason&&<div style={{fontSize:11,color:C.red,marginTop:3}}>Grund: {r.rejectReason}</div>}
-                            </div>
-                            <span style={{background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.yellowL,color:r.status==="approved"?C.green:r.status==="rejected"?C.red:C.yellow,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
-                              {r.status==="approved"?"✅ Genehmigt":r.status==="rejected"?"❌ Abgelehnt":"⏳ Ausstehend"}
-                            </span>
-                          </div>
-                          {r.status==="approved"&&r.projId&&(
-                            <button onClick={()=>{setSelP(projs.find(p=>p.id===r.projId)||null);setTab("projects");}}
-                              style={{marginTop:6,background:C.navy,color:"#fff",border:"none",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
-                              🏗 Projekt öffnen
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                  {/* Company contact */}
+                  <div style={{background:`linear-gradient(135deg,#F0FDF4,${C.greenL})`,border:"1px solid #6EE7B7",borderRadius:12,padding:"13px 14px"}}>
+                    <div style={{fontSize:12,fontWeight:800,color:C.green,marginBottom:8}}>🤝 Ihr Ansprechpartner</div>
+                    <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:2}}>{APP_CONFIG.companyName}</div>
+                    {[
+                      {i:"📞",v:APP_CONFIG.companyPhone,  href:`tel:${APP_CONFIG.companyPhone}`},
+                      {i:"✉️",v:APP_CONFIG.companyEmail,  href:`mailto:${APP_CONFIG.companyEmail}`},
+                      {i:"🕐",v:APP_CONFIG.companyHours,  href:null},
+                    ].map(c=>(
+                      <div key={c.i} style={{display:"flex",alignItems:"center",gap:7,marginTop:5}}>
+                        <span style={{fontSize:14}}>{c.i}</span>
+                        {c.href?(
+                          <a href={c.href} style={{fontSize:12,color:C.navy,fontWeight:600,textDecoration:"none"}}>{c.v}</a>
+                        ):(
+                          <span style={{fontSize:12,color:C.sub}}>{c.v}</span>
+                        )}
+                      </div>
+                    ))}
+                    <div style={{marginTop:10,paddingTop:8,borderTop:"1px solid #6EE7B7",display:"flex",gap:7}}>
+                      <a href={APP_CONFIG.supportUrl} target="_blank" rel="noreferrer"
+                        style={{flex:1,background:C.navy,color:"#fff",borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,textDecoration:"none",textAlign:"center"}}>
+                        🌐 {APP_CONFIG.supportCompany}
+                      </a>
+                      <a href={`mailto:${APP_CONFIG.supportEmail}`}
+                        style={{flex:1,background:"#fff",color:C.navy,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,textDecoration:"none",textAlign:"center"}}>
+                        ✉ Support
+                      </a>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 
@@ -2615,15 +2644,88 @@ export default function App(){
         </div>
       </div>
       {mob&&(
-        <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:`2px solid ${C.border}`,padding:"4px 0",zIndex:300,display:"flex",justifyContent:"space-around",alignItems:"center",boxShadow:"0 -2px 8px rgba(13,59,110,.1)"}}>
-          {[...NAV.slice(0,5), NAV.find(n=>n.id==="support")].filter(Boolean).map(n=>(
-            <button key={n.id} onClick={()=>{setTab(n.id);if(n.id!=="repairs")setRPanel(false);if(n.id!=="projects")setPPanel(false);if(n.id!=="messages"){setSelChat(null);setChatPanel(false);}}}
-              style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1,background:"transparent",padding:"3px 3px",position:"relative",minWidth:34}}>
-              <span style={{fontSize:14,opacity:tab===n.id?1:.35}}>{n.icon}</span>
-              <span style={{fontSize:8,fontWeight:700,color:tab===n.id?C.navy:"#aaa"}}>{n.label}</span>
-              {(n.badge??0)>0&&<span style={{position:"absolute",top:0,right:1,background:C.orange,color:"#fff",borderRadius:6,padding:"0 3px",fontSize:8,fontWeight:700}}>{n.badge}</span>}
-            </button>
-          ))}
+        <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:300,
+          background:"rgba(255,255,255,.97)",
+          backdropFilter:"blur(12px)",
+          borderTop:`1px solid ${C.border}`,
+          boxShadow:"0 -4px 24px rgba(13,59,110,.12)",
+          paddingBottom:"env(safe-area-inset-bottom,4px)"}}>
+          {/* Partner gets special 3-button bar */}
+          {isPartner(cu)?(
+            <div style={{display:"flex",justifyContent:"space-around",alignItems:"center",height:60,paddingInline:8}}>
+              {[
+                {id:"dashboard",icon:"🏠",label:"Home"},
+                {id:"projects", icon:"🏗", label:"Projekte"},
+                {id:"messages", icon:"✉", label:"Nachrichten",badge:unread},
+                {id:"support",  icon:"🆘",label:"Support"},
+              ].map(n=>{
+                const active=tab===n.id;
+                return(
+                  <button key={n.id} onClick={()=>setTab(n.id)}
+                    style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,
+                      flex:1,height:"100%",background:"transparent",border:"none",cursor:"pointer",position:"relative",
+                      padding:"4px 2px"}}>
+                    <div style={{width:36,height:36,borderRadius:10,
+                      background:active?C.navy:"transparent",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"all .2s",transform:active?"scale(1.05)":"scale(1)"}}>
+                      <span style={{fontSize:18}}>{n.icon}</span>
+                    </div>
+                    <span style={{fontSize:9,fontWeight:active?800:500,color:active?C.navy:"#aaa",letterSpacing:".2px"}}>{n.label}</span>
+                    {(n.badge??0)>0&&<span style={{position:"absolute",top:3,right:"20%",background:C.orange,color:"#fff",borderRadius:8,padding:"1px 5px",fontSize:8,fontWeight:800,lineHeight:1.4}}>{n.badge}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          ):(
+            <div style={{display:"flex",alignItems:"center",height:62,paddingInline:4}}>
+              {[...NAV.slice(0,4),
+                NAV.find(n=>n.id==="support")||{id:"support",icon:"🆘",label:"Support"},
+              ].filter(Boolean).map(n=>{
+                const active=tab===n.id;
+                return(
+                  <button key={n.id}
+                    onClick={()=>{
+                      setTab(n.id);
+                      if(n.id!=="repairs") setRPanel(false);
+                      if(n.id!=="projects") setPPanel(false);
+                      if(n.id!=="messages"){setSelChat(null);setChatPanel(false);}
+                    }}
+                    style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                      flex:1,height:"100%",background:"transparent",border:"none",cursor:"pointer",
+                      position:"relative",padding:"4px 2px",gap:3}}>
+                    {/* Active indicator pill */}
+                    {active&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",
+                      width:28,height:3,borderRadius:3,background:C.orange}}/>}
+                    {/* Icon container */}
+                    <div style={{width:38,height:38,borderRadius:12,
+                      background:active?C.navy:"transparent",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"all .2s",
+                      transform:active?"scale(1.08)":"scale(1)",
+                      boxShadow:active?`0 3px 10px ${C.navy}44`:"none"}}>
+                      <span style={{fontSize:active?19:16,transition:"all .2s"}}>{n.icon}</span>
+                    </div>
+                    <span style={{fontSize:9,fontWeight:active?800:500,
+                      color:active?C.navy:"#bbb",
+                      letterSpacing:".2px",lineHeight:1,
+                      transition:"all .2s"}}>{n.label}</span>
+                    {/* Badge */}
+                    {(n.badge??0)>0&&(
+                      <div style={{position:"absolute",top:4,right:"16%",
+                        background:C.orange,color:"#fff",
+                        borderRadius:9,minWidth:16,height:16,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:8,fontWeight:800,padding:"0 4px",
+                        border:"2px solid #fff",lineHeight:1}}>
+                        {n.badge>9?"9+":n.badge}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
