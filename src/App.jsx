@@ -1039,7 +1039,7 @@ export default function App(){
   if(!isPartner(cu)&&hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
   if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
-  NAV.push({id:"support",icon:"🆘",label:"Support"});
+  NAV.push({id:"support",icon:"❓",label:"Support"});
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -2643,46 +2643,43 @@ export default function App(){
           )}
         </div>
       </div>
-      {mob&&(
-        <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:300,
-          background:"rgba(255,255,255,.97)",
-          backdropFilter:"blur(12px)",
-          borderTop:`1px solid ${C.border}`,
-          boxShadow:"0 -4px 24px rgba(13,59,110,.12)",
-          paddingBottom:"env(safe-area-inset-bottom,4px)"}}>
-          {/* Partner gets special 3-button bar */}
-          {isPartner(cu)?(
-            <div style={{display:"flex",justifyContent:"space-around",alignItems:"center",height:60,paddingInline:8}}>
-              {[
-                {id:"dashboard",icon:"🏠",label:"Home"},
-                {id:"projects", icon:"🏗", label:"Projekte"},
-                {id:"messages", icon:"✉", label:"Nachrichten",badge:unread},
-                {id:"support",  icon:"🆘",label:"Support"},
-              ].map(n=>{
+      {mob&&(()=>{
+        // SVG icon components for consistent sizing
+        const NavIcon=({id,active})=>{
+          const col=active?"#fff":"#94A3B8";
+          const icons={
+            dashboard:<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" fill={col}/><rect x="14" y="3" width="7" height="7" rx="1.5" fill={col}/><rect x="3" y="14" width="7" height="7" rx="1.5" fill={col}/><rect x="14" y="14" width="7" height="7" rx="1.5" fill={col}/></svg>,
+            repairs:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            tasks:    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke={col} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            messages: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            feed:     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke={col} strokeWidth="2" strokeLinecap="round"/><circle cx="9" cy="7" r="4" stroke={col} strokeWidth="2"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke={col} strokeWidth="2" strokeLinecap="round"/></svg>,
+            gallery:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke={col} strokeWidth="2"/><circle cx="8.5" cy="8.5" r="1.5" fill={col}/><path d="M21 15l-5-5L5 21" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            projects: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 22V12h6v10" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            schedule: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke={col} strokeWidth="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke={col} strokeWidth="2" strokeLinecap="round"/><circle cx="8" cy="15" r="1.5" fill={col}/><circle cx="12" cy="15" r="1.5" fill={col}/><circle cx="16" cy="15" r="1.5" fill={col}/></svg>,
+            warehouse:<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+            users:    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke={col} strokeWidth="2" strokeLinecap="round"/><circle cx="9" cy="7" r="4" stroke={col} strokeWidth="2"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke={col} strokeWidth="2" strokeLinecap="round"/></svg>,
+            reports:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke={col} strokeWidth="2" strokeLinecap="round"/></svg>,
+            support:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={col} strokeWidth="2"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={col} strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="17" r="1" fill={col}/></svg>,
+          };
+          return icons[id]||<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={col} strokeWidth="2"/></svg>;
+        };
+
+        const navItems = isPartner(cu)
+          ? [{id:"dashboard",label:"Home"},{id:"projects",label:"Projekte"},{id:"messages",label:"Chat",badge:unread},{id:"support",label:"Hilfe"}]
+          : [...NAV.slice(0,4), {id:"support",label:"Hilfe",badge:0}].filter(Boolean);
+
+        return(
+          <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:300,
+            background:"rgba(248,250,252,.98)",
+            backdropFilter:"blur(20px)",
+            WebkitBackdropFilter:"blur(20px)",
+            borderTop:"1px solid rgba(221,228,238,.8)",
+            boxShadow:"0 -1px 0 rgba(0,0,0,.04), 0 -8px 32px rgba(13,59,110,.08)",
+            paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
+            <div style={{display:"flex",alignItems:"stretch",height:58,paddingInline:2}}>
+              {navItems.map(n=>{
                 const active=tab===n.id;
-                return(
-                  <button key={n.id} onClick={()=>setTab(n.id)}
-                    style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,
-                      flex:1,height:"100%",background:"transparent",border:"none",cursor:"pointer",position:"relative",
-                      padding:"4px 2px"}}>
-                    <div style={{width:36,height:36,borderRadius:10,
-                      background:active?C.navy:"transparent",
-                      display:"flex",alignItems:"center",justifyContent:"center",
-                      transition:"all .2s",transform:active?"scale(1.05)":"scale(1)"}}>
-                      <span style={{fontSize:18}}>{n.icon}</span>
-                    </div>
-                    <span style={{fontSize:9,fontWeight:active?800:500,color:active?C.navy:"#aaa",letterSpacing:".2px"}}>{n.label}</span>
-                    {(n.badge??0)>0&&<span style={{position:"absolute",top:3,right:"20%",background:C.orange,color:"#fff",borderRadius:8,padding:"1px 5px",fontSize:8,fontWeight:800,lineHeight:1.4}}>{n.badge}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          ):(
-            <div style={{display:"flex",alignItems:"center",height:62,paddingInline:4}}>
-              {[...NAV.slice(0,4),
-                NAV.find(n=>n.id==="support")||{id:"support",icon:"🆘",label:"Support"},
-              ].filter(Boolean).map(n=>{
-                const active=tab===n.id;
+                const badge=(n.badge??0)>0;
                 return(
                   <button key={n.id}
                     onClick={()=>{
@@ -2691,43 +2688,55 @@ export default function App(){
                       if(n.id!=="projects") setPPanel(false);
                       if(n.id!=="messages"){setSelChat(null);setChatPanel(false);}
                     }}
-                    style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                      flex:1,height:"100%",background:"transparent",border:"none",cursor:"pointer",
-                      position:"relative",padding:"4px 2px",gap:3}}>
-                    {/* Active indicator pill */}
-                    {active&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",
-                      width:28,height:3,borderRadius:3,background:C.orange}}/>}
-                    {/* Icon container */}
-                    <div style={{width:38,height:38,borderRadius:12,
+                    style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",
+                      justifyContent:"center",gap:4,background:"transparent",border:"none",
+                      cursor:"pointer",position:"relative",padding:"6px 2px 4px",
+                      WebkitTapHighlightColor:"transparent"}}>
+
+                    {/* Active top line */}
+                    <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",
+                      width:active?24:0,height:2,borderRadius:2,
+                      background:C.orange,transition:"width .25s cubic-bezier(.4,0,.2,1)"}}/>
+
+                    {/* Icon pill */}
+                    <div style={{
+                      width:40,height:32,borderRadius:10,
                       background:active?C.navy:"transparent",
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      transition:"all .2s",
-                      transform:active?"scale(1.08)":"scale(1)",
-                      boxShadow:active?`0 3px 10px ${C.navy}44`:"none"}}>
-                      <span style={{fontSize:active?19:16,transition:"all .2s"}}>{n.icon}</span>
+                      transition:"all .25s cubic-bezier(.4,0,.2,1)",
+                      transform:active?"translateY(-1px)":"translateY(0)",
+                      boxShadow:active?`0 4px 12px rgba(13,59,110,.3)`:"none",
+                      position:"relative"}}>
+                      <NavIcon id={n.id} active={active}/>
+                      {/* Badge */}
+                      {badge&&(
+                        <div style={{position:"absolute",top:-4,right:-4,
+                          background:C.orange,color:"#fff",
+                          borderRadius:8,minWidth:15,height:15,
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          fontSize:7,fontWeight:800,padding:"0 3px",
+                          border:"1.5px solid rgba(248,250,252,.98)"}}>
+                          {n.badge>9?"9+":n.badge}
+                        </div>
+                      )}
                     </div>
-                    <span style={{fontSize:9,fontWeight:active?800:500,
-                      color:active?C.navy:"#bbb",
-                      letterSpacing:".2px",lineHeight:1,
-                      transition:"all .2s"}}>{n.label}</span>
-                    {/* Badge */}
-                    {(n.badge??0)>0&&(
-                      <div style={{position:"absolute",top:4,right:"16%",
-                        background:C.orange,color:"#fff",
-                        borderRadius:9,minWidth:16,height:16,
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        fontSize:8,fontWeight:800,padding:"0 4px",
-                        border:"2px solid #fff",lineHeight:1}}>
-                        {n.badge>9?"9+":n.badge}
-                      </div>
-                    )}
+
+                    {/* Label */}
+                    <span style={{
+                      fontSize:9,lineHeight:1,
+                      fontWeight:active?700:400,
+                      color:active?"#0D3B6E":"#94A3B8",
+                      letterSpacing:active?".3px":"0",
+                      transition:"all .2s"}}>
+                      {n.label}
+                    </span>
                   </button>
                 );
               })}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* ══ MODALS ══ */}
 
