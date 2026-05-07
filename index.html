@@ -100,18 +100,18 @@ const MAT_UNITS=["Stk","Kg","L","m²","m","Pkg","Rolle","Eimer","Box","Palette"]
 const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär","Sonstige"];
 
 const INIT_USERS=[
-  {id:1,name:"Al-Saeed Mohammed",role:"admin",dept:"Leitung",    entity:"EMS Zentrale Hamburg",avatar:"SM",color:C.orange,  active:true,pin:"1234",perms:FULL},
-  {id:2,name:"Support Admin",    role:"it",   dept:"IT",         entity:"EMS System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
-  {id:3,name:"Leon Weber",       role:"va",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
-  {id:4,name:"Sara Demir",       role:"va",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
-  {id:5,name:"Mehmet Yilmaz",    role:"ma",   dept:"Bauhandwerk",entity:"EMS Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:6,name:"Klaus Bauer",      role:"ma",   dept:"Trockenbau", entity:"EMS Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
-  {id:7,name:"Anna Schmidt",     role:"ma",   dept:"Reinigung",  entity:"EMS Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:1,name:"Zentrale ",role:"admin",dept:"Leitung",    entity:" Zentrale Hamburg",avatar:"SM",color:C.orange,  active:true,pin:"1234",perms:FULL},
+  {id:2,name:"Support Admin",    role:"it",   dept:"IT",         entity:" System",          avatar:"IT",color:C.purple,  active:true,pin:"9999",perms:FULL},
+  {id:3,name:"Leon Weber",       role:"va",   dept:"Bauhandwerk",entity:" Hamburg",         avatar:"LW",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,reports:true}},
+  {id:4,name:"Sara Demir",       role:"va",   dept:"Reinigung",  entity:" Hamburg",         avatar:"SD",color:"#0891B2", active:true,pin:"2222",perms:DEF},
+  {id:5,name:"Mehmet Yilmaz",    role:"ma",   dept:"Bauhandwerk",entity:" Hamburg",         avatar:"MY",color:C.navy,    active:true,pin:"3333",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:6,name:"Klaus Bauer",      role:"ma",   dept:"Trockenbau", entity:" Hamburg",         avatar:"KB",color:"#1A5C9A", active:true,pin:"4444",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:false,projects:true,schedule:false,warehouse:false,reports:false}},
+  {id:7,name:"Anna Schmidt",     role:"ma",   dept:"Reinigung",  entity:" Hamburg",         avatar:"AS",color:C.green,   active:true,pin:"5555",perms:{repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
   {id:8,name:"Panter",           role:"hotel",dept:"Hotel",      entity:"Hotel Hamburg",       avatar:"PA",color:"#0891B2", active:true,pin:"7777",perms:{repairs:true,tasks:false,messages:true,feed:true,gallery:true,projects:true,schedule:false,warehouse:false,reports:false}},
 ];
 
 const INIT_PROJECTS=[
-  {id:1,name:"Trockenbau Wandesbeker Str.",location:"Wandesbeker Chaussee 19",entity:"EMS Hamburg",responsibleId:3,
+  {id:1,name:"Trockenbau Wandesbeker Str.",location:"Wandesbeker ",entity:" Hamburg",responsibleId:3,
    editableBy:[1,2,3],visibleTo:[1,2,3,5,6],
    status:"active",startDate:"01.05.2026",endDate:"15.05.2026",
    area:120,rooms:3,floors:1,expectedHours:80,notes:"3 neue Trennwände, Bürobereich",
