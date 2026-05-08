@@ -612,10 +612,10 @@ export default function App(){
   const[tab,setTab]    =useState("dashboard");
   const[pdfContent,setPdfContent]=useState(null);
   const[notifs,setNotifs]=useState([
-    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:"Manager hat Sie als Verantwortlichen für \"Trockenbau Bürokomplex Nord" eingesetzt.",projId:1,time:"08:00",date:"01.05.2026",read:false},
-    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:"Manager hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: \"Wasserleck – Zimmer 204" (Zi. 204).",projId:null,time:"08:10",date:"01.05.2026",read:false},
-    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:"Julia Weber hat eine Anfrage für \"Reinigungsmittel Typ B" (20 L) im Projekt \"Grundreinigung Bürogebäude" gestellt.",projId:2,time:"09:30",date:"03.05.2026",read:false},
-    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:"Hotel Partner hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: \"Türschloss defekt – Zi. 205" in Zi. 205.",projId:null,time:"09:45",date:"03.05.2026",read:false},
+    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:'Manager hat Sie als Verantwortlichen für "Trockenbau Bürokomplex Nord" eingesetzt.',projId:1,time:"08:00",date:"01.05.2026",read:false},
+    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:'Manager hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: "Wasserleck – Zimmer 204" (Zi. 204).',projId:null,time:"08:10",date:"01.05.2026",read:false},
+    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:'Julia Weber hat eine Anfrage für "Reinigungsmittel Typ B" (20 L) im Projekt "Grundreinigung Bürogebäude" gestellt.',projId:2,time:"09:30",date:"03.05.2026",read:false},
+    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:'Hotel Partner hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: "Türschloss defekt – Zi. 205" in Zi. 205.',projId:null,time:"09:45",date:"03.05.2026",read:false},
   ]);
   const[showNotifs,setShowNotifs]=useState(false);
 
