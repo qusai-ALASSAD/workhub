@@ -358,7 +358,7 @@ const Tag=({children,color=C.navy,bg=C.navyLight})=>(<span style={{background:bg
 const Lbl=({children})=>(<label style={{fontSize:11,fontWeight:700,color:C.sub,display:"block",marginBottom:4,letterSpacing:".4px"}}>{children}</label>);
 const Inp=({...p})=>(<input {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,...p.style}}/>);
 const Sel=({children,...p})=>(<select {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,...p.style}}>{children}</select>);
-const Txt=({...p})=>(<textarea {...p} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"none",...p.style}}/>);
+const Txt=({...p})=>(<textarea {...p} onWheel={e=>e.stopPropagation()} style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"vertical",lineHeight:1.45,overflowY:"auto",scrollBehavior:"auto",...p.style}}/>);
 
 const calcDur=(s,e)=>{try{const[sh,sm]=s.split(":").map(Number),[eh,em]=e.split(":").map(Number);const m=(eh*60+em)-(sh*60+sm);return m<0?"–":`${Math.floor(m/60)}h ${m%60}m`;}catch{return"–";}};
 const totalHrs=wl=>wl.reduce((a,l)=>a+(l.hours||0),0);
@@ -369,7 +369,7 @@ function useW(){const[w,setW]=useState(typeof window!=="undefined"?window.innerW
 function Modal({title,onClose,children,w=480}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(13,59,110,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:600,padding:14}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{background:"#fff",borderRadius:16,padding:"18px 16px",width:"100%",maxWidth:w,maxHeight:"94vh",overflowY:"auto",boxShadow:"0 24px 60px rgba(13,59,110,.3)"}}>
+      <div style={{background:"#fff",borderRadius:16,padding:"18px 16px",width:"100%",maxWidth:w,maxHeight:"94vh",overflowY:"auto",overscrollBehavior:"contain",boxShadow:"0 24px 60px rgba(13,59,110,.3)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <h3 style={{fontSize:15,fontWeight:800,color:C.text}}>{title}</h3>
           <button onClick={onClose} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:26,height:26,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
@@ -764,7 +764,7 @@ export default function App(){
   // Inline lists (stay open while adding rows)
   const[reqList,setReqList]  =useState([]);      // draft requests in modal
   const[matList,setMatList]  =useState([]);      // draft materials in modal
-  const[newReqRow,setNRR]    =useState({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});
+  const[newReqRow,setNRR]    =useState({kind:"material",material:"",qty:1,unit:"Stk",urgency:"normal",supplier:"",neededDate:"",rentalFrom:"",rentalTo:"",details:"",note:""});
   const[newMatRow,setNMR]    =useState({name:"",qty:1,unit:"Stk",pricePerUnit:0,supplier:"",deliveryDate:"",note:""});
   const[newLogRow,setNLR]    =useState({start:"07:00",end:"15:00",note:""});
   const[newOrderRow,setNOR]  =useState({type:"eingang",material:"",qty:1,unit:"Stk",supplier:"",date:"",status:"ausstehend",priceTotal:0,note:""});
@@ -802,8 +802,11 @@ export default function App(){
 
   // Material / Maschinen request system
   const[mSupplyReq,setMSupplyReq]=useState(false);
-  const BLANK_SUPPLY_REQ={kind:"material",item:"",qty:1,unit:"Stk",neededFor:"",managerId:3,priority:"normal",note:""};
+  const BLANK_SUPPLY_REQ={kind:"material",item:"",qty:1,unit:"Stk",neededFor:"",projectId:"",managerId:3,priority:"normal",company:"",deliveryDate:"",rentalFrom:"",rentalTo:"",details:"",note:""};
   const[fSupplyReq,setFSupplyReq]=useState(BLANK_SUPPLY_REQ);
+  const[mInvoice,setMInvoice]=useState(false);
+  const BLANK_INVOICE={sourceType:"project",sourceId:"",invoiceNo:"",customer:"",date:new Date().toISOString().slice(0,10),dueDate:"",taxRate:19,notes:"",lines:[{desc:"",qty:1,unit:"Stk",price:0}]};
+  const[fInvoice,setFInvoice]=useState(BLANK_INVOICE);
 
   const[chatSearch,setChatSearch]=useState("");
 
@@ -818,6 +821,12 @@ export default function App(){
   const reqIcon=r=>r.type==="repair_request"?"🔧":(r.type==="supply_request"?(r.kind==="machine"?"⚙️":"📦"):"🏗");
   const reqStatus=(r)=>({pending:"Wartet auf Freigabe",approved:"Freigegeben",processing:"In Bearbeitung",ordered:"Bestellt",delivered:"Geliefert",rejected:"Abgelehnt"}[r.status]||r.status||"Offen");
   const reqStatusStyle=(status)=>status==="approved"?{bg:C.greenL,color:C.green}:status==="processing"||status==="ordered"?{bg:C.navyLight,color:C.navy}:status==="delivered"?{bg:C.greenL,color:C.green}:status==="rejected"?{bg:C.redL,color:C.red}:{bg:C.yellowL,color:C.yellow};
+  const reqProject=r=>projs.find(p=>p.id===+r.projectId);
+  const reqDetailText=r=>[r.company&&`Firma: ${r.company}`,r.deliveryDate&&`Lieferdatum: ${r.deliveryDate}`,r.rentalFrom&&`Miete: ${r.rentalFrom}${r.rentalTo?` - ${r.rentalTo}`:""}`,r.neededFor&&`Fuer: ${r.neededFor}`].filter(Boolean).join(" · ");
+  const reqTimeline=r=>[
+    {label:"Anfrage erstellt",time:`${r.date||""} ${r.time||""}`.trim(),by:r.createdByName},
+    ...(r.history||[]).map(h=>({label:reqStatus({status:h.status}),time:h.time,by:h.by,note:h.note}))
+  ];
   const myCreatedRequests=()=>partnerRequests.filter(r=>r.createdBy===cu?.id);
   const myManagerRequests=()=>partnerRequests.filter(r=>canManageRequest(cu,r)&&(r.status!=="delivered"||r.type!=="supply_request"));
   const canMessageUser=(fromUser,toUser)=>{
@@ -1022,12 +1031,107 @@ export default function App(){
     users.filter(u=>u.role==="admin"||u.role==="it").forEach(u=>addNotif(u.id,type,title,body,projId,meta));
   };
 
+  const buildInvoiceHtml=(inv)=>{
+    const rows=inv.lines.filter(l=>l.desc.trim()).map(l=>({...l,qty:+l.qty||0,price:+l.price||0}));
+    const net=rows.reduce((a,l)=>a+l.qty*l.price,0);
+    const tax=net*((+inv.taxRate||0)/100);
+    const gross=net+tax;
+    const body=`
+      ${pdfHeader({by:cu?.name},"Rechnung")}
+      <div class="section">
+        <div class="section-title">Rechnungsdaten</div>
+        <div class="info-grid">
+          <div class="info-row"><span class="info-lbl">Rechnung</span><span class="info-val">${inv.invoiceNo||"Entwurf"}</span></div>
+          <div class="info-row"><span class="info-lbl">Kunde</span><span class="info-val">${inv.customer||"Bitte Kunde eintragen"}</span></div>
+          <div class="info-row"><span class="info-lbl">Datum</span><span class="info-val">${inv.date||"-"}</span></div>
+          <div class="info-row"><span class="info-lbl">Faellig bis</span><span class="info-val">${inv.dueDate||"-"}</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Positionen</div>
+        <table>
+          <tr><th>Leistung / Material</th><th>Menge</th><th>Einheit</th><th>Preis</th><th>Gesamt</th></tr>
+          ${rows.map(l=>`<tr><td style="font-weight:600">${l.desc}</td><td>${l.qty}</td><td>${l.unit||"Stk"}</td><td>${l.price.toFixed(2)} EUR</td><td style="font-weight:700">${(l.qty*l.price).toFixed(2)} EUR</td></tr>`).join("")}
+          <tr class="total-row"><td colspan="4">Netto</td><td>${net.toFixed(2)} EUR</td></tr>
+          <tr class="total-row"><td colspan="4">MwSt. ${+inv.taxRate||0}%</td><td>${tax.toFixed(2)} EUR</td></tr>
+          <tr class="total-row"><td colspan="4">Gesamt</td><td>${gross.toFixed(2)} EUR</td></tr>
+        </table>
+        ${inv.notes?`<div class="comment-box"><div class="comment-text">${inv.notes}</div></div>`:""}
+      </div>
+      ${pdfFooter()}`;
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${pdfCSS}</style></head><body><div class="page">${body}</div></body></html>`;
+  };
+
+  const invoiceSeedFromProject=(p)=>({
+    ...BLANK_INVOICE,
+    sourceType:"project",
+    sourceId:p?.id||"",
+    invoiceNo:`INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+    customer:p?.entity||"",
+    notes:p?`Projekt: ${p.name} - ${p.location}`:"",
+    lines:[
+      ...(p?.materials||[]).map(m=>({desc:`${m.name}${m.supplier?` (${m.supplier})`:""}`,qty:m.qty,unit:m.unit,price:m.pricePerUnit||0})),
+      ...(p?[{desc:`Arbeitsstunden ${p.name}`,qty:totalHrs(p.worklog)||1,unit:"Std.",price:45}]:[])
+    ].filter(l=>l.qty)
+  });
+  const invoiceSeedFromRequest=(r)=>({
+    ...BLANK_INVOICE,
+    sourceType:"request",
+    sourceId:r?.id||"",
+    invoiceNo:`INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+    customer:r?.entity||"",
+    notes:r?`${reqTitle(r)}${reqDetailText(r)?` - ${reqDetailText(r)}`:""}`:"",
+    lines:r?[{desc:reqTitle(r),qty:+r.qty||1,unit:r.unit||"Stk",price:+r.price||0}]:BLANK_INVOICE.lines
+  });
+  const openInvoice=(sourceType="project",source=null)=>{
+    const seed=sourceType==="request"?invoiceSeedFromRequest(source):invoiceSeedFromProject(source);
+    setFInvoice(seed.lines.length?seed:{...seed,lines:BLANK_INVOICE.lines});
+    setMInvoice(true);
+  };
+
+  const submitSupplyReq=()=>{
+    if(!fSupplyReq.item.trim())return;
+    const manager=users.find(u=>u.id===+fSupplyReq.managerId);
+    const proj=reqProject(fSupplyReq);
+    const req={
+      id:Date.now(),type:"supply_request",createdBy:cu.id,createdByName:cu.name,entity:cu.entity,
+      ...fSupplyReq,managerId:+fSupplyReq.managerId,managerName:manager?.name||"Verwaltung",
+      qty:+fSupplyReq.qty||1,status:"pending",projectName:proj?.name||"",
+      date:new Date().toLocaleDateString("de-DE"),
+      time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
+      history:[]
+    };
+    setPartnerRequests(p=>[req,...p]);
+    if(+fSupplyReq.projectId){
+      const row={id:req.id,kind:req.kind,material:req.item,qty:req.qty,unit:req.unit,urgency:req.priority==="urgent"?"dringend":"normal",supplier:req.company,neededDate:req.deliveryDate,rentalFrom:req.rentalFrom,rentalTo:req.rentalTo,details:req.details,note:req.note,by:cu.id,date:req.date,status:"ausstehend"};
+      setProjs(p=>p.map(pr=>pr.id===+fSupplyReq.projectId?{...pr,requests:[...pr.requests,row]}:pr));
+      if(selP?.id===+fSupplyReq.projectId)setSelP(pr=>({...pr,requests:[...pr.requests,row]}));
+    }
+    addNotif(+fSupplyReq.managerId,"supply_request",`Neue Anfrage: ${req.item}`,
+      `${cu.name} braucht ${req.qty} ${req.unit} ${req.item}${req.company?` von ${req.company}`:""}.`,+fSupplyReq.projectId||null,{targetTab:"dashboard"});
+    notifyAdmins("supply_request",`Material/Maschine Anfrage: ${req.item}`,
+      `${cu.name} hat eine Anfrage gestellt. ${reqDetailText(req)||req.note||""}`,+fSupplyReq.projectId||null,{targetTab:"dashboard"});
+    setFSupplyReq(BLANK_SUPPLY_REQ);
+    setMSupplyReq(false);
+  };
+
+  const updateSupplyReqStatus=(req,status,note="")=>{
+    const stamp={status,note,time:new Date().toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),by:cu.name};
+    setPartnerRequests(p=>p.map(r=>r.id===req.id?{...r,status,history:[...(r.history||[]),stamp]}:r));
+    if(req.projectId){
+      setProjs(p=>p.map(pr=>pr.id===+req.projectId?{...pr,requests:pr.requests.map(x=>x.id===req.id?{...x,status:status==="approved"?"genehmigt":reqStatus({status})}:x)}:pr));
+      if(selP?.id===+req.projectId)setSelP(pr=>({...pr,requests:pr.requests.map(x=>x.id===req.id?{...x,status:status==="approved"?"genehmigt":reqStatus({status})}:x)}));
+    }
+    addNotif(req.createdBy,"supply_status",`Status aktualisiert: ${req.item}`,`${cu.name}: ${reqStatus({status})}${note?` - ${note}`:""}`,req.projectId||null,{targetTab:"dashboard"});
+    setMApprove(null);
+  };
+
   const addProjReq=(projId)=>{
     if(!newReqRow.material.trim())return;
     const row={id:Date.now(),...newReqRow,qty:+newReqRow.qty,by:cu.id,date:new Date().toLocaleDateString("de-DE"),status:"ausstehend"};
     setProjs(p=>p.map(proj=>proj.id===projId?{...proj,requests:[...proj.requests,row]}:proj));
     if(selP?.id===projId)setSelP(prev=>({...prev,requests:[...prev.requests,row]}));
-    setNRR({material:"",qty:1,unit:"Stk",urgency:"normal",note:""});
+    setNRR({kind:"material",material:"",qty:1,unit:"Stk",urgency:"normal",supplier:"",neededDate:"",rentalFrom:"",rentalTo:"",details:"",note:""});
     const proj=projs.find(p=>p.id===projId);
     if(proj){
       // notify admins + responsible
@@ -2273,6 +2377,15 @@ export default function App(){
                     </div>
                   )}
                   <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                      <div>
+                        <div style={{fontWeight:800,fontSize:13}}>Rechnungen</div>
+                        <div style={{fontSize:11,color:C.sub,marginTop:2}}>Projekt oder Anfrage wählen, Positionen prüfen und als fertige Rechnung herunterladen.</div>
+                      </div>
+                      <button className="bgr" onClick={()=>openInvoice("project",projs[0])} style={{fontSize:12,padding:"7px 11px"}}>+ Rechnung erstellen</button>
+                    </div>
+                  </div>
+                  <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:9,alignItems:"center"}}>
                       <div style={{fontWeight:800,fontSize:13}}>Alle Projekte</div>
                       <button className="bg" onClick={()=>setTab("projects")} style={{fontSize:11,padding:"3px 8px"}}>Alle →</button>
@@ -3502,14 +3615,20 @@ export default function App(){
         ))}
         {/* Input row */}
         <div style={{background:C.bg,borderRadius:9,padding:"10px 12px",border:`1px solid ${C.border}`,marginBottom:11}}>
-          <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:8,marginBottom:8}}>
-            <div><Lbl>MATERIAL</Lbl><Inp value={newReqRow.material} onChange={e=>setNRR(v=>({...v,material:e.target.value}))} placeholder="z.B. Spachtelmasse"/></div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 2fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <div><Lbl>ART</Lbl><Sel value={newReqRow.kind} onChange={e=>setNRR(v=>({...v,kind:e.target.value}))}><option value="material">Material</option><option value="machine">Maschine</option></Sel></div>
+            <div><Lbl>BEZEICHNUNG</Lbl><Inp value={newReqRow.material} onChange={e=>setNRR(v=>({...v,material:e.target.value}))} placeholder="z.B. Spachtelmasse oder Minibagger"/></div>
             <div><Lbl>MENGE</Lbl><Inp type="number" value={newReqRow.qty} onChange={e=>setNRR(v=>({...v,qty:e.target.value}))} min={1}/></div>
             <div><Lbl>EINHEIT</Lbl><Sel value={newReqRow.unit} onChange={e=>setNRR(v=>({...v,unit:e.target.value}))}>{MAT_UNITS.map(u=><option key={u}>{u}</option>)}</Sel></div>
-            <div><Lbl>DRINGLICHKEIT</Lbl><Sel value={newReqRow.urgency} onChange={e=>setNRR(v=>({...v,urgency:e.target.value}))}><option value="normal">Normal</option><option value="dringend">⚠ Dringend</option></Sel></div>
           </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <div><Lbl>DRINGLICHKEIT</Lbl><Sel value={newReqRow.urgency} onChange={e=>setNRR(v=>({...v,urgency:e.target.value}))}><option value="normal">Normal</option><option value="dringend">⚠ Dringend</option></Sel></div>
+            <div><Lbl>FIRMA / LIEFERANT</Lbl><Inp value={newReqRow.supplier} onChange={e=>setNRR(v=>({...v,supplier:e.target.value}))} placeholder="Firma"/></div>
+            <div><Lbl>{newReqRow.kind==="machine"?"MIETE AB":"LIEFERDATUM"}</Lbl><Inp type="date" value={newReqRow.kind==="machine"?newReqRow.rentalFrom:newReqRow.neededDate} onChange={e=>setNRR(v=>newReqRow.kind==="machine"?{...v,rentalFrom:e.target.value}:{...v,neededDate:e.target.value})}/></div>
+          </div>
+          {newReqRow.kind==="machine"&&<div style={{marginBottom:8}}><Lbl>MIETE BIS</Lbl><Inp type="date" value={newReqRow.rentalTo} onChange={e=>setNRR(v=>({...v,rentalTo:e.target.value}))}/></div>}
           <div style={{display:"grid",gridTemplateColumns:"3fr 1fr",gap:8}}>
-            <div><Lbl>NOTIZ (optional)</Lbl><Inp value={newReqRow.note} onChange={e=>setNRR(v=>({...v,note:e.target.value}))} placeholder="z.B. Für zweite Wand benötigt"/></div>
+            <div><Lbl>DETAILS / NOTIZ</Lbl><Txt value={newReqRow.details||newReqRow.note} onChange={e=>setNRR(v=>({...v,details:e.target.value,note:e.target.value}))} rows={3} placeholder="Artikelbeschreibung, Mietdetails, Firma, Lieferadresse oder interne Hinweise"/></div>
             <div style={{paddingTop:15}}><button className="bgr" onClick={()=>addProjReq(mReq)} style={{width:"100%",padding:"9px",fontSize:13}}>+ Anfrage<br/><span style={{fontSize:10,opacity:.8}}>& PDF erstellen</span></button></div>
           </div>
         </div>
@@ -3741,12 +3860,17 @@ export default function App(){
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:9}}>
           <div><Lbl>ART DER ANFRAGE</Lbl><Sel value={fSupplyReq.kind} onChange={e=>setFSupplyReq(v=>({...v,kind:e.target.value}))}><option value="material">📦 Material</option><option value="machine">⚙️ Maschine / Gerät</option></Sel></div>
           <div><Lbl>AN MANAGER SENDEN</Lbl><Sel value={fSupplyReq.managerId} onChange={e=>setFSupplyReq(v=>({...v,managerId:+e.target.value}))}>{users.filter(u=>u.active&&(u.role==="admin"||u.role==="va")).map(u=><option key={u.id} value={u.id}>{u.name} ({ROLE_CFG[u.role]?.label})</option>)}</Sel></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>PROJEKT / AUFTRAG (optional)</Lbl><Sel value={fSupplyReq.projectId} onChange={e=>setFSupplyReq(v=>({...v,projectId:e.target.value,neededFor:e.target.value?(projs.find(p=>p.id===+e.target.value)?.name||v.neededFor):v.neededFor}))}><option value="">Ohne Projekt verknüpfen</option>{myProjs.map(p=><option key={p.id} value={p.id}>{p.name} - {p.location}</option>)}</Sel></div>
           <div style={{gridColumn:"1/-1"}}><Lbl>NAME / BEZEICHNUNG</Lbl><Inp value={fSupplyReq.item} onChange={e=>setFSupplyReq(v=>({...v,item:e.target.value}))} placeholder="z.B. Bohrmaschine, Trockenbauplatten, Reinigungsmittel"/></div>
           <div><Lbl>MENGE</Lbl><Inp type="number" value={fSupplyReq.qty} min={1} onChange={e=>setFSupplyReq(v=>({...v,qty:e.target.value}))}/></div>
           <div><Lbl>EINHEIT</Lbl><Sel value={fSupplyReq.unit} onChange={e=>setFSupplyReq(v=>({...v,unit:e.target.value}))}>{[...MAT_UNITS,"Gerät","Maschine","Tag"].map(u=><option key={u}>{u}</option>)}</Sel></div>
+          <div><Lbl>FIRMA / LIEFERANT</Lbl><Inp value={fSupplyReq.company} onChange={e=>setFSupplyReq(v=>({...v,company:e.target.value}))} placeholder="z.B. Zeppelin Rental, Würth, Bauhaus"/></div>
+          <div><Lbl>{fSupplyReq.kind==="machine"?"MIETE AB":"LIEFERDATUM"}</Lbl><Inp type="date" value={fSupplyReq.kind==="machine"?fSupplyReq.rentalFrom:fSupplyReq.deliveryDate} onChange={e=>setFSupplyReq(v=>fSupplyReq.kind==="machine"?{...v,rentalFrom:e.target.value}:{...v,deliveryDate:e.target.value})}/></div>
+          {fSupplyReq.kind==="machine"&&<div><Lbl>MIETE BIS</Lbl><Inp type="date" value={fSupplyReq.rentalTo} onChange={e=>setFSupplyReq(v=>({...v,rentalTo:e.target.value}))}/></div>}
           <div><Lbl>DRINGLICHKEIT</Lbl><Sel value={fSupplyReq.priority} onChange={e=>setFSupplyReq(v=>({...v,priority:e.target.value}))}><option value="normal">Normal</option><option value="high">Hoch</option><option value="urgent">⚠ Dringend</option></Sel></div>
           <div><Lbl>BENÖTIGT FÜR</Lbl><Inp value={fSupplyReq.neededFor} onChange={e=>setFSupplyReq(v=>({...v,neededFor:e.target.value}))} placeholder="Projekt / Auftrag / Standort"/></div>
-          <div style={{gridColumn:"1/-1"}}><Lbl>NOTIZ</Lbl><Txt value={fSupplyReq.note} onChange={e=>setFSupplyReq(v=>({...v,note:e.target.value}))} rows={3} placeholder="Warum wird das Material oder die Maschine benötigt?"/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>DETAILS ZUR BESTELLUNG / MIETE</Lbl><Txt value={fSupplyReq.details} onChange={e=>setFSupplyReq(v=>({...v,details:e.target.value}))} rows={3} placeholder="Technische Daten, gewünschtes Modell, Lieferadresse, Ansprechpartner, Mietbedingungen..."/></div>
+          <div style={{gridColumn:"1/-1"}}><Lbl>NOTIZ</Lbl><Txt value={fSupplyReq.note} onChange={e=>setFSupplyReq(v=>({...v,note:e.target.value}))} rows={2} placeholder="Warum wird das Material oder die Maschine benötigt?"/></div>
         </div>
         <div style={{display:"flex",gap:7}}><button className="bo" onClick={submitSupplyReq} style={{flex:1,padding:"9px",fontSize:13}}>📤 Anfrage absenden</button><button className="bg" onClick={()=>setMSupplyReq(false)}>Abbrechen</button></div>
       </Modal>}
@@ -3970,6 +4094,36 @@ export default function App(){
           }} style={{flex:1,padding:"10px",fontSize:13}}>💾 Speichern & Benachrichtigen</button>
           <button className="bg" onClick={()=>setMQuickPerm(null)}>Abbrechen</button>
         </div>
+      </Modal>}
+
+      {/* INVOICE MODAL */}
+      {mInvoice&&isRoot(cu)&&<Modal title="Rechnung erstellen" onClose={()=>setMInvoice(false)} w={680}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:10}}>
+          <div><Lbl>QUELLE</Lbl><Sel value={`${fInvoice.sourceType}:${fInvoice.sourceId}`} onChange={e=>{const[type,id]=e.target.value.split(":");const src=type==="request"?partnerRequests.find(r=>r.id===+id):projs.find(p=>p.id===+id);openInvoice(type,src);}}>
+            {projs.map(p=><option key={`p${p.id}`} value={`project:${p.id}`}>Projekt: {p.name}</option>)}
+            {partnerRequests.filter(r=>r.type==="supply_request").map(r=><option key={`r${r.id}`} value={`request:${r.id}`}>Anfrage: {reqTitle(r)}</option>)}
+          </Sel></div>
+          <div><Lbl>RECHNUNGSNUMMER</Lbl><Inp value={fInvoice.invoiceNo} onChange={e=>setFInvoice(v=>({...v,invoiceNo:e.target.value}))}/></div>
+          <div><Lbl>KUNDE / FIRMA</Lbl><Inp value={fInvoice.customer} onChange={e=>setFInvoice(v=>({...v,customer:e.target.value}))}/></div>
+          <div><Lbl>MWST %</Lbl><Inp type="number" value={fInvoice.taxRate} onChange={e=>setFInvoice(v=>({...v,taxRate:e.target.value}))}/></div>
+          <div><Lbl>DATUM</Lbl><Inp type="date" value={fInvoice.date} onChange={e=>setFInvoice(v=>({...v,date:e.target.value}))}/></div>
+          <div><Lbl>FÄLLIG BIS</Lbl><Inp type="date" value={fInvoice.dueDate} onChange={e=>setFInvoice(v=>({...v,dueDate:e.target.value}))}/></div>
+        </div>
+        <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:9,padding:10,marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:800,color:C.navy,marginBottom:8}}>POSITIONEN</div>
+          {fInvoice.lines.map((l,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateColumns:"1.8fr .55fr .65fr .8fr 28px",gap:6,marginBottom:6,alignItems:"center"}}>
+              <Inp value={l.desc} onChange={e=>setFInvoice(v=>({...v,lines:v.lines.map((x,ix)=>ix===i?{...x,desc:e.target.value}:x)}))} placeholder="Leistung / Material"/>
+              <Inp type="number" value={l.qty} onChange={e=>setFInvoice(v=>({...v,lines:v.lines.map((x,ix)=>ix===i?{...x,qty:e.target.value}:x)}))}/>
+              <Inp value={l.unit} onChange={e=>setFInvoice(v=>({...v,lines:v.lines.map((x,ix)=>ix===i?{...x,unit:e.target.value}:x)}))}/>
+              <Inp type="number" value={l.price} onChange={e=>setFInvoice(v=>({...v,lines:v.lines.map((x,ix)=>ix===i?{...x,price:e.target.value}:x)}))}/>
+              <button onClick={()=>setFInvoice(v=>({...v,lines:v.lines.filter((_,ix)=>ix!==i)}))} style={{height:28,border:"none",borderRadius:6,background:C.redL,color:C.red,fontWeight:800,cursor:"pointer"}}>×</button>
+            </div>
+          ))}
+          <button className="bp" onClick={()=>setFInvoice(v=>({...v,lines:[...v.lines,{desc:"",qty:1,unit:"Stk",price:0}]}))} style={{fontSize:11,padding:"5px 9px"}}>+ Position</button>
+        </div>
+        <div style={{marginBottom:12}}><Lbl>NOTIZ / ZAHLUNGSINFO</Lbl><Txt value={fInvoice.notes} onChange={e=>setFInvoice(v=>({...v,notes:e.target.value}))} rows={3}/></div>
+        <div style={{display:"flex",gap:7}}><button className="bo" onClick={()=>{setPdfContent(buildInvoiceHtml(fInvoice));setMInvoice(false);}} style={{flex:1,padding:"9px",fontSize:13}}>Rechnung anzeigen / herunterladen</button><button className="bg" onClick={()=>setMInvoice(false)}>Abbrechen</button></div>
       </Modal>}
 
       {/* PDF PREVIEW MODAL */}
