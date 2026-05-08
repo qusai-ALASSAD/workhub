@@ -259,11 +259,14 @@ const Txt=({...p})=>{
   const ref=useRef();
   return <textarea {...p} ref={ref}
     onKeyDown={e=>{if(p.onKeyDown)p.onKeyDown(e);}}
-    style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"none",overflowY:"auto",...p.style}}/>;
+    onWheel={e=>{e.stopPropagation(); if(p.onWheel)p.onWheel(e);}}
+    onTouchMove={e=>{e.stopPropagation(); if(p.onTouchMove)p.onTouchMove(e);}}
+    style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"none",overflowY:"auto",overscrollBehavior:"contain",...p.style}}/>;
 };
 
 const calcDur=(s,e)=>{try{const[sh,sm]=s.split(":").map(Number),[eh,em]=e.split(":").map(Number);const m=(eh*60+em)-(sh*60+sm);return m<0?"–":`${Math.floor(m/60)}h ${m%60}m`;}catch{return"–";}};
 const totalHrs=wl=>wl.reduce((a,l)=>a+(l.hours||0),0);
+const preventTextareaPageScroll=e=>e.stopPropagation();
 
 function useW(){const[w,setW]=useState(typeof window!=="undefined"?window.innerWidth:1200);useEffect(()=>{const h=()=>setW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);return w;}
 
@@ -1075,13 +1078,13 @@ export default function App(){
   if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
   if(!isPartner(cu))                          NAV.push({id:"orders",   icon:"🛒",label:"Bestellungen",badge:matRequests.filter(r=>r.status==="ausstehend").length||undefined});
-  if(isRoot(cu))                              NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
+  if(cu?.role==="admin")                         NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
   NAV.push({id:"support",icon:"❓",label:"Support"});
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
-    input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}button{cursor:pointer;border:none;font-family:inherit}
+    input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}textarea{overscroll-behavior:contain;touch-action:pan-y}button{cursor:pointer;border:none;font-family:inherit}
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#BCC8D8;border-radius:4px}
     .ni{transition:all .15s}.ni:hover{background:${C.navyLight}!important}.ni.act{background:${C.navy}!important;color:#fff!important}
     .ch{transition:transform .15s,box-shadow .15s}.ch:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(13,59,110,.1)!important}
@@ -1465,6 +1468,7 @@ export default function App(){
             {/* Text input */}
             <div style={{flex:1,position:"relative"}}>
               <textarea value={chatMsg} onChange={e=>setChatMsg(e.target.value)}
+                onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
                 onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}}
                 placeholder={`Nachricht an ${selChat.name.split(" ")[0]}…`}
                 rows={1}
@@ -1658,7 +1662,8 @@ export default function App(){
               ?<div>
                 <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:4}}>📝 HINWEISE / BESCHREIBUNG</div>
                 <textarea value={cur.notes||""} onChange={e=>updateField("notes",e.target.value)} rows={2}
-                  style={{width:"100%",border:`2px solid ${C.orange}`,borderRadius:8,padding:"7px 10px",fontSize:12,background:"#FFFBEB",color:C.text,resize:"none",boxSizing:"border-box"}}/>
+                  onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
+                  style={{width:"100%",border:`2px solid ${C.orange}`,borderRadius:8,padding:"7px 10px",fontSize:12,background:"#FFFBEB",color:C.text,resize:"none",boxSizing:"border-box",overscrollBehavior:"contain"}}/>
               </div>
               :cur.notes&&<div style={{background:C.yellowL,border:"1px solid #FDE68A",borderRadius:8,padding:"8px 11px",fontSize:12,color:C.text}}>{cur.notes}</div>
             }
@@ -2396,7 +2401,9 @@ export default function App(){
               <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
                 <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                   <Av u={cu} size={28}/>
-                  <textarea value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Update teilen…" rows={2} style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:13,background:C.bg,resize:"none",color:C.text}}/>
+                  <textarea value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Update teilen…" rows={2}
+                    onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
+                    style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:13,background:C.bg,resize:"none",color:C.text,overscrollBehavior:"contain"}}/>
                 </div>
                 <div style={{display:"flex",justifyContent:"flex-end",marginTop:7}}><button className="bo" onClick={()=>{if(!newPost.trim())return;setFeed(p=>[{id:p.length+1,author:cu.id,type:"update",text:newPost,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),date:"03.05.2026",likes:0,comments:[]},...p]);setNewPost("");}} style={{opacity:newPost.trim()?1:.5}}>Posten</button></div>
               </div>
@@ -3086,7 +3093,7 @@ export default function App(){
           )}
 
           {/* ══ RECHNUNGEN ══ */}
-          {tab==="rechnungen"&&isRoot(cu)&&(
+          {tab==="rechnungen"&&cu?.role==="admin"&&(
             <div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13,flexWrap:"wrap",gap:8}}>
                 <div>
@@ -3111,7 +3118,7 @@ export default function App(){
                           <div style={{fontSize:12,fontWeight:600,marginTop:2}}>{inv.title}</div>
                           <div style={{fontSize:11,color:C.sub,marginTop:1}}>👤 {inv.client}</div>
                         </div>
-                        <span style={{background:statusBg,color:statusC,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{inv.status}</span>
+                        <span style={{background:statusBg,color:statusC,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[inv.status]||inv.status)}</span>
                       </div>
                       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
                         <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
@@ -3229,7 +3236,7 @@ export default function App(){
                         <div style={{fontSize:11,color:C.sub}}>Datum: <b>{selInvoice.date}</b></div>
                         <div style={{fontSize:11,color:C.sub}}>Fällig am: <b>{selInvoice.dueDate||"–"}</b></div>
                         <div style={{marginTop:4}}>
-                          <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[selInvoice.status],color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[selInvoice.status],borderRadius:20,padding:"3px 11px",fontSize:11,fontWeight:700}}>{selInvoice.status}</span>
+                          <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[selInvoice.status],color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[selInvoice.status],borderRadius:20,padding:"3px 11px",fontSize:11,fontWeight:700}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[selInvoice.status]||selInvoice.status)}</span>
                         </div>
                       </div>
                     </div>
