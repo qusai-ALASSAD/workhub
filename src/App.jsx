@@ -680,6 +680,8 @@ export default function App(){
   const fileRef=useRef();
   const profilePhotoRef=useRef();
   const chatEnd=useRef();
+  const chatListRef=useRef(null);
+  const chatScrollMeta=useRef({chatId:null,count:0});
   const ww=useW();const mob=ww<=820;
 
   // Profile edit modal
@@ -726,7 +728,17 @@ export default function App(){
 
   const[chatSearch,setChatSearch]=useState("");
 
-  useEffect(()=>{chatEnd.current?.scrollIntoView({behavior:"smooth"});},[msgs,selChat]);
+  useEffect(()=>{
+    if(!selChat)return;
+    const count=convWith(selChat.id).length;
+    const prev=chatScrollMeta.current;
+    const shouldScroll=prev.chatId!==selChat.id||count>prev.count;
+    chatScrollMeta.current={chatId:selChat.id,count};
+    if(shouldScroll)requestAnimationFrame(()=>{
+      const el=chatListRef.current;
+      if(el)el.scrollTop=el.scrollHeight;
+    });
+  },[msgs.length,selChat?.id]);
   useEffect(()=>{if(showNotifs){const h=e=>{if(!e.target.closest?.('[data-notif]'))setShowNotifs(false);};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);}},[showNotifs]);
 
   const isRoot=u=>u&&(u.role==="admin"||u.role==="it");
@@ -1083,7 +1095,7 @@ export default function App(){
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    *{box-sizing:border-box;margin:0;padding:0}html,body,#root{overflow-anchor:none}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
     input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}textarea{overscroll-behavior:contain;touch-action:pan-y}button{cursor:pointer;border:none;font-family:inherit}
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#BCC8D8;border-radius:4px}
     .ni{transition:all .15s}.ni:hover{background:${C.navyLight}!important}.ni.act{background:${C.navy}!important;color:#fff!important}
@@ -1328,6 +1340,45 @@ export default function App(){
           )}
           <button className="bgr" onClick={()=>setMLog(proj.id)} style={{fontSize:11,padding:"4px 9px"}}>+ Stunden eintragen</button>
         </Sec>
+
+        {isRoot(cu)&&<Sec title="RECHNUNGEN" icon="ðŸ§¾" collapsible>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
+            <div style={{fontSize:12,color:C.sub}}>Alle Rechnungen, die mit diesem Projekt verknÃ¼pft sind.</div>
+            <button className="bo" onClick={()=>{setEditInvoice({...BLANK_INVOICE,nr:`RE-2026-${String(invoices.length+1).padStart(3,"0")}`,projId:proj.id,title:proj.name,client:proj.entity});setMInvoice(true);}} style={{fontSize:11,padding:"5px 10px"}}>+ Rechnung erstellen</button>
+          </div>
+          {invoices.filter(inv=>inv.projId===proj.id).length>0?(
+            <div style={{overflowX:"auto"}}>
+              <table className="list">
+                <thead><tr><th>Nr.</th><th>Kunde</th><th>Datum</th><th>FÃ¤llig</th><th>Status</th><th>Gesamt</th><th>Aktion</th></tr></thead>
+                <tbody>
+                  {invoices.filter(inv=>inv.projId===proj.id).map(inv=>{
+                    const total=inv.items.reduce((s,i)=>s+(i.total||0),0);
+                    return(
+                      <tr key={inv.id}>
+                        <td style={{fontWeight:700}}>{inv.nr}</td>
+                        <td>{inv.client}</td>
+                        <td>{inv.date}</td>
+                        <td>{inv.dueDate||"â€“"}</td>
+                        <td><span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[inv.status]||C.bg,color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[inv.status]||C.sub,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[inv.status]||inv.status)}</span></td>
+                        <td style={{fontWeight:800,color:C.navy}}>{total.toFixed(2)} â‚¬</td>
+                        <td>
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                            <button onClick={()=>setSelInvoice(inv)} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Anzeigen</button>
+                            <button onClick={()=>{setEditInvoice(JSON.parse(JSON.stringify(inv)));setMInvoice(true);}} style={{background:C.orangeLight,color:C.orange,border:"none",borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Bearbeiten</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ):(
+            <div style={{background:C.bg,border:`1px dashed ${C.border}`,borderRadius:8,padding:"12px",fontSize:12,color:C.sub,textAlign:"center"}}>
+              Noch keine Rechnung fÃ¼r dieses Projekt.
+            </div>
+          )}
+        </Sec>}
       </div>
     );
   };
@@ -1380,7 +1431,7 @@ export default function App(){
         </div>
 
         {/* Messages */}
-        <div style={{flex:1,overflowY:"auto",padding:"14px 14px",display:"flex",flexDirection:"column",gap:2,background:"#F8FAFC"}}>
+        <div ref={chatListRef} style={{flex:1,overflowY:"auto",padding:"14px 14px",display:"flex",flexDirection:"column",gap:2,background:"#F8FAFC",overflowAnchor:"none",scrollBehavior:"auto"}}>
           {msgs_conv.length===0&&(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,opacity:.4}}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#888" strokeWidth="1.5"/></svg>
