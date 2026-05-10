@@ -13,8 +13,8 @@
     />
 
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="icon" href="/ovivo-logo.svg" />
 
-    <!-- Link Preview: WhatsApp, Facebook, LinkedIn, Telegram -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://app.ovivo.io/" />
     <meta property="og:title" content="Ovivo WorkHub &ndash; Operations Management" />
@@ -28,15 +28,75 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Ovivo WorkHub Dashboard Vorschau" />
     <meta property="og:site_name" content="Ovivo WorkHub" />
-
-    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ovivo WorkHub &ndash; Operations Management" />
-    <meta
-      name="twitter:description"
-      content="Projekte, Auftraege, Teams und Materialien in einer klaren digitalen Arbeitsplattform."
-    />
+    <meta name="twitter:description" content="Projekte, Auftraege, Teams und Materialien in einer klaren digitalen Arbeitsplattform." />
     <meta name="twitter:image" content="https://app.ovivo.io/og-workhub.png" />
+
+    <style>
+      html, body { overscroll-behavior-y: none; }
+      input, textarea, select { font-size: 16px !important; }
+      textarea { overscroll-behavior: contain; scroll-margin-bottom: 160px; }
+      img[src*="base64"], img[src*="ovivo-logo"] { object-fit: contain !important; background: #050816 !important; border-radius: 12px !important; }
+    </style>
+
+    <script>
+      window.OVIVO_LOGO_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAC7aklEQVR4nK19aXAU1dX3zKzM7OzM7EySWbAZQkgIGEIIbQhBIESEEERj+oDg4DFycSyoDhMQCNjVQbMNyQnBjDAkU4gMSozDGKOggmEZEhJCQpkkEwgkJJl9r9/+9j7n6d7tbqarqq6unlmdab3v+O3u6unV9aq6/e9a7713NAEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEGQjhf+HyqahxTi7xFAAAAASUVORK5CYII=";
+      (function() {
+        function cleanTracking() {
+          if (location.search && location.search.indexOf('utm_source') !== -1) {
+            history.replaceState(null, document.title, location.pathname + location.hash);
+          }
+        }
+        function patchLogo() {
+          var imgs = Array.prototype.slice.call(document.querySelectorAll('img'));
+          imgs.forEach(function(img) {
+            var r = img.getBoundingClientRect();
+            var isSmallLogo = (r.width <= 90 && r.height <= 90) || /logo/i.test(img.alt || '') || /logo/i.test(img.className || '');
+            if (isSmallLogo && img.src !== window.OVIVO_LOGO_DATA) {
+              img.src = window.OVIVO_LOGO_DATA;
+              img.style.background = '#050816';
+              img.style.borderRadius = '12px';
+              img.style.objectFit = 'contain';
+              img.style.padding = '0';
+            }
+          });
+          var candidates = Array.prototype.slice.call(document.querySelectorAll('header div, nav div, aside div'));
+          candidates.slice(0, 20).forEach(function(el) {
+            var r = el.getBoundingClientRect();
+            var style = getComputedStyle(el);
+            if (r.width >= 28 && r.width <= 70 && r.height >= 28 && r.height <= 70 && (style.backgroundColor.indexOf('245') !== -1 || style.backgroundColor.indexOf('255') !== -1)) {
+              el.style.backgroundImage = 'url(' + window.OVIVO_LOGO_DATA + ')';
+              el.style.backgroundSize = 'contain';
+              el.style.backgroundRepeat = 'no-repeat';
+              el.style.backgroundPosition = 'center';
+              el.style.backgroundColor = '#050816';
+              el.style.color = 'transparent';
+              el.style.borderRadius = '12px';
+            }
+          });
+        }
+        function stopCommentScrollJump() {
+          document.addEventListener('input', function(e) {
+            if (e.target && e.target.tagName === 'TEXTAREA') {
+              var y = window.scrollY;
+              requestAnimationFrame(function() {
+                if (Math.abs(window.scrollY - y) > 20) window.scrollTo(0, y);
+              });
+            }
+          }, true);
+        }
+        window.addEventListener('error', function(ev) {
+          window.__ovivoLastError = ((ev && ev.message) || '') + '';
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+          cleanTracking();
+          stopCommentScrollJump();
+          patchLogo();
+          setInterval(patchLogo, 1200);
+        });
+      })();
+    </script>
   </head>
   <body>
     <noscript>Bitte JavaScript aktivieren, um WorkHub zu nutzen.</noscript>
