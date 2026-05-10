@@ -7,15 +7,15 @@ const APP_CONFIG = {
   // --- Branding ---
   appName:    "WorkHub",                 // App name shown everywhere
   appSubtitle:"Facility & Handwerk",     // Subtitle under app name
-  logoIcon:   "⚡", logoImg: "data:image/png;base64,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",                      // Emoji logo
+  logoIcon:   "", logoImg: "/ovivo-logo.svg",                      // Ovivo logo
 
   // --- Company Info (shown in PDFs & sidebar) ---
-  companyName:   "Ovivo WorkHub Berlin",
-  companyAddress:"Alexanderplatz 1, 10178 Berlin",
-  companyPhone:  "+49 30 123456",
-  companyEmail:  "berlin@ovivo.io",
+  companyName:   "Musterfirma GmbH",
+  companyAddress:"Musterstraße 1, 20095 Hamburg",
+  companyPhone:  "+49 40 123456",
+  companyEmail:  "info@musterfirma.de",
   companyHours:  "Mo–Fr 8–17 Uhr",
-  companyCity:   "Berlin",
+  companyCity:   "Hamburg",
 
   // --- Support & Platform ---
   supportCompany:"ovivo.io",
@@ -45,7 +45,6 @@ const APP_CONFIG = {
 // ══════════════════════════════════════════════════════════════════
 
 const C={navy:"#0D3B6E",navyDark:"#092D55",navyLight:"#E8F0F9",orange:"#F5831F",orangeLight:"#FEF0E3",bg:"#F2F5F9",border:"#DDE4EE",text:"#0D1F35",sub:"#5A7090",green:"#059669",greenL:"#F0FDF4",red:"#DC2626",redL:"#FEF2F2",yellow:"#D97706",yellowL:"#FFFBEB",purple:"#7C3AED",purpleL:"#F5F3FF"};
-APP_CONFIG.logoImg="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop stop-color='%230EA5E9'/><stop offset='.55' stop-color='%232563EB'/><stop offset='1' stop-color='%237C3AED'/></linearGradient></defs><circle cx='48' cy='48' r='43' fill='none' stroke='url(%23g)' stroke-width='7'/><path d='M21 51h9m36 0h9M48 17v10m0 42v10M26 37l8 5m28 12l8 5M26 59l8-5m28-12l8-5' stroke='url(%23g)' stroke-width='4' stroke-linecap='round'/><rect x='30' y='34' width='36' height='28' rx='13' fill='%230D3B6E'/><rect x='36' y='42' width='24' height='12' rx='6' fill='%23E8F0F9'/><circle cx='42' cy='48' r='3' fill='%232563EB'/><circle cx='54' cy='48' r='3' fill='%232563EB'/><path d='M48 34v-7' stroke='%230D3B6E' stroke-width='4' stroke-linecap='round'/><circle cx='48' cy='24' r='4' fill='%232563EB'/></svg>";
 
 const ALL_PERMS=[
   {key:"repairs",  label:"Aufträge & Wartung",  icon:"🔧"},
@@ -74,8 +73,7 @@ const ROLE_CFG={
 };
 
 const DEPTS=["Bauhandwerk","Trockenbau","Reinigung","Kabelverlegen","Rezeption","Leitung","IT","Technik","Extern"];
-const BERLIN_DISTRICTS=["Mitte","Friedrichshain-Kreuzberg","Pankow","Charlottenburg-Wilmersdorf","Spandau","Steglitz-Zehlendorf","Tempelhof-Schöneberg","Neukölln","Treptow-Köpenick","Marzahn-Hellersdorf","Lichtenberg","Reinickendorf"];
-const ENTITIES=["Berlin Mitte","Berlin Neukölln","Berlin Pankow","Berlin Charlottenburg-Wilmersdorf","Berlin Tempelhof-Schöneberg","Berlin Treptow-Köpenick","Hotel Partner Berlin","System","Kunde Berlin GmbH"];
+const ENTITIES=["Zentrale Hamburg","Niederlassung Nord","Hotel Partner","System","Kunde GmbH"];
 const DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"];
 const WDAYS=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 const SHIFTS_C={
@@ -88,15 +86,15 @@ const MAT_UNITS=["Stk","Kg","L","m²","m","Pkg","Rolle","Eimer","Box","Palette"]
 const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär","Sonstige"];
 
 const INIT_USERS=[
-  {id:1,name:"Berlin Manager",   role:"admin",  dept:"Leitung",    entity:"Berlin Mitte",        avatar:"BM",color:C.orange,  active:true,pin:"1234",perms:FULL},
+  {id:1,name:"Max Meister",      role:"admin",  dept:"Leitung",    entity:"Zentrale Hamburg",    avatar:"MM",color:C.orange,  active:true,pin:"1234",perms:FULL},
   {id:2,name:"System Admin",     role:"it",     dept:"IT",         entity:"System",              avatar:"SA",color:C.purple,  active:true,pin:"9999",perms:FULL},
-  {id:3,name:"Thomas Becker",    role:"va",     dept:"Bauhandwerk",entity:"Berlin Neukölln",     avatar:"TB",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,scheduleEdit:true,reports:true}},
-  {id:4,name:"Lisa Hoffmann",    role:"va",     dept:"Reinigung",  entity:"Berlin Pankow",       avatar:"LH",color:"#0891B2", active:true,pin:"2222",perms:{...DEF,scheduleEdit:true}},
-  {id:5,name:"Stefan Müller",    role:"ma",     dept:"Bauhandwerk",entity:"Berlin Neukölln",     avatar:"SM",color:C.navy,    active:true,pin:"3333",perms:{...DEF,scheduleEdit:false}},
-  {id:6,name:"Peter Krause",     role:"ma",     dept:"Trockenbau", entity:"Berlin Mitte",        avatar:"PK",color:"#1A5C9A", active:true,pin:"4444",perms:{...DEF,scheduleEdit:false,gallery:false}},
-  {id:7,name:"Julia Weber",      role:"ma",     dept:"Reinigung",  entity:"Berlin Pankow",       avatar:"JW",color:C.green,   active:true,pin:"5555",perms:{...DEF,scheduleEdit:false}},
-  {id:8,name:"Hotel Partner Berlin",role:"partner",dept:"Extern",  entity:"Hotel Partner Berlin",avatar:"HP",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS},
-  {id:9,name:"Kunde Berlin",     role:"partner",dept:"Extern",     entity:"Kunde Berlin GmbH",   avatar:"KB",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS},
+  {id:3,name:"Thomas Becker",    role:"va",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"TB",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,scheduleEdit:true,reports:true}},
+  {id:4,name:"Lisa Hoffmann",    role:"va",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"LH",color:"#0891B2", active:true,pin:"2222",perms:{...DEF,scheduleEdit:true}},
+  {id:5,name:"Stefan Müller",    role:"ma",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"SM",color:C.navy,    active:true,pin:"3333",perms:{...DEF,scheduleEdit:false}},
+  {id:6,name:"Peter Krause",     role:"ma",     dept:"Trockenbau", entity:"Zentrale Hamburg",    avatar:"PK",color:"#1A5C9A", active:true,pin:"4444",perms:{...DEF,scheduleEdit:false,gallery:false}},
+  {id:7,name:"Julia Weber",      role:"ma",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"JW",color:C.green,   active:true,pin:"5555",perms:{...DEF,scheduleEdit:false}},
+  {id:8,name:"Hotel Partner",    role:"partner",dept:"Extern",     entity:"Hotel Partner",       avatar:"HP",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS},
+  {id:9,name:"Kunde Demo",       role:"partner",dept:"Extern",     entity:"Kunde GmbH",          avatar:"KD",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS},
 ];
 
 const INIT_PROJECTS=[
@@ -260,16 +258,12 @@ const Sel=({children,...p})=>(<select {...p} style={{width:"100%",border:`1.5px 
 const Txt=({...p})=>{
   const ref=useRef();
   return <textarea {...p} ref={ref}
-    onFocus={e=>{const y=window.scrollY,x=window.scrollX; if(p.onFocus)p.onFocus(e); requestAnimationFrame(()=>window.scrollTo(x,y));}}
     onKeyDown={e=>{if(p.onKeyDown)p.onKeyDown(e);}}
-    onWheel={e=>{e.stopPropagation(); if(p.onWheel)p.onWheel(e);}}
-    onTouchMove={e=>{e.stopPropagation(); if(p.onTouchMove)p.onTouchMove(e);}}
-    style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:13,background:C.bg,color:C.text,resize:"none",overflowY:"auto",overscrollBehavior:"contain",...p.style}}/>;
+    style={{width:"100%",border:`1.5px solid ${C.border}`,borderRadius:8,padding:"9px 11px",fontSize:16,background:C.bg,color:C.text,resize:"vertical",overflowY:"auto",overscrollBehavior:"contain",overflowAnchor:"none",scrollMarginBottom:160,...p.style}}/>;
 };
 
 const calcDur=(s,e)=>{try{const[sh,sm]=s.split(":").map(Number),[eh,em]=e.split(":").map(Number);const m=(eh*60+em)-(sh*60+sm);return m<0?"–":`${Math.floor(m/60)}h ${m%60}m`;}catch{return"–";}};
 const totalHrs=wl=>wl.reduce((a,l)=>a+(l.hours||0),0);
-const preventTextareaPageScroll=e=>e.stopPropagation();
 
 function useW(){const[w,setW]=useState(typeof window!=="undefined"?window.innerWidth:1200);useEffect(()=>{const h=()=>setW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);return w;}
 
@@ -277,7 +271,7 @@ function useW(){const[w,setW]=useState(typeof window!=="undefined"?window.innerW
 function Modal({title,onClose,children,w=480}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(13,59,110,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:600,padding:14}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{background:"#fff",borderRadius:16,padding:"18px 16px",width:"100%",maxWidth:w,maxHeight:"94vh",overflowY:"auto",overscrollBehavior:"contain",boxShadow:"0 24px 60px rgba(13,59,110,.3)"}}>
+      <div style={{background:"#fff",borderRadius:16,padding:"18px 16px",width:"100%",maxWidth:w,maxHeight:"94vh",overflowY:"auto",boxShadow:"0 24px 60px rgba(13,59,110,.3)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <h3 style={{fontSize:15,fontWeight:800,color:C.text}}>{title}</h3>
           <button onClick={onClose} style={{background:C.bg,color:C.sub,border:"none",borderRadius:6,width:26,height:26,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>×</button>
@@ -605,16 +599,15 @@ export default function App(){
 
   const[cu,setCu]=useState(()=>readSession());
   const setCuPersist=(u)=>{writeSession(u);setCu(u);};
-
   const[li,setLi]      =useState({user:"",pass:""});
   const[err,setErr]    =useState("");
   const[tab,setTab]    =useState("dashboard");
   const[pdfContent,setPdfContent]=useState(null);
   const[notifs,setNotifs]=useState([
-    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:'Manager hat Sie als Verantwortlichen für "Trockenbau Bürokomplex Nord" eingesetzt.',projId:1,time:"08:00",date:"01.05.2026",read:false},
-    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:'Manager hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: "Wasserleck – Zimmer 204" (Zi. 204).',projId:null,time:"08:10",date:"01.05.2026",read:false},
-    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:'Julia Weber hat eine Anfrage für "Reinigungsmittel Typ B" (20 L) im Projekt "Grundreinigung Bürogebäude" gestellt.',projId:2,time:"09:30",date:"03.05.2026",read:false},
-    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:'Hotel Partner hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: "Türschloss defekt – Zi. 205" in Zi. 205.',projId:null,time:"09:45",date:"03.05.2026",read:false},
+    {id:1,to:3,type:"project_assigned",title:"📋 Neues Projekt zugewiesen",body:"Manager hat Sie als Verantwortlichen für \"Trockenbau Bürokomplex Nord" eingesetzt.",projId:1,time:"08:00",date:"01.05.2026",read:false},
+    {id:2,to:5,type:"repair_assigned", title:"🔧 Auftrag zugewiesen: Wasserleck – Zimmer 204",body:"Manager hat Ihnen einen 🚨 DRINGEND Auftrag zugewiesen: \"Wasserleck – Zimmer 204" (Zi. 204).",projId:null,time:"08:10",date:"01.05.2026",read:false},
+    {id:3,to:1,type:"mat_request",     title:"📦 Materialanfrage ⚠: Reinigungsmittel Typ B",body:"Julia Weber hat eine Anfrage für \"Reinigungsmittel Typ B" (20 L) im Projekt \"Grundreinigung Bürogebäude" gestellt.",projId:2,time:"09:30",date:"03.05.2026",read:false},
+    {id:4,to:1,type:"repair_new",      title:"🔧 Neuer Auftrag: Türschloss defekt – Zi. 205",body:"Hotel Partner hat einen neuen Auftrag gemeldet: 🚨 DRINGEND: \"Türschloss defekt – Zi. 205" in Zi. 205.",projId:null,time:"09:45",date:"03.05.2026",read:false},
   ]);
   const[showNotifs,setShowNotifs]=useState(false);
 
@@ -622,6 +615,13 @@ export default function App(){
   const[mQuickPerm,setMQuickPerm]=useState(null); // user to edit perms
 
   const[users,setUsers]    =useState(INIT_USERS);
+  // Sync cu when users change (after users is initialized)
+  useEffect(()=>{
+    if(cu){
+      const fresh=users.find(u=>u.id===cu.id);
+      if(fresh&&JSON.stringify(fresh)!==JSON.stringify(cu)){setCuPersist(fresh);}
+    }
+  },[users,cu]);
   const[projs,setProjs]    =useState(INIT_PROJECTS);
   const[repairs,setRepairs]=useState(INIT_REPAIRS);
   const[tasks,setTasks]    =useState(INIT_TASKS);
@@ -629,11 +629,8 @@ export default function App(){
   const[feed,setFeed]      =useState(INIT_FEED);
   const[mats,setMats]      =useState(INIT_MATS);
   const[orders,setOrders]  =useState(INIT_ORDERS);
+  const[matTab,setMatTab]=useState("all");
   const[sched,setSched]    =useState(INIT_SCHED);
-  // Sync cu when users change (e.g. after perm edit)
-  useEffect(()=>{
-    if(cu){const fresh=users.find(u=>u.id===cu.id);if(fresh&&JSON.stringify(fresh)!==JSON.stringify(cu)){setCuPersist(fresh);}}
-  },[users,cu]);
 
   // UI
   const[selP,setSelP]         =useState(null);  // selected project
@@ -674,17 +671,15 @@ export default function App(){
   const[newWMatRow,setNWMR]  =useState({name:"",unit:"Stk",qty:0,minQty:5,price:0,category:"Bau"});
 
   // User form
-  const BLANK_USER={name:"",role:"ma",dept:"Bauhandwerk",entity:"Berlin Mitte",pin:"",active:true,perms:{...DEF}};
+  const BLANK_USER={name:"",role:"ma",dept:"Bauhandwerk",entity:"Zentrale Hamburg",pin:"",active:true,perms:{...DEF}};
   const[fUser,setFUser]=useState(BLANK_USER);
   // Project form
-  const BLANK_PROJ={name:"",location:"",entity:"Berlin Mitte",responsibleId:3,editableBy:[1,2,3],visibleTo:[1,2],startDate:"",endDate:"",area:"",rooms:"",floors:"",expectedHours:"",notes:""};
+  const BLANK_PROJ={name:"",location:"",entity:"Zentrale Hamburg",responsibleId:3,editableBy:[1,2,3],visibleTo:[1,2],startDate:"",endDate:"",area:"",rooms:"",floors:"",expectedHours:"",notes:""};
   const[fProj,setFProj]=useState(BLANK_PROJ);
 
   const fileRef=useRef();
   const profilePhotoRef=useRef();
   const chatEnd=useRef();
-  const chatListRef=useRef(null);
-  const chatScrollMeta=useRef({chatId:null,count:0});
   const ww=useW();const mob=ww<=820;
 
   // Profile edit modal
@@ -722,7 +717,7 @@ export default function App(){
   const[mInvoice,setMInvoice]=useState(false);
   const[selInvoice,setSelInvoice]=useState(null);
   const[editInvoice,setEditInvoice]=useState(null);
-  const BLANK_INVOICE={nr:"",projId:null,title:"",client:"Ovivo WorkHub Berlin",date:new Date().toLocaleDateString("de-DE"),dueDate:"",status:"offen",items:[{desc:"",qty:1,unit:"Stk",price:0,total:0}],notes:""};
+  const BLANK_INVOICE={nr:"",projId:null,title:"",client:"Musterfirma GmbH",date:new Date().toLocaleDateString("de-DE"),dueDate:"",status:"offen",items:[{desc:"",qty:1,unit:"Stk",price:0,total:0}],notes:""};
   const[mApprove,setMApprove]=useState(null); // request to approve
   const[fApprove,setFApprove]=useState({responsibleId:3,editableBy:[],visibleTo:[],rejectReason:""});
   const[mPartnerRepair,setMPartnerRepair]=useState(false); // partner repair request modal
@@ -731,17 +726,7 @@ export default function App(){
 
   const[chatSearch,setChatSearch]=useState("");
 
-  useEffect(()=>{
-    if(!selChat)return;
-    const count=convWith(selChat.id).length;
-    const prev=chatScrollMeta.current;
-    const shouldScroll=prev.chatId!==selChat.id||count>prev.count;
-    chatScrollMeta.current={chatId:selChat.id,count};
-    if(shouldScroll)requestAnimationFrame(()=>{
-      const el=chatListRef.current;
-      if(el)el.scrollTop=el.scrollHeight;
-    });
-  },[msgs.length,selChat?.id]);
+  useEffect(()=>{chatEnd.current?.scrollIntoView({behavior:"smooth"});},[msgs,selChat]);
   useEffect(()=>{if(showNotifs){const h=e=>{if(!e.target.closest?.('[data-notif]'))setShowNotifs(false);};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);}},[showNotifs]);
 
   const isRoot=u=>u&&(u.role==="admin"||u.role==="it");
@@ -770,13 +755,6 @@ export default function App(){
   const convWith =id=>msgs.filter(m=>(m.from===cu.id&&m.to===id)||(m.from===id&&m.to===cu.id));
   const myCons   =users.filter(u=>cu&&u.id!==cu.id&&u.active);
   const mySched  =cu?sched.filter(s=>s.userId===cu.id):[];
-  const myUnreadNotifs=notifs.filter(n=>n.to===cu?.id&&!n.read).length;
-  const followUpCards=()=>[
-    {l:"Nachrichten",v:unread,i:"✉",c:C.green,b:C.greenL,t:"messages"},
-    {l:"Benachrichtigungen",v:myUnreadNotifs,i:"🔔",c:C.orange,b:C.orangeLight,t:"dashboard"},
-    {l:"Offene Aufträge",v:myRepairs.filter(r=>r.status!=="done").length,i:"🔧",c:C.yellow,b:C.yellowL,t:"repairs"},
-    {l:"Aktive Projekte",v:myProjs.filter(p=>p.status==="active").length,i:"🏗",c:C.navy,b:C.navyLight,t:"projects"},
-  ];
 
   const chatImgRef=useRef();
   const[chatImg,setChatImg]=useState(null); // preview before send
@@ -785,10 +763,7 @@ export default function App(){
     if((!chatMsg.trim()&&!chatImg)||!selChat)return;
     const now=new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"});
     const today=new Date().toLocaleDateString("de-DE");
-    const preview=(chatMsg||"").trim();
     setMsgs(p=>[...p,{id:p.length+1,from:cu.id,to:selChat.id,text:chatMsg,image:chatImg||null,time:now,date:today,read:false}]);
-    addNotif(selChat.id,"new_message",`Neue Nachricht von ${cu.name}`,
-      preview?preview.slice(0,90):"Bildnachricht erhalten.",null,{chatWithId:cu.id,targetTab:"messages"});
     setChatMsg("");setChatImg(null);
   };
   const handleChatImg=e=>{
@@ -901,10 +876,10 @@ export default function App(){
   const updateProj=(id,updates)=>setProjs(p=>p.map(proj=>proj.id===id?{...proj,...updates}:proj));
 
   // ── notifications helper ──────────────────────────────────────
-  const addNotif=(toUserId,type,title,body,projId=null,meta={})=>{
+  const addNotif=(toUserId,type,title,body,projId=null)=>{
     setNotifs(p=>[{id:Date.now(),to:toUserId,type,title,body,projId,
       time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),
-      date:new Date().toLocaleDateString("de-DE"),read:false,...meta},...p]);
+      date:new Date().toLocaleDateString("de-DE"),read:false},...p]);
   };
   // send to ALL admins/IT + specific user
   const notifyAdmins=(type,title,body,projId=null)=>{
@@ -1103,13 +1078,13 @@ export default function App(){
   if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
   if(!isPartner(cu))                          NAV.push({id:"orders",   icon:"🛒",label:"Bestellungen",badge:matRequests.filter(r=>r.status==="ausstehend").length||undefined});
-  if(cu?.role==="admin")                         NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
+  if(isRoot(cu))                              NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
   NAV.push({id:"support",icon:"❓",label:"Support"});
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0}html,body,#root{overflow-anchor:none}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
-    input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}textarea{overscroll-behavior:contain;touch-action:pan-y}button{cursor:pointer;border:none;font-family:inherit}
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    input:focus,textarea:focus,select:focus{outline:2px solid ${C.navy};outline-offset:-1px}button{cursor:pointer;border:none;font-family:inherit}
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#BCC8D8;border-radius:4px}
     .ni{transition:all .15s}.ni:hover{background:${C.navyLight}!important}.ni.act{background:${C.navy}!important;color:#fff!important}
     .ch{transition:transform .15s,box-shadow .15s}.ch:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(13,59,110,.1)!important}
@@ -1353,45 +1328,6 @@ export default function App(){
           )}
           <button className="bgr" onClick={()=>setMLog(proj.id)} style={{fontSize:11,padding:"4px 9px"}}>+ Stunden eintragen</button>
         </Sec>
-
-        {isRoot(cu)&&<Sec title="RECHNUNGEN" icon="ðŸ§¾" collapsible>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
-            <div style={{fontSize:12,color:C.sub}}>Alle Rechnungen, die mit diesem Projekt verknÃ¼pft sind.</div>
-            <button className="bo" onClick={()=>{setEditInvoice({...BLANK_INVOICE,nr:`RE-2026-${String(invoices.length+1).padStart(3,"0")}`,projId:proj.id,title:proj.name,client:proj.entity});setMInvoice(true);}} style={{fontSize:11,padding:"5px 10px"}}>+ Rechnung erstellen</button>
-          </div>
-          {invoices.filter(inv=>inv.projId===proj.id).length>0?(
-            <div style={{overflowX:"auto"}}>
-              <table className="list">
-                <thead><tr><th>Nr.</th><th>Kunde</th><th>Datum</th><th>FÃ¤llig</th><th>Status</th><th>Gesamt</th><th>Aktion</th></tr></thead>
-                <tbody>
-                  {invoices.filter(inv=>inv.projId===proj.id).map(inv=>{
-                    const total=inv.items.reduce((s,i)=>s+(i.total||0),0);
-                    return(
-                      <tr key={inv.id}>
-                        <td style={{fontWeight:700}}>{inv.nr}</td>
-                        <td>{inv.client}</td>
-                        <td>{inv.date}</td>
-                        <td>{inv.dueDate||"â€“"}</td>
-                        <td><span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[inv.status]||C.bg,color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[inv.status]||C.sub,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[inv.status]||inv.status)}</span></td>
-                        <td style={{fontWeight:800,color:C.navy}}>{total.toFixed(2)} â‚¬</td>
-                        <td>
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                            <button onClick={()=>setSelInvoice(inv)} style={{background:C.navyLight,color:C.navy,border:"none",borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Anzeigen</button>
-                            <button onClick={()=>{setEditInvoice(JSON.parse(JSON.stringify(inv)));setMInvoice(true);}} style={{background:C.orangeLight,color:C.orange,border:"none",borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Bearbeiten</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ):(
-            <div style={{background:C.bg,border:`1px dashed ${C.border}`,borderRadius:8,padding:"12px",fontSize:12,color:C.sub,textAlign:"center"}}>
-              Noch keine Rechnung fÃ¼r dieses Projekt.
-            </div>
-          )}
-        </Sec>}
       </div>
     );
   };
@@ -1444,7 +1380,7 @@ export default function App(){
         </div>
 
         {/* Messages */}
-        <div ref={chatListRef} style={{flex:1,overflowY:"auto",padding:"14px 14px",display:"flex",flexDirection:"column",gap:2,background:"#F8FAFC",overflowAnchor:"none",scrollBehavior:"auto"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"14px 14px",display:"flex",flexDirection:"column",gap:2,background:"#F8FAFC"}}>
           {msgs_conv.length===0&&(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,opacity:.4}}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#888" strokeWidth="1.5"/></svg>
@@ -1532,12 +1468,10 @@ export default function App(){
             {/* Text input */}
             <div style={{flex:1,position:"relative"}}>
               <textarea value={chatMsg} onChange={e=>setChatMsg(e.target.value)}
-                onFocus={()=>{const el=chatListRef.current;if(el)chatScrollMeta.current={...chatScrollMeta.current,count:convWith(selChat.id).length};}}
-                onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
                 onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}}}
                 placeholder={`Nachricht an ${selChat.name.split(" ")[0]}…`}
                 rows={1}
-                style={{width:"100%",border:`1.5px solid ${chatMsg?C.navy:C.border}`,borderRadius:10,padding:"9px 12px",fontSize:13,background:C.bg,color:C.text,resize:"none",lineHeight:1.5,boxSizing:"border-box",transition:"border .2s",fontFamily:"inherit",overflowAnchor:"none",overscrollBehavior:"contain"}}/>
+                style={{width:"100%",border:`1.5px solid ${chatMsg?C.navy:C.border}`,borderRadius:10,padding:"9px 12px",fontSize:13,background:C.bg,color:C.text,resize:"none",lineHeight:1.5,boxSizing:"border-box",transition:"border .2s",fontFamily:"inherit"}}/>
             </div>
             {/* Send button */}
             <button onClick={sendMsg}
@@ -1727,8 +1661,7 @@ export default function App(){
               ?<div>
                 <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:4}}>📝 HINWEISE / BESCHREIBUNG</div>
                 <textarea value={cur.notes||""} onChange={e=>updateField("notes",e.target.value)} rows={2}
-                  onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
-                  style={{width:"100%",border:`2px solid ${C.orange}`,borderRadius:8,padding:"7px 10px",fontSize:12,background:"#FFFBEB",color:C.text,resize:"none",boxSizing:"border-box",overscrollBehavior:"contain"}}/>
+                  style={{width:"100%",border:`2px solid ${C.orange}`,borderRadius:8,padding:"7px 10px",fontSize:12,background:"#FFFBEB",color:C.text,resize:"none",boxSizing:"border-box"}}/>
               </div>
               :cur.notes&&<div style={{background:C.yellowL,border:"1px solid #FDE68A",borderRadius:8,padding:"8px 11px",fontSize:12,color:C.text}}>{cur.notes}</div>
             }
@@ -1822,9 +1755,9 @@ export default function App(){
             </div>
           );})}
           <div style={{display:"flex",gap:6,marginTop:4}}>
-            <Txt value={newComment} onChange={e=>setNC(e.target.value)}
+            <Inp value={newComment} onChange={e=>setNC(e.target.value)}
               onKeyDown={e=>{if(e.key==="Enter"&&newComment.trim()){const cmt={user:cu.id,text:newComment,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})};const upd=[...(r.comments||[]),cmt];setRepairs(p=>p.map(x=>x.id===r.id?{...x,comments:upd}:x));setSelR(s=>({...s,comments:upd}));setNC("");}}}
-              rows={1} placeholder="Kommentar… (Enter)" style={{flex:1,fontSize:12,padding:"6px 9px",minHeight:34,maxHeight:80,resize:"none",overflowY:"auto",overflowAnchor:"none"}}/>
+              placeholder="Kommentar… (Enter)" style={{flex:1,fontSize:12,padding:"6px 9px"}}/>
             <button className="bp" onClick={()=>{if(!newComment.trim())return;const cmt={user:cu.id,text:newComment,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"})};const upd=[...(r.comments||[]),cmt];setRepairs(p=>p.map(x=>x.id===r.id?{...x,comments:upd}:x));setSelR(s=>({...s,comments:upd}));setNC("");}} style={{padding:"6px 11px",fontSize:12,flexShrink:0}}>Senden</button>
           </div>
         </div>
@@ -1869,9 +1802,9 @@ export default function App(){
                       {myNotifs.length===0?(
                         <div style={{padding:"24px 14px",textAlign:"center",color:"#bbb",fontSize:12}}>Keine Benachrichtigungen</div>
                       ):myNotifs.slice(0,15).map(n=>{
-                        const iconMap={project_assigned:"📋",project_visible:"🏗",mat_request:"📦",repair_new:"🔧",repair_assigned:"🔧",schedule_update:"📅",partner_request:"🤝",partner_repair:"🔧",partner_approved:"✅",partner_rejected:"❌",perm_update:"🔐",new_message:"✉"};
+                        const iconMap={project_assigned:"📋",project_visible:"🏗",mat_request:"📦",repair_new:"🔧",repair_assigned:"🔧",schedule_update:"📅",partner_request:"🤝",partner_repair:"🔧",partner_approved:"✅",partner_rejected:"❌",perm_update:"🔐"};
                         return(
-                          <div key={n.id} onClick={()=>{setNotifs(p=>p.map(x=>x.id===n.id?{...x,read:true}:x));setShowNotifs(false);if(n.chatWithId){const contact=users.find(u=>u.id===n.chatWithId);if(contact){setSelChat(contact);setChatPanel(true);setTab("messages");}}else if(n.projId){setSelP(projs.find(p=>p.id===n.projId)||null);setTab("projects");}else if(n.type==="repair_new"||n.type==="repair_assigned")setTab("repairs");}}
+                          <div key={n.id} onClick={()=>{setNotifs(p=>p.map(x=>x.id===n.id?{...x,read:true}:x));setShowNotifs(false);if(n.projId){setSelP(projs.find(p=>p.id===n.projId)||null);setTab("projects");}else if(n.type==="repair_new"||n.type==="repair_assigned")setTab("repairs");}}
                             style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:n.read?"#fff":C.navyLight,display:"flex",gap:10,alignItems:"flex-start"}}>
                             <span style={{fontSize:18,flexShrink:0,marginTop:1}}>{iconMap[n.type]||"🔔"}</span>
                             <div style={{flex:1,minWidth:0}}>
@@ -1947,27 +1880,6 @@ export default function App(){
                   <div style={{fontSize:11,color:C.sub}}>
                     {isRoot(cu)?"Vollzugriff":isPartner(cu)?"Projektzugang":ROLE_CFG[cu.role]?.label}
                   </div>
-                </div>
-              </div>
-
-              <div style={{background:"#fff",borderRadius:12,padding:12,border:`1px solid ${C.border}`,marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div>
-                    <div style={{fontWeight:800,fontSize:13}}>Dashboard Follow-up</div>
-                    <div style={{fontSize:11,color:C.sub,marginTop:2}}>Alles Wichtige für heute auf einen Blick.</div>
-                  </div>
-                  <Tag bg={C.navyLight} color={C.navy}>Berlin</Tag>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:7}}>
-                  {followUpCards().map(s=>(
-                    <button key={s.l} onClick={()=>setTab(s.t)} style={{textAlign:"left",background:s.b,border:`1px solid ${s.c}22`,borderRadius:9,padding:"9px 10px",cursor:"pointer"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                        <span style={{fontSize:16}}>{s.i}</span>
-                        <span style={{fontSize:18,fontWeight:900,color:s.c}}>{s.v}</span>
-                      </div>
-                      <div style={{fontSize:10,fontWeight:700,color:s.c}}>{s.l}</div>
-                    </button>
-                  ))}
                 </div>
               </div>
 
@@ -2487,9 +2399,7 @@ export default function App(){
               <div style={{background:"#fff",borderRadius:10,padding:12,border:`1px solid ${C.border}`,marginBottom:10}}>
                 <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                   <Av u={cu} size={28}/>
-                  <textarea value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Update teilen…" rows={2}
-                    onWheel={preventTextareaPageScroll} onTouchMove={preventTextareaPageScroll}
-                    style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:13,background:C.bg,resize:"none",color:C.text,overscrollBehavior:"contain"}}/>
+                  <textarea value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Update teilen…" rows={2} style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:13,background:C.bg,resize:"none",color:C.text}}/>
                 </div>
                 <div style={{display:"flex",justifyContent:"flex-end",marginTop:7}}><button className="bo" onClick={()=>{if(!newPost.trim())return;setFeed(p=>[{id:p.length+1,author:cu.id,type:"update",text:newPost,time:new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"}),date:"03.05.2026",likes:0,comments:[]},...p]);setNewPost("");}} style={{opacity:newPost.trim()?1:.5}}>Posten</button></div>
               </div>
@@ -3074,7 +2984,6 @@ export default function App(){
 
               {/* Filter tabs */}
               {(()=>{
-                const[matTab,setMatTab]=useState("all");
                 const filtered=matTab==="all"?matRequests:matRequests.filter(r=>r.type===matTab);
                 return(
                   <div>
@@ -3179,7 +3088,7 @@ export default function App(){
           )}
 
           {/* ══ RECHNUNGEN ══ */}
-          {tab==="rechnungen"&&cu?.role==="admin"&&(
+          {tab==="rechnungen"&&isRoot(cu)&&(
             <div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13,flexWrap:"wrap",gap:8}}>
                 <div>
@@ -3204,7 +3113,7 @@ export default function App(){
                           <div style={{fontSize:12,fontWeight:600,marginTop:2}}>{inv.title}</div>
                           <div style={{fontSize:11,color:C.sub,marginTop:1}}>👤 {inv.client}</div>
                         </div>
-                        <span style={{background:statusBg,color:statusC,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[inv.status]||inv.status)}</span>
+                        <span style={{background:statusBg,color:statusC,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{inv.status}</span>
                       </div>
                       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
                         <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
@@ -3322,7 +3231,7 @@ export default function App(){
                         <div style={{fontSize:11,color:C.sub}}>Datum: <b>{selInvoice.date}</b></div>
                         <div style={{fontSize:11,color:C.sub}}>Fällig am: <b>{selInvoice.dueDate||"–"}</b></div>
                         <div style={{marginTop:4}}>
-                          <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[selInvoice.status],color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[selInvoice.status],borderRadius:20,padding:"3px 11px",fontSize:11,fontWeight:700}}>{({offen:"Offen",bezahlt:"Bezahlt",storniert:"Storniert"}[selInvoice.status]||selInvoice.status)}</span>
+                          <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,storniert:C.redL}[selInvoice.status],color:{offen:C.orange,bezahlt:C.green,storniert:C.red}[selInvoice.status],borderRadius:20,padding:"3px 11px",fontSize:11,fontWeight:700}}>{selInvoice.status}</span>
                         </div>
                       </div>
                     </div>
@@ -3358,9 +3267,16 @@ export default function App(){
                         const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${selInvoice.nr}.html`;a.click();
                       }}>⬇ Herunterladen</button>
                       <button className="bp" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>{
-                        const w=window.open("","_blank");
-                        w.document.write(`<style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#0D1F35}table{width:100%;border-collapse:collapse}th{background:#0D3B6E;color:#fff;padding:7px 10px;font-size:12px;text-align:left}td{padding:6px 10px;border-bottom:1px solid #DDE4EE;font-size:12px}</style><div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><h1 style="color:#0D3B6E">${APP_CONFIG.companyName}</h1><div style="font-size:12px;color:#666">${APP_CONFIG.companyAddress}</div></div><div style="text-align:right"><h2>RECHNUNG</h2><div style="color:#F5831F">${selInvoice.nr}</div></div></div><div style="margin-bottom:16px"><b>An:</b> ${selInvoice.client} &nbsp;&nbsp; Datum: ${selInvoice.date} &nbsp;&nbsp; Fällig: ${selInvoice.dueDate||"–"}</div><table><tr>${["Beschreibung","Menge","Einh.","Preis €","Total €"].map(h=>`<th>${h}</th>`).join("")}</tr>${selInvoice.items.map(it=>`<tr><td>${it.desc}</td><td>${it.qty}</td><td>${it.unit}</td><td>${it.price?.toFixed(2)}</td><td style="font-weight:700">${(it.total||0).toFixed(2)}</td></tr>`).join("")}</table><div style="text-align:right;font-size:18px;font-weight:700;margin-top:12px">Gesamt: ${selInvoice.items.reduce((s,i)=>s+(i.total||0),0).toFixed(2)} €</div>`);
-                        w.print();
+                        const total=selInvoice.items.reduce((s,i)=>s+(i.total||0),0);
+                        const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${selInvoice.nr}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#0D1F35}table{width:100%;border-collapse:collapse}th{background:#0D3B6E;color:#fff;padding:7px 10px;font-size:12px;text-align:left}td{padding:6px 10px;border-bottom:1px solid #DDE4EE;font-size:12px}@media print{body{margin:0}}</style></head><body><div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><h1 style="color:#0D3B6E">${APP_CONFIG.companyName}</h1><div style="font-size:12px;color:#666">${APP_CONFIG.companyAddress}</div></div><div style="text-align:right"><h2>RECHNUNG</h2><div style="color:#F5831F">${selInvoice.nr}</div></div></div><div style="margin-bottom:16px"><b>An:</b> ${selInvoice.client} &nbsp;&nbsp; Datum: ${selInvoice.date} &nbsp;&nbsp; Fällig: ${selInvoice.dueDate||"–"}</div><table><tr>${["Beschreibung","Menge","Einh.","Preis €","Total €"].map(h=>`<th>${h}</th>`).join("")}</tr>${selInvoice.items.map(it=>`<tr><td>${it.desc}</td><td>${it.qty}</td><td>${it.unit}</td><td>${(it.price||0).toFixed(2)}</td><td style="font-weight:700">${(it.total||0).toFixed(2)}</td></tr>`).join("")}</table><div style="text-align:right;font-size:18px;font-weight:700;margin-top:12px;border-top:2px solid #0D3B6E;padding-top:8px">Gesamt: ${total.toFixed(2)} €</div>${selInvoice.notes?`<div style="margin-top:14px;padding:10px;background:#F2F5F9;font-size:12px">${selInvoice.notes}</div>`:""}</body></html>`;
+                        const fr=document.createElement("iframe");
+                        fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;";
+                        document.body.appendChild(fr);
+                        fr.contentDocument.write(html);
+                        fr.contentDocument.close();
+                        fr.contentWindow.focus();
+                        fr.contentWindow.print();
+                        setTimeout(()=>document.body.removeChild(fr),2000);
                       }}>🖨 Drucken</button>
                       <button className="bg" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>setSelInvoice(null)}>Schließen</button>
                     </div>
@@ -3579,7 +3495,7 @@ export default function App(){
         )}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:11}}>
           <div style={{gridColumn:"1/-1"}}><Lbl>PROJEKTNAME</Lbl><Inp value={fProj.name} onChange={e=>setFProj(v=>({...v,name:e.target.value}))} placeholder="z.B. Trockenbau Wandesbeker Str."/></div>
-          <div><Lbl>BEZIRK / STANDORT</Lbl><Sel value={BERLIN_DISTRICTS.find(d=>fProj.location?.includes(d))||""} onChange={e=>setFProj(v=>({...v,location:e.target.value?`Berlin ${e.target.value}`:v.location}))}><option value="">Bezirk wählen</option>{BERLIN_DISTRICTS.map(d=><option key={d}>{d}</option>)}</Sel></div>
+          <div><Lbl>STANDORT / OBJEKT</Lbl><Inp value={fProj.location} onChange={e=>setFProj(v=>({...v,location:e.target.value}))} placeholder="z.B. Wandesbeker Ch. 19"/></div>
           {!isPartner(cu)&&<div><Lbl>EINHEIT / FIRMA</Lbl><Sel value={fProj.entity} onChange={e=>setFProj(v=>({...v,entity:e.target.value}))}>{ENTITIES.map(e=><option key={e}>{e}</option>)}</Sel></div>}
           <div><Lbl>STARTDATUM</Lbl><Inp value={fProj.startDate} onChange={e=>setFProj(v=>({...v,startDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
           <div><Lbl>ENDDATUM</Lbl><Inp value={fProj.endDate} onChange={e=>setFProj(v=>({...v,endDate:e.target.value}))} placeholder="DD.MM.YYYY"/></div>
