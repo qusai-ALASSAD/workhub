@@ -7,21 +7,14 @@
     <meta name="robots" content="index, follow" />
 
     <title>Ovivo WorkHub &ndash; Operations Management</title>
-    <meta
-      name="description"
-      content="Ovivo WorkHub ist eine moderne digitale Arbeitsplattform fuer Projekte, Auftraege, Teams, Materialverwaltung und Partner-Kommunikation."
-    />
-
+    <meta name="description" content="Ovivo WorkHub ist eine moderne digitale Arbeitsplattform fuer Projekte, Auftraege, Teams, Materialverwaltung und Partner-Kommunikation." />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="icon" href="/ovivo-logo.svg" />
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://app.ovivo.io/" />
     <meta property="og:title" content="Ovivo WorkHub &ndash; Operations Management" />
-    <meta
-      property="og:description"
-      content="Projekte, Auftraege, Teams und Materialien in einer klaren digitalen Arbeitsplattform. Entwickelt und betreut von Ovivo."
-    />
+    <meta property="og:description" content="Projekte, Auftraege, Teams und Materialien in einer klaren digitalen Arbeitsplattform. Entwickelt und betreut von Ovivo." />
     <meta property="og:image" content="https://app.ovivo.io/og-workhub.png" />
     <meta property="og:image:secure_url" content="https://app.ovivo.io/og-workhub.png" />
     <meta property="og:image:width" content="1200" />
@@ -37,11 +30,16 @@
       html, body { overscroll-behavior-y: none; }
       input, textarea, select { font-size: 16px !important; }
       textarea { overscroll-behavior: contain; scroll-margin-bottom: 160px; }
-      img[src*="base64"], img[src*="ovivo-logo"] { object-fit: contain !important; background: #050816 !important; border-radius: 12px !important; }
+      img[src*="base64"], img[src*="ovivo-logo"] {
+        object-fit: contain !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+      }
     </style>
 
     <script>
-      window.OVIVO_LOGO_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAC7aklEQVR4nK19aXAU1dX3zKzM7OzM7EySWbAZQkgIGEIIbQhBIESEEERj+oDg4DFycSyoDhMQCNjVQbMNyQnBjDAkU4gMSozDGKOggmEZEhJCQpkkEwgkJJl9r9/+9j7n6d7tbqarqq6unlmdab3v+O3u6unV9aq6/e9a7713NAEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEEQBEGQjhf+HyqahxTi7xFAAAAASUVORK5CYII=";
+      window.OVIVO_LOGO_SRC = "/ovivo-logo.svg";
       (function() {
         function cleanTracking() {
           if (location.search && location.search.indexOf('utm_source') !== -1) {
@@ -52,27 +50,32 @@
           var imgs = Array.prototype.slice.call(document.querySelectorAll('img'));
           imgs.forEach(function(img) {
             var r = img.getBoundingClientRect();
-            var isSmallLogo = (r.width <= 90 && r.height <= 90) || /logo/i.test(img.alt || '') || /logo/i.test(img.className || '');
-            if (isSmallLogo && img.src !== window.OVIVO_LOGO_DATA) {
-              img.src = window.OVIVO_LOGO_DATA;
-              img.style.background = '#050816';
-              img.style.borderRadius = '12px';
+            var isSmallLogo = (r.width <= 100 && r.height <= 100) || /logo/i.test(img.alt || '') || /logo/i.test(img.className || '') || (img.src && img.src.indexOf('base64') !== -1);
+            if (isSmallLogo && img.src.indexOf('/ovivo-logo.svg') === -1) {
+              img.src = window.OVIVO_LOGO_SRC;
+              img.style.background = 'transparent';
+              img.style.borderRadius = '0';
               img.style.objectFit = 'contain';
               img.style.padding = '0';
             }
           });
           var candidates = Array.prototype.slice.call(document.querySelectorAll('header div, nav div, aside div'));
-          candidates.slice(0, 20).forEach(function(el) {
+          candidates.slice(0, 30).forEach(function(el) {
             var r = el.getBoundingClientRect();
+            var txt = (el.textContent || '').trim();
             var style = getComputedStyle(el);
-            if (r.width >= 28 && r.width <= 70 && r.height >= 28 && r.height <= 70 && (style.backgroundColor.indexOf('245') !== -1 || style.backgroundColor.indexOf('255') !== -1)) {
-              el.style.backgroundImage = 'url(' + window.OVIVO_LOGO_DATA + ')';
+            var bg = style.backgroundColor || '';
+            var looksLikeIcon = r.width >= 28 && r.width <= 76 && r.height >= 28 && r.height <= 76 && txt.length <= 2;
+            var orangeBg = bg.indexOf('245') !== -1 || bg.indexOf('255, 122') !== -1 || bg.indexOf('255, 127') !== -1;
+            if (looksLikeIcon && orangeBg) {
+              el.style.backgroundImage = 'url(' + window.OVIVO_LOGO_SRC + ')';
               el.style.backgroundSize = 'contain';
               el.style.backgroundRepeat = 'no-repeat';
               el.style.backgroundPosition = 'center';
-              el.style.backgroundColor = '#050816';
+              el.style.backgroundColor = 'transparent';
               el.style.color = 'transparent';
-              el.style.borderRadius = '12px';
+              el.style.borderRadius = '0';
+              el.style.boxShadow = 'none';
             }
           });
         }
@@ -86,14 +89,11 @@
             }
           }, true);
         }
-        window.addEventListener('error', function(ev) {
-          window.__ovivoLastError = ((ev && ev.message) || '') + '';
-        });
         document.addEventListener('DOMContentLoaded', function() {
           cleanTracking();
           stopCommentScrollJump();
           patchLogo();
-          setInterval(patchLogo, 1200);
+          setInterval(patchLogo, 700);
         });
       })();
     </script>
