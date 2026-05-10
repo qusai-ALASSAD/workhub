@@ -90,13 +90,13 @@ const MAT_CATS=["Bau","Boden","Wand","Werkzeug","Reinigung","Elektro","Sanitär"
 const INIT_USERS=[
   {id:1,name:"Max Meister",      role:"admin",  dept:"Leitung",    entity:"Zentrale Hamburg",    avatar:"MM",color:C.orange,  active:true,pin:"1234",perms:FULL},
   {id:2,name:"System Admin",     role:"it",     dept:"IT",         entity:"System",              avatar:"SA",color:C.purple,  active:true,pin:"9999",perms:FULL},
-  {id:3,name:"Thomas Becker",    role:"va",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"TB",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,scheduleEdit:true,reports:true}},
-  {id:4,name:"Lisa Hoffmann",    role:"va",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"LH",color:"#0891B2", active:true,pin:"2222",perms:{...DEF,scheduleEdit:true}},
-  {id:5,name:"Stefan Müller",    role:"ma",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"SM",color:C.navy,    active:true,pin:"3333",perms:{...DEF,scheduleEdit:false}},
-  {id:6,name:"Peter Krause",     role:"ma",     dept:"Trockenbau", entity:"Zentrale Hamburg",    avatar:"PK",color:"#1A5C9A", active:true,pin:"4444",perms:{...DEF,scheduleEdit:false,gallery:false}},
-  {id:7,name:"Julia Weber",      role:"ma",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"JW",color:C.green,   active:true,pin:"5555",perms:{...DEF,scheduleEdit:false}},
-  {id:8,name:"Hotel Partner",    role:"partner",dept:"Extern",     entity:"Hotel Partner",       avatar:"HP",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS},
-  {id:9,name:"Kunde Demo",       role:"partner",dept:"Extern",     entity:"Kunde GmbH",          avatar:"KD",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS},
+  {id:3,name:"Thomas Becker",    role:"va",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"TB",color:"#2563EB", active:true,pin:"1111",perms:{...DEF,scheduleEdit:true,reports:true,orders:true,ordersCreate:true}},
+  {id:4,name:"Lisa Hoffmann",    role:"va",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"LH",color:"#0891B2", active:true,pin:"2222",perms:{...DEF,scheduleEdit:true,orders:true,ordersCreate:true}},
+  {id:5,name:"Stefan Müller",    role:"ma",     dept:"Bauhandwerk",entity:"Zentrale Hamburg",    avatar:"SM",color:C.navy,    active:true,pin:"3333",perms:{...DEF,scheduleEdit:false,orders:true,ordersCreate:true}},
+  {id:6,name:"Peter Krause",     role:"ma",     dept:"Trockenbau", entity:"Zentrale Hamburg",    avatar:"PK",color:"#1A5C9A", active:true,pin:"4444",perms:{...DEF,scheduleEdit:false,gallery:false,orders:true,ordersCreate:true}},
+  {id:7,name:"Julia Weber",      role:"ma",     dept:"Reinigung",  entity:"Zentrale Hamburg",    avatar:"JW",color:C.green,   active:true,pin:"5555",perms:{...DEF,scheduleEdit:false,orders:true,ordersCreate:true}},
+  {id:8,name:"Hotel Partner",    role:"partner",dept:"Extern",     entity:"Hotel Hamburg",       avatar:"HP",color:"#0891B2", active:true,pin:"7777",perms:PARTNER_PERMS,clientType:"hotel"},
+  {id:9,name:"Büro Mustermann",  role:"partner",dept:"Extern",     entity:"Mustermann GmbH",     avatar:"BM",color:"#059669", active:true,pin:"8888",perms:PARTNER_PERMS,clientType:"office"},
 ];
 
 const INIT_PROJECTS=[
@@ -699,9 +699,9 @@ export default function App(){
 
   // Material & Machine Requests
   const[matRequests,setMatRequests]=useState([
-    {id:1,type:"material",title:"Trockenbauplatten 40 Stk",supplier:"Bauhaus GmbH",projId:1,requestedBy:5,qty:40,unit:"Stk",pricePerUnit:8.50,total:340,deliveryDate:"07.05.2026",status:"ausstehend",notes:"Standard 12,5mm für Wand 2",createdAt:"04.05.2026",createdTime:"09:00"},
-    {id:2,type:"machine",title:"Schleifmaschine – 5 Tage",supplier:"MietTechnik GmbH",projId:1,requestedBy:5,qty:1,unit:"Stk",pricePerUnit:45,total:225,deliveryDate:"06.05.2026",rentDays:5,status:"genehmigt",notes:"Für Wandvorbereitung",createdAt:"04.05.2026",createdTime:"10:30"},
-    {id:3,type:"material",title:"Reinigungsmittel Typ B 20L",supplier:"Profex GmbH",projId:2,requestedBy:7,qty:20,unit:"L",pricePerUnit:4.50,total:90,deliveryDate:"06.05.2026",status:"abgelehnt",notes:"pH-neutral für Steinböden",createdAt:"03.05.2026",createdTime:"11:00"},
+    {id:1,type:"material",title:"Trockenbauplatten 40 Stk",supplier:"Bauhaus GmbH",projId:1,requestedBy:5,qty:40,unit:"Stk",pricePerUnit:8.50,total:340,deliveryDate:"07.05.2026",status:"ausstehend",notes:"Standard 12,5mm für Wand 2",createdAt:"04.05.2026",createdTime:"09:00",history:[{text:"Bestellung erstellt von Stefan Müller",at:"04.05.2026 09:00"}]},
+    {id:2,type:"machine",title:"Schleifmaschine – 5 Tage",supplier:"MietTechnik GmbH",projId:1,requestedBy:5,qty:1,unit:"Stk",pricePerUnit:45,total:225,deliveryDate:"06.05.2026",rentDays:5,status:"genehmigt",notes:"Für Wandvorbereitung",createdAt:"04.05.2026",createdTime:"10:30",history:[{text:"Bestellung erstellt von Stefan Müller",at:"04.05.2026 10:30"},{text:"Genehmigt von Max Meister",at:"04.05.2026 11:00"}]},
+    {id:3,type:"material",title:"Reinigungsmittel Typ B 20L",supplier:"Profex GmbH",projId:2,requestedBy:7,qty:20,unit:"L",pricePerUnit:4.50,total:90,deliveryDate:"06.05.2026",status:"abgelehnt",notes:"pH-neutral für Steinböden",createdAt:"03.05.2026",createdTime:"11:00",history:[{text:"Bestellung erstellt von Julia Weber",at:"03.05.2026 11:00"},{text:"Abgelehnt von Max Meister – Falscher Typ",at:"03.05.2026 14:00"}]},
   ]);
   const BLANK_MAT_REQ={type:"material",title:"",supplier:"",projId:null,qty:1,unit:"Stk",pricePerUnit:0,total:0,deliveryDate:"",rentDays:1,notes:""};
   const[fMatReq,setFMatReq]=useState(BLANK_MAT_REQ);
@@ -876,6 +876,39 @@ export default function App(){
   };
 
   const updateProj=(id,updates)=>setProjs(p=>p.map(proj=>proj.id===id?{...proj,...updates}:proj));
+
+  // ── Order approval helpers ────────────────────────────────────
+  const approveOrder=(req)=>{
+    const now=new Date().toLocaleString("de-DE");
+    setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"genehmigt",
+      history:[...(r.history||[]),{text:"Genehmigt von "+cu.name,at:now}]}:r));
+    addNotif(req.requestedBy,"order_approved","✅ Bestellung genehmigt",
+      `Ihre Bestellung "${req.title}" wurde genehmigt.`,req.projId);
+    // also notify proj responsible
+    const proj=projs.find(p=>p.id===req.projId);
+    if(proj&&proj.responsibleId!==req.requestedBy)
+      addNotif(proj.responsibleId,"order_approved","✅ Bestellung genehmigt",
+        `Bestellung "${req.title}" im Projekt "${proj.name}" wurde genehmigt.`,proj.id);
+  };
+  const rejectOrder=(req,reason="")=>{
+    const now=new Date().toLocaleString("de-DE");
+    setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"abgelehnt",rejectReason:reason,
+      history:[...(r.history||[]),{text:`Abgelehnt von ${cu.name}${reason?" – "+reason:""}`,at:now}]}:r));
+    addNotif(req.requestedBy,"order_rejected","❌ Bestellung abgelehnt",
+      `Ihre Bestellung "${req.title}" wurde abgelehnt.${reason?" Grund: "+reason:""}`,req.projId);
+  };
+  const deliverOrder=(req)=>{
+    const now=new Date().toLocaleString("de-DE");
+    setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"geliefert",
+      history:[...(r.history||[]),{text:"Als geliefert markiert von "+cu.name,at:now}]}:r));
+    addNotif(req.requestedBy,"order_delivered","📦 Bestellung geliefert",
+      `Ihre Bestellung "${req.title}" wurde als geliefert markiert.`,req.projId);
+  };
+  const editOrder=(req,updates)=>{
+    const now=new Date().toLocaleString("de-DE");
+    setMatRequests(p=>p.map(r=>r.id===req.id?{...r,...updates,
+      history:[...(r.history||[]),{text:"Bestellung bearbeitet von "+cu.name,at:now}]}:r));
+  };
 
   // ── notifications helper ──────────────────────────────────────
   const addNotif=(toUserId,type,title,body,projId=null)=>{
@@ -1940,50 +1973,108 @@ export default function App(){
                 </div>
               </div>
 
-              {/* ── PARTNER DASHBOARD ── */}
+              {/* ── PARTNER / CLIENT DASHBOARD ── */}
               {isPartner(cu)&&(
                 <div>
-                  {/* Welcome banner */}
-                  <div style={{background:`linear-gradient(135deg,${C.navy},#1A5C9A)`,borderRadius:14,padding:"16px 16px",marginBottom:14,color:"#fff"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                      <Av u={cu} size={40}/>
+                  <div style={{background:`linear-gradient(135deg,${C.navy},#1A5C9A)`,borderRadius:16,padding:"18px 16px",marginBottom:14,color:"#fff",position:"relative",overflow:"hidden"}}>
+                    <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,.06)"}}/>
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,position:"relative"}}>
+                      <Av u={cu} size={46}/>
                       <div>
-                        <div style={{fontSize:15,fontWeight:800}}>{cu.name}</div>
-                        <div style={{fontSize:11,opacity:.7}}>{cu.entity} · Partner-Zugang</div>
+                        <div style={{fontSize:16,fontWeight:800}}>{cu.name}</div>
+                        <div style={{fontSize:11,opacity:.65}}>{cu.entity}</div>
+                        <div style={{marginTop:4,display:"inline-flex",alignItems:"center",gap:4,background:"rgba(255,255,255,.15)",borderRadius:20,padding:"2px 9px"}}>
+                          <span style={{width:6,height:6,borderRadius:"50%",background:"#4ADE80",display:"inline-block"}}/>
+                          <span style={{fontSize:10,fontWeight:600}}>Aktiver Partner-Zugang</span>
+                        </div>
                       </div>
                     </div>
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,position:"relative"}}>
                       {[
-                        {l:"Projekte",v:myProjs.length,          i:"🏗"},
-                        {l:"Aktiv",   v:myProjs.filter(p=>p.status==="active").length, i:"✅"},
+                        {l:"Projekte",v:myProjs.length,i:"🏗"},
+                        {l:"Aktiv",v:myProjs.filter(p=>p.status==="active").length,i:"✅"},
                         {l:"Anfragen",v:partnerRequests.filter(r=>r.createdBy===cu.id).length,i:"📬"},
+                        {l:"Neu",v:notifs.filter(n=>n.to===cu.id&&!n.read).length,i:"🔔"},
                       ].map(s=>(
-                        <div key={s.l} style={{background:"rgba(255,255,255,.12)",borderRadius:9,padding:"9px 8px",textAlign:"center"}}>
+                        <div key={s.l} style={{background:"rgba(255,255,255,.1)",borderRadius:10,padding:"9px 6px",textAlign:"center",border:"1px solid rgba(255,255,255,.08)"}}>
                           <div style={{fontSize:18}}>{s.i}</div>
-                          <div style={{fontSize:20,fontWeight:800,marginTop:2}}>{s.v}</div>
-                          <div style={{fontSize:9,opacity:.7,marginTop:1}}>{s.l}</div>
+                          <div style={{fontSize:20,fontWeight:900,marginTop:2}}>{s.v}</div>
+                          <div style={{fontSize:9,opacity:.65,marginTop:1}}>{s.l}</div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Quick action buttons */}
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
                     <button onClick={()=>{setFProj(BLANK_PROJ);setMatList([]);setReqList([]);setMProj(true);}}
-                      style={{background:C.orange,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 4px 14px ${C.orange}44`}}>
-                      <span style={{fontSize:24}}>🏗</span>
-                      <span style={{fontSize:12,fontWeight:700,lineHeight:1.3,textAlign:"center"}}>Projekt anfragen</span>
+                      style={{background:`linear-gradient(135deg,${C.orange},#e07019)`,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 6px 20px ${C.orange}44`,fontFamily:"inherit"}}>
+                      <span style={{fontSize:26}}>🏗</span>
+                      <span style={{fontSize:12,fontWeight:700}}>Projekt anfragen</span>
+                      <span style={{fontSize:10,opacity:.8}}>Neues Projekt starten</span>
                     </button>
                     <button onClick={()=>{setFPartnerRepair(BLANK_PARTNER_REPAIR);setMPartnerRepair(true);}}
-                      style={{background:C.navy,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 4px 14px ${C.navy}44`}}>
-                      <span style={{fontSize:24}}>🔧</span>
-                      <span style={{fontSize:12,fontWeight:700,lineHeight:1.3,textAlign:"center"}}>Störung melden</span>
+                      style={{background:`linear-gradient(135deg,${C.navy},#1A5C9A)`,color:"#fff",border:"none",borderRadius:12,padding:"14px 10px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,boxShadow:`0 6px 20px ${C.navy}44`,fontFamily:"inherit"}}>
+                      <span style={{fontSize:26}}>🔧</span>
+                      <span style={{fontSize:12,fontWeight:700}}>Störung melden</span>
+                      <span style={{fontSize:10,opacity:.8}}>Reparatur anfordern</span>
                     </button>
                   </div>
 
-                  {/* Stopped projects alert */}
+                  {(()=>{
+                    const myNotifs=notifs.filter(n=>n.to===cu.id).slice(0,5);
+                    if(!myNotifs.length) return null;
+                    return(
+                      <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:12}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+                          <div style={{fontWeight:800,fontSize:13}}>🔔 Benachrichtigungen</div>
+                          <button onClick={()=>setNotifs(p=>p.map(n=>n.to===cu.id?{...n,read:true}:n))} style={{background:"transparent",border:"none",fontSize:11,color:C.sub,cursor:"pointer"}}>Alle gelesen</button>
+                        </div>
+                        {myNotifs.map(n=>(
+                          <div key={n.id} style={{display:"flex",gap:9,padding:"8px 9px",borderRadius:8,background:n.read?"transparent":C.navyLight,marginBottom:5,border:`1px solid ${n.read?C.border:"#BFD4EF"}`}}>
+                            <div style={{width:8,height:8,borderRadius:"50%",background:n.read?"transparent":C.orange,flexShrink:0,marginTop:4}}/>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:12,fontWeight:700}}>{n.title}</div>
+                              <div style={{fontSize:11,color:C.sub,marginTop:1,lineHeight:1.4}}>{n.body}</div>
+                              <div style={{fontSize:10,color:"#bbb",marginTop:2}}>{n.date} · {n.time}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {(()=>{
+                    const myReqs=partnerRequests.filter(r=>r.createdBy===cu.id);
+                    if(!myReqs.length) return null;
+                    return(
+                      <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:12}}>
+                        <div style={{fontWeight:800,fontSize:13,marginBottom:9}}>📬 Meine Anfragen</div>
+                        {myReqs.map(req=>{
+                          const sC={pending:C.yellow,approved:C.green,rejected:C.red}[req.status]||C.sub;
+                          const sBg={pending:C.yellowL,approved:C.greenL,rejected:C.redL}[req.status]||C.bg;
+                          const sL={pending:"⏳ Ausstehend",approved:"✅ Genehmigt",rejected:"❌ Abgelehnt"}[req.status]||req.status;
+                          return(
+                            <div key={req.id} style={{padding:"10px 11px",borderRadius:9,border:`1.5px solid ${C.border}`,marginBottom:6,background:C.bg}}>
+                              <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:5,flexWrap:"wrap"}}>
+                                <div style={{fontSize:13,fontWeight:700}}>{req.name}</div>
+                                <span style={{background:sBg,color:sC,borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>{sL}</span>
+                              </div>
+                              <div style={{fontSize:11,color:C.sub,marginBottom:4}}>📍 {req.location||"–"} · 📅 {req.date}</div>
+                              {req.status==="approved"&&req.projId&&(
+                                <button className="bp" onClick={()=>{setSelP(projs.find(p=>p.id===req.projId));setTab("projects");}} style={{fontSize:11,padding:"4px 10px"}}>🏗 Zum Projekt →</button>
+                              )}
+                              {req.status==="rejected"&&req.rejectReason&&(
+                                <div style={{fontSize:11,color:C.red,marginTop:4}}>Grund: {req.rejectReason}</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+
                   {myProjs.filter(p=>p.stopReason).length>0&&(
-                    <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
+                    <div style={{background:C.redL,border:`1px solid #FECACA`,borderRadius:10,padding:"10px 12px",marginBottom:10}}>
                       <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>⛔ Gestoppte Projekte</div>
                       {myProjs.filter(p=>p.stopReason).map(p=>(
                         <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
@@ -1995,7 +2086,6 @@ export default function App(){
                     </div>
                   )}
 
-                  {/* My projects */}
                   <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                       <div style={{fontWeight:800,fontSize:13}}>🏗 Meine Projekte</div>
@@ -2004,99 +2094,40 @@ export default function App(){
                     {myProjs.length===0?(
                       <div style={{textAlign:"center",color:"#bbb",padding:"20px 0",fontSize:12}}>
                         <div style={{fontSize:32,marginBottom:8}}>🏗</div>
-                        Noch keine Projekte
+                        Noch keine Projekte — Klicken Sie auf "Projekt anfragen"
                       </div>
                     ):myProjs.map(p=>{
                       const hrs=totalHrs(p.worklog);
                       const pct=p.expectedHours?Math.min(100,Math.round((hrs/p.expectedHours)*100)):0;
+                      const projOrders=matRequests.filter(r=>r.projId===p.id);
+                      const pendingOrders=projOrders.filter(r=>r.status==="ausstehend").length;
                       return(
                         <div key={p.id} className="ch" onClick={()=>{setSelP(p);setTab("projects");}}
                           style={{padding:"11px",borderRadius:9,border:`1.5px solid ${p.stopReason?"#FECACA":C.border}`,marginBottom:6,cursor:"pointer",background:C.bg}}>
                           <div style={{display:"flex",justifyContent:"space-between",gap:5,marginBottom:5}}>
-                            <div style={{fontSize:13,fontWeight:700,flex:1,lineHeight:1.3}}>{p.name}</div>
+                            <div style={{fontSize:13,fontWeight:700,flex:1}}>{p.name}</div>
                             <SB status={p.status}/>
                           </div>
                           <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:7}}>
                             <Tag bg="#F9FAFB" color={C.sub}>📍 {p.location}</Tag>
-                            <Tag bg="#F9FAFB" color={C.sub}>📅 {p.startDate}</Tag>
+                            <Tag bg="#F9FAFB" color={C.sub}>📅 {p.startDate||"–"}</Tag>
+                            {pendingOrders>0&&<Tag bg={C.yellowL} color={C.yellow}>⏳ {pendingOrders} ausstehend</Tag>}
                           </div>
                           <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.sub,marginBottom:4}}>
                             <span>Fortschritt</span><span style={{fontWeight:700,color:pct>=100?C.green:C.navy}}>{pct}%</span>
                           </div>
                           <div style={{background:C.border,borderRadius:4,height:6}}>
-                            <div style={{width:`${pct}%`,height:"100%",background:pct>=100?C.green:C.orange,borderRadius:4,transition:"width .3s"}}/>
+                            <div style={{width:`${pct}%`,height:"100%",background:pct>=100?C.green:C.orange,borderRadius:4}}/>
                           </div>
                           {p.stopReason&&<div style={{fontSize:10,color:C.red,marginTop:5}}>⛔ {p.stopReason}</div>}
                         </div>
                       );
                     })}
                   </div>
-
-                  {/* My requests history */}
-                  <div style={{background:"#fff",borderRadius:12,padding:13,border:`1px solid ${C.border}`,marginBottom:10}}>
-                    <div style={{fontWeight:800,fontSize:13,marginBottom:10}}>📬 Meine Anfragen</div>
-                    {partnerRequests.filter(r=>r.createdBy===cu.id).length===0?(
-                      <div style={{textAlign:"center",color:"#bbb",padding:"16px 0",fontSize:12}}>Noch keine Anfragen gestellt</div>
-                    ):partnerRequests.filter(r=>r.createdBy===cu.id).map(r=>(
-                      <div key={r.id} style={{padding:"10px",borderRadius:9,border:`1.5px solid ${r.status==="approved"?"#6EE7B7":r.status==="rejected"?"#FECACA":C.border}`,marginBottom:6,background:r.status==="approved"?C.greenL:r.status==="rejected"?C.redL:C.bg}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:6,marginBottom:4}}>
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:12,fontWeight:700}}>{r.type==="repair_request"?"🔧":"🏗"} {r.name||r.title}</div>
-                            <div style={{fontSize:10,color:C.sub,marginTop:2}}>{r.date} · {r.time}{r.location?` · 📍 ${r.location}`:""}</div>
-                          </div>
-                          <span style={{background:r.status==="approved"?C.green:r.status==="rejected"?C.red:C.yellow,color:"#fff",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>
-                            {r.status==="approved"?"✅ OK":r.status==="rejected"?"❌ Abgelehnt":"⏳ Wartet"}
-                          </span>
-                        </div>
-                        {r.rejectReason&&<div style={{fontSize:11,color:C.red,marginTop:3}}>Grund: {r.rejectReason}</div>}
-                        {r.status==="approved"&&r.projId&&(
-                          <button onClick={()=>{setSelP(projs.find(p=>p.id===r.projId)||null);setTab("projects");}}
-                            style={{marginTop:6,background:C.navy,color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
-                            🏗 Projekt öffnen →
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Company contact */}
-                  <div style={{background:`linear-gradient(135deg,#F0FDF4,${C.greenL})`,border:"1px solid #6EE7B7",borderRadius:12,padding:"13px 14px"}}>
-                    <div style={{fontSize:12,fontWeight:800,color:C.green,marginBottom:8}}>🤝 Ihr Ansprechpartner</div>
-                    <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:2}}>{APP_CONFIG.companyName}</div>
-                    {[
-                      {i:"📞",v:APP_CONFIG.companyPhone,  href:`tel:${APP_CONFIG.companyPhone}`},
-                      {i:"✉️",v:APP_CONFIG.companyEmail,  href:`mailto:${APP_CONFIG.companyEmail}`},
-                      {i:"🕐",v:APP_CONFIG.companyHours,  href:null},
-                    ].map(c=>(
-                      <div key={c.i} style={{display:"flex",alignItems:"center",gap:7,marginTop:5}}>
-                        <span style={{fontSize:14}}>{c.i}</span>
-                        {c.href?(
-                          <a href={c.href} style={{fontSize:12,color:C.navy,fontWeight:600,textDecoration:"none"}}>{c.v}</a>
-                        ):(
-                          <span style={{fontSize:12,color:C.sub}}>{c.v}</span>
-                        )}
-                      </div>
-                    ))}
-                    <div style={{marginTop:10,paddingTop:8,borderTop:"1px solid #6EE7B7",display:"flex",gap:7}}>
-                      <a href={`mailto:${APP_CONFIG.companyEmail}`}
-                        style={{flex:1,background:C.navy,color:"#fff",borderRadius:8,padding:"8px 7px",fontSize:11,fontWeight:700,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#fff" strokeWidth="2"/><polyline points="22,6 12,13 2,6" stroke="#fff" strokeWidth="2"/></svg>
-                        Firma kontaktieren
-                      </a>
-                      <button onClick={()=>setTab("support")}
-                        style={{flex:1,background:"#fff",color:C.navy,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 7px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-                        <img src="data:image/png;base64,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" alt="Ovivo" style={{width:16,height:16,borderRadius:3}}/>
-                        App-Support
-                      </button>
-                    </div>
-                  </div>
                 </div>
               )}
 
-              {/* ── INTERNAL DASHBOARD (non-partner) ── */}
-              {!isPartner(cu)&&(<div>
-
-                {/* ── ADMIN / IT DASHBOARD ── */}
+                {/* ── ADMIN / IT DASHBOARD ── */}                {/* ── ADMIN / IT DASHBOARD ── */}
                 {isRoot(cu)&&(<div>
                   {partnerRequests.filter(r=>r.status==="pending").length>0&&(
                     <div style={{background:C.orangeLight,border:`1px solid ${C.orange}`,borderRadius:10,padding:"10px 13px",marginBottom:10}}>
@@ -3152,21 +3183,18 @@ export default function App(){
                             <div style={{display:"flex",gap:6,paddingTop:8,borderTop:`1px solid ${C.border}`}}>
                               <button className="bgr" style={{flex:1,padding:"6px",fontSize:11}} onClick={e=>{
                                 e.stopPropagation();
-                                const now=new Date().toLocaleString("de-DE");
-                                setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"genehmigt",history:[...(r.history||[]),{text:"Genehmigt von "+cu.name,at:now}]}:r));
+                                approveOrder(req);
                               }}>✅ Genehmigen</button>
                               <button className="bdr" style={{flex:1,padding:"6px",fontSize:11}} onClick={e=>{
                                 e.stopPropagation();
-                                const now=new Date().toLocaleString("de-DE");
-                                setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"abgelehnt",history:[...(r.history||[]),{text:"Abgelehnt von "+cu.name,at:now}]}:r));
+                                rejectOrder(req);
                               }}>❌ Ablehnen</button>
                             </div>
                           )}
                           {isRoot(cu)&&req.status==="genehmigt"&&(
                             <button className="bgr" style={{width:"100%",padding:"6px",fontSize:11,marginTop:8,borderTop:`1px solid ${C.border}`,paddingTop:12}} onClick={e=>{
                               e.stopPropagation();
-                              const now=new Date().toLocaleString("de-DE");
-                              setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"geliefert",history:[...(r.history||[]),{text:"Als geliefert markiert von "+cu.name,at:now}]}:r));
+                              deliverOrder(req);
                             }}>📦 Als geliefert markieren</button>
                           )}
                         </div>
@@ -3255,7 +3283,7 @@ export default function App(){
                       {isRoot(cu)&&(
                         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                           {selMatReq.status==="ausstehend"&&<>
-                            <button className="bgr" style={{flex:1,padding:"10px",minWidth:120}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"genehmigt",history:[...(r.history||[]),{text:"Genehmigt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>✅ Genehmigen</button>
+                            <button className="bgr" style={{flex:1,padding:"10px",minWidth:120}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"genehmigt",history:[...(r.history||[]),{text:"Genehmigt",at:new Date().toLocaleString("de-DE")}]}:r));setSelMatReq(null);}}>✅ Genehmigen</button>
                             <button className="bdr" style={{flex:1,padding:"10px",minWidth:120}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"abgelehnt",history:[...(r.history||[]),{text:"Abgelehnt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>❌ Ablehnen</button>
                           </>}
                           {selMatReq.status==="genehmigt"&&<button className="bgr" style={{flex:1,padding:"10px"}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"geliefert",history:[...(r.history||[]),{text:"Geliefert, bestätigt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>📦 Als geliefert markieren</button>}
