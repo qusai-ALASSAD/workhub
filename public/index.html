@@ -30,11 +30,29 @@
       html, body { overscroll-behavior-y: none; }
       input, textarea, select { font-size: 16px !important; }
       textarea { overscroll-behavior: contain; scroll-margin-bottom: 160px; }
+
       img[src*="base64"], img[src*="ovivo-logo"] {
+        content: url('/ovivo-logo.svg') !important;
         object-fit: contain !important;
         background: transparent !important;
         border-radius: 0 !important;
         padding: 0 !important;
+        box-shadow: none !important;
+      }
+
+      div:has(> img[src*="base64"]),
+      div:has(> img[src*="ovivo-logo"]) {
+        background: transparent !important;
+        background-color: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+
+      header div:has(+ div),
+      nav div:has(+ div),
+      aside div:has(+ div) {
+        box-shadow: none !important;
       }
     </style>
 
@@ -57,25 +75,13 @@
               img.style.borderRadius = '0';
               img.style.objectFit = 'contain';
               img.style.padding = '0';
-            }
-          });
-          var candidates = Array.prototype.slice.call(document.querySelectorAll('header div, nav div, aside div'));
-          candidates.slice(0, 30).forEach(function(el) {
-            var r = el.getBoundingClientRect();
-            var txt = (el.textContent || '').trim();
-            var style = getComputedStyle(el);
-            var bg = style.backgroundColor || '';
-            var looksLikeIcon = r.width >= 28 && r.width <= 76 && r.height >= 28 && r.height <= 76 && txt.length <= 2;
-            var orangeBg = bg.indexOf('245') !== -1 || bg.indexOf('255, 122') !== -1 || bg.indexOf('255, 127') !== -1;
-            if (looksLikeIcon && orangeBg) {
-              el.style.backgroundImage = 'url(' + window.OVIVO_LOGO_SRC + ')';
-              el.style.backgroundSize = 'contain';
-              el.style.backgroundRepeat = 'no-repeat';
-              el.style.backgroundPosition = 'center';
-              el.style.backgroundColor = 'transparent';
-              el.style.color = 'transparent';
-              el.style.borderRadius = '0';
-              el.style.boxShadow = 'none';
+              if (img.parentElement) {
+                img.parentElement.style.background = 'transparent';
+                img.parentElement.style.backgroundColor = 'transparent';
+                img.parentElement.style.borderRadius = '0';
+                img.parentElement.style.boxShadow = 'none';
+                img.parentElement.style.padding = '0';
+              }
             }
           });
         }
