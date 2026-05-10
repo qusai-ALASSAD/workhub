@@ -57,10 +57,12 @@ const ALL_PERMS=[
   {key:"scheduleEdit",label:"Arbeitsplan bearbeiten", icon:"✏"},
   {key:"warehouse",   label:"Lager & Material",       icon:"📦"},
   {key:"reports",     label:"Berichte & PDF",         icon:"📋"},
+  {key:"orders",      label:"Bestellungen sehen",     icon:"🛒"},
+  {key:"ordersCreate",label:"Bestellungen erstellen", icon:"➕"},
 ];
 
-const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:true,warehouse:true,reports:true};
-const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:false,warehouse:false,reports:false};
+const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:true,warehouse:true,reports:true,orders:true,ordersCreate:true};
+const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:false,warehouse:false,reports:false,orders:false,ordersCreate:false};
 const PARTNER_PERMS={repairs:false,tasks:false,messages:true,feed:false,gallery:true,projects:true,schedule:false,scheduleEdit:false,warehouse:false,reports:false};
 
 const ROLE_CFG={
@@ -1077,7 +1079,7 @@ export default function App(){
   if(!isPartner(cu)&&hasPerm(cu,"warehouse")) NAV.push({id:"warehouse",icon:"📦",label:"Lager",     badge:lowStock.length});
   if(!isPartner(cu)&&isRoot(cu))              NAV.push({id:"users",    icon:"👥",label:"Mitarbeiter", badge:partnerRequests.filter(r=>r.status==="pending").length||undefined});
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
-  if(!isPartner(cu))                          NAV.push({id:"orders",   icon:"🛒",label:"Bestellungen",badge:matRequests.filter(r=>r.status==="ausstehend").length||undefined});
+  if(!isPartner(cu)&&(isRoot(cu)||hasPerm(cu,"orders"))) NAV.push({id:"orders",icon:"🛒",label:"Bestellungen",badge:isRoot(cu)?matRequests.filter(r=>r.status==="ausstehend").length||undefined:matRequests.filter(r=>r.requestedBy===cu.id&&r.status==="ausstehend").length||undefined});
   if(isRoot(cu))                              NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
   NAV.push({id:"support",icon:"❓",label:"Support"});
 
@@ -1102,39 +1104,94 @@ export default function App(){
 
   // ── LOGIN ──────────────────────────────────────────────
   if(!cu) return(
-    <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${C.navy},#1A5C9A,${C.navyDark})`,display:"flex",alignItems:"center",justifyContent:"center",padding:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-      <style>{CSS}</style>
-      <div style={{width:"100%",maxWidth:440}}>
-        <div style={{textAlign:"center",marginBottom:18}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:11,background:"rgba(255,255,255,.1)",borderRadius:14,padding:"12px 22px",border:"1px solid rgba(255,255,255,.15)"}}>
-            <img src={APP_CONFIG.logoImg} alt="WorkHub" style={{width:40,height:40,objectFit:"contain",borderRadius:10}}/>
-            <div style={{textAlign:"left"}}>
-              <div style={{fontSize:18,fontWeight:800,color:"#fff"}}>{APP_CONFIG.appName}</div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,.55)"}}>{APP_CONFIG.companyName}</div>
+    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#050F1C 0%,#0A2240 40%,#0D3B6E 70%,#1A5C9A 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,fontFamily:"'Plus Jakarta Sans',sans-serif",position:"relative",overflow:"hidden"}}>
+      <style>{CSS}{`
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        @keyframes pulse{0%,100%{opacity:.06}50%{opacity:.12}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .login-glow{position:absolute;border-radius:50%;filter:blur(80px);animation:pulse 4s ease-in-out infinite;pointer-events:none}
+        .login-card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:20px;padding:28px 24px;box-shadow:0 32px 80px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.15)}
+        .login-inp{width:100%;border:1.5px solid #DDE4EE;border-radius:10px;padding:11px 14px;font-size:14px;background:#F8FAFC;color:#0D1F35;font-family:inherit;transition:border-color .2s,box-shadow .2s;outline:none}
+        .login-inp:focus{border-color:#0D3B6E;box-shadow:0 0 0 3px rgba(13,59,110,.12);background:#fff}
+        .login-btn{width:100%;padding:13px;font-size:15px;font-weight:800;background:linear-gradient(135deg,#0D3B6E,#1A5C9A);color:#fff;border:none;border-radius:12px;cursor:pointer;letter-spacing:.3px;transition:transform .15s,box-shadow .15s;font-family:inherit}
+        .login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(13,59,110,.4)}
+        .login-btn:active{transform:translateY(0)}
+        .demo-row{display:flex;align-items:center;gap:7px;padding:7px 9px;cursor:pointer;border-radius:8px;border:1.5px solid #EEF2F8;background:#fff;transition:all .15s;margin-bottom:5px}
+        .demo-row:hover{border-color:#0D3B6E;background:#F0F6FF;transform:translateX(3px)}
+      `}</style>
+
+      {/* Background orbs */}
+      <div className="login-glow" style={{width:500,height:500,background:"#F5831F",top:"-15%",right:"-10%",animationDelay:"0s"}}/>
+      <div className="login-glow" style={{width:400,height:400,background:"#1A5C9A",bottom:"-10%",left:"-5%",animationDelay:"2s"}}/>
+      <div className="login-glow" style={{width:300,height:300,background:"#7C3AED",top:"50%",left:"30%",animationDelay:"1s"}}/>
+
+      <div style={{width:"100%",maxWidth:420,position:"relative",zIndex:1}}>
+
+        {/* Logo area */}
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{display:"inline-flex",flexDirection:"column",alignItems:"center",gap:10}}>
+            <div style={{position:"relative",animation:"float 4s ease-in-out infinite"}}>
+              <div style={{width:80,height:80,borderRadius:22,background:"linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.05))",border:"1.5px solid rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 20px 60px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2)"}}>
+                <img src={APP_CONFIG.logoImg} alt="WorkHub" style={{width:58,height:58,objectFit:"contain",filter:"drop-shadow(0 4px 12px rgba(0,0,0,.3))"}}/>
+              </div>
+              {/* Glow ring */}
+              <div style={{position:"absolute",inset:-4,borderRadius:26,border:"1px solid rgba(245,131,31,.4)",animation:"pulse 2s ease-in-out infinite"}}/>
+            </div>
+            <div>
+              <div style={{fontSize:28,fontWeight:900,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>{APP_CONFIG.appName}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.45)",marginTop:3,letterSpacing:".5px"}}>{APP_CONFIG.appSubtitle}</div>
             </div>
           </div>
         </div>
-        <div style={{background:"#fff",borderRadius:16,padding:"22px 20px",boxShadow:"0 24px 60px rgba(0,0,0,.25)"}}>
-          <h2 style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:14,textAlign:"center"}}>Anmeldung</h2>
-          {[["user","BENUTZERNAME","Name oder ID","text"],["pass","PIN","1234","password"]].map(([k,l,p,t])=>(
-            <div key={k} style={{marginBottom:10}}><Lbl>{l}</Lbl><Inp type={t} value={li[k]} placeholder={p} onChange={e=>setLi(v=>({...v,[k]:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&login()}/></div>
-          ))}
-          {err&&<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:7,padding:"7px 10px",fontSize:12,color:C.red,marginBottom:9,textAlign:"center"}}>⚠ {err}</div>}
-          <button onClick={login} className="bp" style={{width:"100%",padding:"11px",fontSize:14,fontWeight:700,marginTop:2,borderRadius:9}}>Anmelden →</button>
-          <div style={{marginTop:13,background:C.bg,borderRadius:9,padding:"10px 11px"}}>
-            <div style={{fontSize:9,fontWeight:700,color:"#bbb",letterSpacing:".6px",marginBottom:7}}>DEMO-KONTEN</div>
-            {["admin","it","va","ma","hotel"].flatMap(role=>users.filter(u=>u.role===role)).map(u=>(
-              <div key={u.id} onClick={()=>setLi({user:String(u.id),pass:u.pin})} style={{display:"flex",alignItems:"center",gap:7,padding:"5px 6px",cursor:"pointer",borderRadius:6,marginBottom:2,border:`1px solid ${C.border}`,background:"#fff"}}>
-                <Av u={u} size={20}/><span style={{fontSize:11,color:C.text,fontWeight:600,flex:1}}>{u.name}</span>
-                <RB role={u.role}/><Tag bg="#F9FAFB" color={C.sub}>{u.entity}</Tag>
-                <span style={{fontSize:10,color:"#bbb"}}>PIN:{u.pin}</span>
+
+        {/* Login card */}
+        <div className="login-card">
+          <div style={{textAlign:"center",marginBottom:20}}>
+            <div style={{fontSize:16,fontWeight:800,color:"#0D1F35"}}>Willkommen zurück 👋</div>
+            <div style={{fontSize:12,color:"#5A7090",marginTop:3}}>Melden Sie sich mit Ihrem Konto an</div>
+          </div>
+
+          <div style={{marginBottom:14}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#5A7090",letterSpacing:".5px",marginBottom:6}}>BENUTZERNAME</div>
+            <div style={{position:"relative"}}>
+              <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>👤</span>
+              <input className="login-inp" style={{paddingLeft:38}} type="text" value={li.user} placeholder="Name oder ID eingeben" onChange={e=>setLi(v=>({...v,user:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&login()}/>
+            </div>
+          </div>
+
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#5A7090",letterSpacing:".5px",marginBottom:6}}>PIN</div>
+            <div style={{position:"relative"}}>
+              <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔐</span>
+              <input className="login-inp" style={{paddingLeft:38}} type="password" value={li.pass} placeholder="••••" onChange={e=>setLi(v=>({...v,pass:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&login()}/>
+            </div>
+          </div>
+
+          {err&&<div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:9,padding:"9px 12px",fontSize:12,color:"#DC2626",marginBottom:12,textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            <span>⚠</span> {err}
+          </div>}
+
+          <button className="login-btn" onClick={login}>Anmelden →</button>
+
+          {/* Demo accounts */}
+          <div style={{marginTop:18,paddingTop:16,borderTop:"1px solid #EEF2F8"}}>
+            <div style={{fontSize:10,fontWeight:700,color:"#BBC8D8",letterSpacing:".7px",marginBottom:10,textAlign:"center"}}>DEMO-KONTEN — KLICKEN ZUM AUSFÜLLEN</div>
+            {["admin","it","va","ma","partner"].flatMap(role=>users.filter(u=>u.role===role)).slice(0,7).map(u=>(
+              <div key={u.id} className="demo-row" onClick={()=>setLi({user:String(u.id),pass:u.pin})}>
+                <Av u={u} size={22}/>
+                <span style={{fontSize:12,color:"#0D1F35",fontWeight:600,flex:1}}>{u.name}</span>
+                <RB role={u.role}/>
+                <span style={{fontSize:10,background:"#F2F5F9",color:"#5A7090",borderRadius:5,padding:"1px 6px",fontWeight:600}}>PIN {u.pin}</span>
               </div>
             ))}
           </div>
         </div>
-        <div style={{textAlign:"center",marginTop:11,color:"rgba(255,255,255,.4)",fontSize:10}}>{APP_CONFIG.companyAddress} · {APP_CONFIG.companyPhone}</div>
-        <div style={{textAlign:"center",marginTop:5,fontSize:10}}>
-          <a href={APP_CONFIG.supportUrl} target="_blank" rel="noreferrer" style={{color:"rgba(255,255,255,.35)",textDecoration:"none",fontWeight:600}}>
+
+        <div style={{textAlign:"center",marginTop:14,color:"rgba(255,255,255,.3)",fontSize:10}}>
+          {APP_CONFIG.companyName} · {APP_CONFIG.companyAddress}
+        </div>
+        <div style={{textAlign:"center",marginTop:4,fontSize:10}}>
+          <a href={APP_CONFIG.supportUrl} target="_blank" rel="noreferrer" style={{color:"rgba(255,255,255,.25)",textDecoration:"none"}}>
             Powered by {APP_CONFIG.supportCompany}
           </a>
         </div>
@@ -2971,123 +3028,310 @@ export default function App(){
           )}
 
 
-          {/* ══ BESTELLUNGEN / MATERIAL & MASCHINEN ══ */}
-          {tab==="orders"&&!isPartner(cu)&&(
-            <div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13,flexWrap:"wrap",gap:8}}>
-                <div>
-                  <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:2}}>Bestellungen & Mietanfragen</h1>
-                  <p style={{color:C.sub,fontSize:12}}>Materialanfragen und Maschinenvermietung verwalten</p>
-                </div>
-                {isRoot(cu)&&<button className="bo" onClick={()=>{setFMatReq({...BLANK_MAT_REQ});setMMatReq(true);}}>+ Neue Bestellung</button>}
-              </div>
-
-              {/* Filter tabs */}
-              {(()=>{
-                const filtered=matTab==="all"?matRequests:matRequests.filter(r=>r.type===matTab);
-                return(
+          {/* ══ BESTELLUNGEN ══ */}
+          {tab==="orders"&&!isPartner(cu)&&(isRoot(cu)||hasPerm(cu,"orders"))&&(()=>{
+            const[oTab,setOTab]=useState("all");
+            const[oSearch,setOSearch]=useState("");
+            const myOrders=isRoot(cu)?matRequests:matRequests.filter(r=>r.requestedBy===cu.id);
+            const filtered=myOrders.filter(r=>{
+              if(oTab!=="all"&&r.type!==oTab&&r.status!==oTab)return false;
+              if(oSearch&&!r.title.toLowerCase().includes(oSearch.toLowerCase())&&!(projs.find(p=>p.id===r.projId)?.name||"").toLowerCase().includes(oSearch.toLowerCase()))return false;
+              return true;
+            });
+            const pendingCount=myOrders.filter(r=>r.status==="ausstehend").length;
+            return(
+              <div>
+                {/* Header */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
                   <div>
-                    <div style={{display:"flex",gap:6,marginBottom:13,flexWrap:"wrap"}}>
-                      {[["all","Alle",matRequests.length],["material","📦 Material",matRequests.filter(r=>r.type==="material").length],["machine","🔧 Maschinen",matRequests.filter(r=>r.type==="machine").length]].map(([k,l,n])=>(
-                        <button key={k} onClick={()=>setMatTab(k)} style={{padding:"5px 12px",borderRadius:20,fontSize:12,fontWeight:600,border:`1.5px solid ${matTab===k?C.navy:C.border}`,background:matTab===k?C.navy:"#fff",color:matTab===k?"#fff":C.sub,cursor:"pointer"}}>
-                          {l} <span style={{fontSize:11,opacity:.7}}>{n}</span>
-                        </button>
+                    <h1 style={{fontSize:mob?18:22,fontWeight:800,marginBottom:3}}>🛒 Bestellungen & Anfragen</h1>
+                    <p style={{color:C.sub,fontSize:12}}>Material · Maschinen · Dienstleistungen — verknüpft mit Projekten</p>
+                  </div>
+                  {(isRoot(cu)||hasPerm(cu,"ordersCreate"))&&(
+                    <button className="bo" style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",fontSize:13,fontWeight:700,borderRadius:10}}
+                      onClick={()=>{setFMatReq({...BLANK_MAT_REQ,projId:myProjs[0]?.id||null,requestedBy:cu.id});setMMatReq(true);}}>
+                      + Neue Bestellung
+                    </button>
+                  )}
+                </div>
+
+                {/* KPI strip — admin only */}
+                {isRoot(cu)&&(()=>{
+                  const total=matRequests.reduce((s,r)=>s+(r.total||0),0);
+                  const approved=matRequests.filter(r=>r.status==="genehmigt").length;
+                  const pending=matRequests.filter(r=>r.status==="ausstehend").length;
+                  const delivered=matRequests.filter(r=>r.status==="geliefert").length;
+                  return(
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:16}}>
+                      {[[pending,"Ausstehend","⏳",C.yellow,C.yellowL],[approved,"Genehmigt","✅",C.green,C.greenL],[delivered,"Geliefert","📦","#6366f1","#EEF2FF"],[matRequests.length,"Gesamt","🛒",C.navy,C.navyLight]].map(([v,l,ic,col,bg])=>(
+                        <div key={l} style={{background:bg,border:`1px solid ${col}22`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+                          <div style={{fontSize:20,marginBottom:4}}>{ic}</div>
+                          <div style={{fontSize:22,fontWeight:900,color:col}}>{v}</div>
+                          <div style={{fontSize:11,color:C.sub,fontWeight:600}}>{l}</div>
+                        </div>
                       ))}
                     </div>
+                  );
+                })()}
 
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:10}}>
-                      {filtered.map(req=>{
-                        const proj=projs.find(p=>p.id===req.projId);
-                        const by=users.find(u=>u.id===req.requestedBy);
-                        const statusColor={ausstehend:C.yellow,genehmigt:C.green,abgelehnt:C.red,geliefert:"#6366f1"}[req.status]||C.sub;
-                        const statusBg={ausstehend:C.yellowL,genehmigt:C.greenL,abgelehnt:C.redL,geliefert:"#EEF2FF"}[req.status]||C.bg;
-                        return(
-                          <div key={req.id} className="ch" onClick={()=>setSelMatReq(req)}
-                            style={{background:"#fff",borderRadius:12,border:`1.5px solid ${C.border}`,padding:14,cursor:"pointer",boxShadow:"0 2px 8px rgba(13,59,110,.06)"}}>
-                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,gap:6}}>
-                              <div>
-                                <div style={{fontSize:13,fontWeight:700,marginBottom:3}}>{req.title}</div>
-                                <div style={{fontSize:11,color:C.sub}}>{req.type==="machine"?"🔧 Maschine":"📦 Material"} · {by?.name}</div>
-                              </div>
-                              <span style={{background:statusBg,color:statusColor,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{req.status}</span>
-                            </div>
-                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
-                              <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
-                                <div style={{fontSize:9,color:C.sub,fontWeight:700}}>LIEFERANT</div>
-                                <div style={{fontSize:11,fontWeight:600}}>{req.supplier||"–"}</div>
-                              </div>
-                              <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
-                                <div style={{fontSize:9,color:C.sub,fontWeight:700}}>LIEFERDATUM</div>
-                                <div style={{fontSize:11,fontWeight:600}}>{req.deliveryDate||"–"}</div>
-                              </div>
-                              <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
-                                <div style={{fontSize:9,color:C.sub,fontWeight:700}}>MENGE</div>
-                                <div style={{fontSize:11,fontWeight:600}}>{req.qty} {req.unit}{req.type==="machine"?` · ${req.rentDays} Tage`:""}</div>
-                              </div>
-                              <div style={{background:C.bg,borderRadius:7,padding:"5px 8px"}}>
-                                <div style={{fontSize:9,color:C.sub,fontWeight:700}}>GESAMTPREIS</div>
-                                <div style={{fontSize:12,fontWeight:800,color:C.navy}}>{req.total?.toFixed(2)} €</div>
-                              </div>
-                            </div>
-                            {proj&&<div style={{fontSize:11,color:C.sub}}>🏗 {proj.name}</div>}
-                            {req.notes&&<div style={{fontSize:11,color:C.sub,marginTop:4,fontStyle:"italic"}}>"{req.notes}"</div>}
-                            {isRoot(cu)&&req.status==="ausstehend"&&(
-                              <div style={{display:"flex",gap:6,marginTop:8}}>
-                                <button className="bgr" onClick={e=>{e.stopPropagation();setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"genehmigt"}:r));}} style={{flex:1,padding:"5px",fontSize:11}}>✅ Genehmigen</button>
-                                <button className="bdr" onClick={e=>{e.stopPropagation();setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"abgelehnt"}:r));}} style={{flex:1,padding:"5px",fontSize:11}}>❌ Ablehnen</button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                {/* Filters */}
+                <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
+                  <div style={{flex:1,minWidth:180,position:"relative"}}>
+                    <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",fontSize:14,pointerEvents:"none"}}>🔍</span>
+                    <input value={oSearch} onChange={e=>setOSearch(e.target.value)} placeholder="Suchen…"
+                      style={{width:"100%",paddingLeft:32,border:`1.5px solid ${C.border}`,borderRadius:8,padding:"7px 10px 7px 32px",fontSize:12,background:"#fff",outline:"none"}}/>
                   </div>
-                );
-              })()}
-
-              {/* Detail modal */}
-              {selMatReq&&(
-                <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:16}} onClick={()=>setSelMatReq(null)}>
-                  <div style={{background:"#fff",borderRadius:"16px 16px 0 0",width:"100%",maxWidth:540,maxHeight:"90vh",overflowY:"auto",padding:20}} onClick={e=>e.stopPropagation()}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                      <div style={{fontSize:15,fontWeight:800}}>{selMatReq.title}</div>
-                      <button onClick={()=>setSelMatReq(null)} style={{background:"transparent",border:"none",fontSize:18,color:C.sub,cursor:"pointer"}}>✕</button>
-                    </div>
-                    {[
-                      ["Typ", selMatReq.type==="machine"?"🔧 Maschine":"📦 Material"],
-                      ["Lieferant", selMatReq.supplier],
-                      ["Projekt", projs.find(p=>p.id===selMatReq.projId)?.name||"–"],
-                      ["Menge", `${selMatReq.qty} ${selMatReq.unit}`],
-                      ["Preis/Einh.", `${selMatReq.pricePerUnit} €`],
-                      ["Gesamtpreis", `${selMatReq.total?.toFixed(2)} €`],
-                      ["Lieferdatum", selMatReq.deliveryDate||"–"],
-                      ...(selMatReq.type==="machine"?[["Mietdauer", `${selMatReq.rentDays} Tage`]]:[]),
-                      ["Status", selMatReq.status],
-                      ["Erstellt", `${selMatReq.createdAt} · ${selMatReq.createdTime}`],
-                      ["Angefragt von", users.find(u=>u.id===selMatReq.requestedBy)?.name||"–"],
-                    ].map(([k,v])=>(
-                      <div key={k} style={{display:"flex",gap:8,padding:"7px 0",borderBottom:`1px solid ${C.border}`}}>
-                        <div style={{fontSize:12,fontWeight:700,color:C.sub,minWidth:110}}>{k}</div>
-                        <div style={{fontSize:12,fontWeight:600}}>{v}</div>
-                      </div>
-                    ))}
-                    {selMatReq.notes&&<div style={{background:C.yellowL,border:"1px solid #FDE68A",borderRadius:8,padding:"8px 11px",marginTop:10,fontSize:12}}>📝 {selMatReq.notes}</div>}
-                    {isRoot(cu)&&selMatReq.status==="ausstehend"&&(
-                      <div style={{display:"flex",gap:8,marginTop:14}}>
-                        <button className="bgr" onClick={()=>{setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"genehmigt"}:r));setSelMatReq(null);}} style={{flex:1,padding:"9px"}}>✅ Genehmigen</button>
-                        <button className="bdr" onClick={()=>{setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"abgelehnt"}:r));setSelMatReq(null);}} style={{flex:1,padding:"9px"}}>❌ Ablehnen</button>
-                      </div>
-                    )}
-                    {isRoot(cu)&&selMatReq.status==="genehmigt"&&(
-                      <button className="bgr" onClick={()=>{setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"geliefert"}:r));setSelMatReq(null);}} style={{width:"100%",padding:"9px",marginTop:14}}>📦 Als geliefert markieren</button>
-                    )}
-                  </div>
+                  {[["all","Alle"],["material","📦 Material"],["machine","🔧 Maschine"],["service","🛠 Service"],["ausstehend","⏳ Ausstehend"],["genehmigt","✅ Genehmigt"]].map(([k,l])=>(
+                    <button key={k} onClick={()=>setOTab(k)}
+                      style={{padding:"6px 13px",borderRadius:20,fontSize:11,fontWeight:700,border:`1.5px solid ${oTab===k?C.navy:C.border}`,background:oTab===k?C.navy:"#fff",color:oTab===k?"#fff":C.sub,cursor:"pointer",whiteSpace:"nowrap"}}>
+                      {l}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* ══ RECHNUNGEN ══ */}
+                {/* Cards grid */}
+                {filtered.length===0?(
+                  <div style={{textAlign:"center",padding:"48px 20px",color:C.sub}}>
+                    <div style={{fontSize:40,marginBottom:10}}>🛒</div>
+                    <div style={{fontSize:14,fontWeight:600}}>Keine Bestellungen gefunden</div>
+                    <div style={{fontSize:12,marginTop:4}}>Erstellen Sie eine neue Bestellung</div>
+                  </div>
+                ):(
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
+                    {filtered.map(req=>{
+                      const proj=projs.find(p=>p.id===req.projId);
+                      const by=users.find(u=>u.id===req.requestedBy);
+                      const sC={ausstehend:C.yellow,genehmigt:C.green,abgelehnt:C.red,geliefert:"#6366f1"}[req.status]||C.sub;
+                      const sBg={ausstehend:C.yellowL,genehmigt:C.greenL,abgelehnt:C.redL,geliefert:"#EEF2FF"}[req.status]||C.bg;
+                      const typeIcon={material:"📦",machine:"🔧",service:"🛠"}[req.type]||"📋";
+                      return(
+                        <div key={req.id} className="ch" onClick={()=>setSelMatReq(req)}
+                          style={{background:"#fff",borderRadius:14,border:`1.5px solid ${C.border}`,padding:16,cursor:"pointer",boxShadow:"0 2px 10px rgba(13,59,110,.06)"}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,gap:8}}>
+                            <div style={{display:"flex",gap:9,alignItems:"flex-start",flex:1,minWidth:0}}>
+                              <div style={{width:38,height:38,borderRadius:10,background:C.navyLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{typeIcon}</div>
+                              <div style={{minWidth:0}}>
+                                <div style={{fontSize:13,fontWeight:700,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{req.title}</div>
+                                <div style={{fontSize:11,color:C.sub}}>{by?.name} · {req.createdAt}</div>
+                              </div>
+                            </div>
+                            <span style={{background:sBg,color:sC,borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,whiteSpace:"nowrap",flexShrink:0}}>{req.status}</span>
+                          </div>
+
+                          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                            <div style={{background:C.bg,borderRadius:7,padding:"6px 9px"}}>
+                              <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>PROJEKT</div>
+                              <div style={{fontSize:11,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{proj?.name||"–"}</div>
+                            </div>
+                            <div style={{background:C.bg,borderRadius:7,padding:"6px 9px"}}>
+                              <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>LIEFERANT</div>
+                              <div style={{fontSize:11,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{req.supplier||"–"}</div>
+                            </div>
+                            <div style={{background:C.bg,borderRadius:7,padding:"6px 9px"}}>
+                              <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>MENGE</div>
+                              <div style={{fontSize:11,fontWeight:600}}>{req.qty} {req.unit}{req.type==="machine"?` · ${req.rentDays}d`:""}</div>
+                            </div>
+                            <div style={{background:C.navyLight,borderRadius:7,padding:"6px 9px"}}>
+                              <div style={{fontSize:9,color:C.navy,fontWeight:700,marginBottom:1}}>BETRAG</div>
+                              <div style={{fontSize:13,fontWeight:900,color:C.navy}}>{(req.total||0).toFixed(2)} €</div>
+                            </div>
+                          </div>
+
+                          {req.notes&&<div style={{fontSize:11,color:C.sub,fontStyle:"italic",marginBottom:8,padding:"5px 8px",background:C.yellowL,borderRadius:6,borderLeft:`3px solid ${C.yellow}`}}>"{req.notes}"</div>}
+
+                          {/* Status history */}
+                          {req.history&&req.history.length>0&&(
+                            <div style={{fontSize:10,color:C.sub,display:"flex",alignItems:"center",gap:4,marginBottom:8}}>
+                              <span>🕐</span>
+                              <span>Letztes Update: {req.history[req.history.length-1].text} · {req.history[req.history.length-1].at}</span>
+                            </div>
+                          )}
+
+                          {/* Action buttons — admin only */}
+                          {isRoot(cu)&&req.status==="ausstehend"&&(
+                            <div style={{display:"flex",gap:6,paddingTop:8,borderTop:`1px solid ${C.border}`}}>
+                              <button className="bgr" style={{flex:1,padding:"6px",fontSize:11}} onClick={e=>{
+                                e.stopPropagation();
+                                const now=new Date().toLocaleString("de-DE");
+                                setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"genehmigt",history:[...(r.history||[]),{text:"Genehmigt von "+cu.name,at:now}]}:r));
+                              }}>✅ Genehmigen</button>
+                              <button className="bdr" style={{flex:1,padding:"6px",fontSize:11}} onClick={e=>{
+                                e.stopPropagation();
+                                const now=new Date().toLocaleString("de-DE");
+                                setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"abgelehnt",history:[...(r.history||[]),{text:"Abgelehnt von "+cu.name,at:now}]}:r));
+                              }}>❌ Ablehnen</button>
+                            </div>
+                          )}
+                          {isRoot(cu)&&req.status==="genehmigt"&&(
+                            <button className="bgr" style={{width:"100%",padding:"6px",fontSize:11,marginTop:8,borderTop:`1px solid ${C.border}`,paddingTop:12}} onClick={e=>{
+                              e.stopPropagation();
+                              const now=new Date().toLocaleString("de-DE");
+                              setMatRequests(p=>p.map(r=>r.id===req.id?{...r,status:"geliefert",history:[...(r.history||[]),{text:"Als geliefert markiert von "+cu.name,at:now}]}:r));
+                            }}>📦 Als geliefert markieren</button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Detail / Edit modal */}
+                {selMatReq&&(
+                  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:mob?0:16}} onClick={()=>setSelMatReq(null)}>
+                    <div style={{background:"#fff",borderRadius:mob?"18px 18px 0 0":"18px",width:"100%",maxWidth:520,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                        <div style={{fontSize:16,fontWeight:800}}>{selMatReq.title}</div>
+                        <button onClick={()=>setSelMatReq(null)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+                      </div>
+
+                      {/* Status timeline */}
+                      <div style={{background:C.bg,borderRadius:10,padding:"10px 14px",marginBottom:14}}>
+                        <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:8}}>STATUSVERLAUF</div>
+                        {[
+                          {s:"ausstehend",l:"Erstellt",ic:"📋"},
+                          {s:"genehmigt",l:"Genehmigt",ic:"✅"},
+                          {s:"geliefert",l:"Geliefert",ic:"📦"},
+                        ].map((step,i)=>{
+                          const statuses=["ausstehend","genehmigt","abgelehnt","geliefert"];
+                          const curIdx=statuses.indexOf(selMatReq.status);
+                          const stepIdx=statuses.indexOf(step.s);
+                          const done=curIdx>=stepIdx||(selMatReq.status==="abgelehnt"&&i===0);
+                          const hist=selMatReq.history?.find(h=>h.text.toLowerCase().includes(step.l.toLowerCase()));
+                          return(
+                            <div key={step.s} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<2?8:0}}>
+                              <div style={{width:28,height:28,borderRadius:"50%",background:done?C.green:C.border,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0,color:done?"#fff":C.sub}}>{done?step.ic:"○"}</div>
+                              <div style={{flex:1}}>
+                                <div style={{fontSize:12,fontWeight:700,color:done?C.text:C.sub}}>{step.l}</div>
+                                {hist&&<div style={{fontSize:10,color:C.sub}}>{hist.at}</div>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {selMatReq.status==="abgelehnt"&&(
+                          <div style={{display:"flex",gap:10,alignItems:"center",marginTop:8}}>
+                            <div style={{width:28,height:28,borderRadius:"50%",background:C.red,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#fff",flexShrink:0}}>❌</div>
+                            <div style={{fontSize:12,fontWeight:700,color:C.red}}>Abgelehnt</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Details */}
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:12}}>
+                        {[
+                          ["Typ",{material:"📦 Material",machine:"🔧 Maschine",service:"🛠 Service"}[selMatReq.type]||selMatReq.type],
+                          ["Projekt",projs.find(p=>p.id===selMatReq.projId)?.name||"–"],
+                          ["Lieferant",selMatReq.supplier||"–"],
+                          ["Menge",`${selMatReq.qty} ${selMatReq.unit}`],
+                          ["Preis/Einheit",`${selMatReq.pricePerUnit||0} €`],
+                          ["Gesamtbetrag",`${(selMatReq.total||0).toFixed(2)} €`],
+                          ["Lieferdatum",selMatReq.deliveryDate||"–"],
+                          ...(selMatReq.type==="machine"?[["Mietdauer",`${selMatReq.rentDays} Tage`]]:[]),
+                          ["Erstellt von",users.find(u=>u.id===selMatReq.requestedBy)?.name||"–"],
+                          ["Erstellt am",`${selMatReq.createdAt||""} ${selMatReq.createdTime||""}`],
+                        ].map(([k,v])=>(
+                          <div key={k} style={{background:C.bg,borderRadius:7,padding:"7px 10px"}}>
+                            <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>{k.toUpperCase()}</div>
+                            <div style={{fontSize:12,fontWeight:600}}>{v}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {selMatReq.notes&&<div style={{background:C.yellowL,border:`1px solid #FDE68A`,borderRadius:9,padding:"9px 12px",fontSize:12,marginBottom:12}}>📝 {selMatReq.notes}</div>}
+
+                      {/* Update history */}
+                      {selMatReq.history&&selMatReq.history.length>0&&(
+                        <div style={{marginBottom:14}}>
+                          <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:7}}>VERLAUFSPROTOKOLL</div>
+                          {selMatReq.history.map((h,i)=>(
+                            <div key={i} style={{display:"flex",gap:8,fontSize:11,color:C.sub,padding:"4px 0",borderBottom:`1px solid ${C.border}`}}>
+                              <span style={{flexShrink:0}}>🕐 {h.at}</span>
+                              <span style={{flex:1}}>{h.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Admin actions */}
+                      {isRoot(cu)&&(
+                        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                          {selMatReq.status==="ausstehend"&&<>
+                            <button className="bgr" style={{flex:1,padding:"10px",minWidth:120}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"genehmigt",history:[...(r.history||[]),{text:"Genehmigt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>✅ Genehmigen</button>
+                            <button className="bdr" style={{flex:1,padding:"10px",minWidth:120}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"abgelehnt",history:[...(r.history||[]),{text:"Abgelehnt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>❌ Ablehnen</button>
+                          </>}
+                          {selMatReq.status==="genehmigt"&&<button className="bgr" style={{flex:1,padding:"10px"}} onClick={()=>{const now=new Date().toLocaleString("de-DE");setMatRequests(p=>p.map(r=>r.id===selMatReq.id?{...r,status:"geliefert",history:[...(r.history||[]),{text:"Geliefert, bestätigt von "+cu.name,at:now}]}:r));setSelMatReq(null);}}>📦 Als geliefert markieren</button>}
+                          <button className="bg" style={{flex:1,padding:"10px"}} onClick={()=>setSelMatReq(null)}>Schließen</button>
+                        </div>
+                      )}
+                      {!isRoot(cu)&&<button className="bg" style={{width:"100%",padding:"10px"}} onClick={()=>setSelMatReq(null)}>Schließen</button>}
+                    </div>
+                  </div>
+                )}
+
+                {/* New Order Modal */}
+                {mMatReq&&(
+                  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setMMatReq(false)}>
+                    <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:500,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                        <div style={{fontSize:16,fontWeight:800}}>Neue Bestellung erstellen</div>
+                        <button onClick={()=>setMMatReq(false)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
+                      </div>
+
+                      <div style={{marginBottom:11}}>
+                        <Lbl>TYP</Lbl>
+                        <div style={{display:"flex",gap:8}}>
+                          {[["material","📦 Material"],["machine","🔧 Maschine"],["service","🛠 Service"]].map(([k,l])=>(
+                            <button key={k} onClick={()=>setFMatReq(p=>({...p,type:k}))}
+                              style={{flex:1,padding:"8px 4px",borderRadius:8,border:`1.5px solid ${fMatReq.type===k?C.navy:C.border}`,background:fMatReq.type===k?C.navy:"#fff",color:fMatReq.type===k?"#fff":C.sub,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                              {l}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                        <div style={{gridColumn:"1/-1"}}><Lbl>TITEL / BEZEICHNUNG</Lbl><Inp value={fMatReq.title} onChange={e=>setFMatReq(p=>({...p,title:e.target.value}))} placeholder="z.B. Trockenbauplatten 12,5mm"/></div>
+                        <div><Lbl>PROJEKT</Lbl>
+                          <Sel value={fMatReq.projId||""} onChange={e=>setFMatReq(p=>({...p,projId:+e.target.value||null}))}>
+                            <option value="">– Kein Projekt –</option>
+                            {myProjs.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+                          </Sel>
+                        </div>
+                        <div><Lbl>LIEFERANT / FIRMA</Lbl><Inp value={fMatReq.supplier} onChange={e=>setFMatReq(p=>({...p,supplier:e.target.value}))} placeholder="Bauhaus GmbH"/></div>
+                        <div><Lbl>MENGE</Lbl><Inp type="number" min={1} value={fMatReq.qty} onChange={e=>setFMatReq(p=>({...p,qty:+e.target.value,total:+e.target.value*p.pricePerUnit}))}/></div>
+                        <div><Lbl>EINHEIT</Lbl>
+                          <Sel value={fMatReq.unit} onChange={e=>setFMatReq(p=>({...p,unit:e.target.value}))}>
+                            {MAT_UNITS.map(u=><option key={u}>{u}</option>)}
+                          </Sel>
+                        </div>
+                        <div><Lbl>PREIS / EINHEIT (€)</Lbl><Inp type="number" min={0} step={0.01} value={fMatReq.pricePerUnit} onChange={e=>setFMatReq(p=>({...p,pricePerUnit:+e.target.value,total:p.qty*(+e.target.value)}))}/></div>
+                        <div style={{background:C.navyLight,borderRadius:8,padding:"9px 11px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                          <div style={{fontSize:10,fontWeight:700,color:C.navy}}>GESAMTBETRAG</div>
+                          <div style={{fontSize:18,fontWeight:900,color:C.navy}}>{(fMatReq.total||0).toFixed(2)} €</div>
+                        </div>
+                        <div><Lbl>LIEFERDATUM</Lbl><Inp type="date" value={fMatReq.deliveryDate?.split(".").reverse().join("-")||""} onChange={e=>setFMatReq(p=>({...p,deliveryDate:e.target.value.split("-").reverse().join(".")}))}/></div>
+                        {fMatReq.type==="machine"&&<div><Lbl>MIETDAUER (TAGE)</Lbl><Inp type="number" min={1} value={fMatReq.rentDays||1} onChange={e=>setFMatReq(p=>({...p,rentDays:+e.target.value}))}/></div>}
+                        <div style={{gridColumn:"1/-1"}}><Lbl>DETAILS / ANMERKUNGEN</Lbl><Txt value={fMatReq.notes||""} rows={3} onChange={e=>setFMatReq(p=>({...p,notes:e.target.value}))} placeholder="Spezifikationen, Hinweise..."/></div>
+                      </div>
+
+                      <div style={{display:"flex",gap:8}}>
+                        <button className="bo" style={{flex:1,padding:"11px",fontSize:13,fontWeight:700}} onClick={()=>{
+                          if(!fMatReq.title.trim())return;
+                          const now=new Date().toLocaleString("de-DE");
+                          const nowDate=new Date().toLocaleDateString("de-DE");
+                          const nowTime=new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+                          setMatRequests(p=>[...p,{...fMatReq,id:p.length+1,requestedBy:cu.id,status:"ausstehend",createdAt:nowDate,createdTime:nowTime,history:[{text:"Bestellung erstellt von "+cu.name,at:now}]}]);
+                          setMMatReq(false);
+                        }}>📤 Bestellung senden</button>
+                        <button className="bg" style={{flex:1,padding:"11px"}} onClick={()=>setMMatReq(false)}>Abbrechen</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ══ RECHNUNGEN ══ */}          {/* ══ RECHNUNGEN ══ */}
           {tab==="rechnungen"&&isRoot(cu)&&(
             <div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13,flexWrap:"wrap",gap:8}}>
