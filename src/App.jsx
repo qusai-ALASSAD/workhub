@@ -1371,8 +1371,9 @@ function RechnungenTab({cu,projs,clients,invoices,setInvoices,mInvoice,setMInvoi
 function buildDocPdf(doc, cfg){
   const isAngebot = doc.type==="angebot";
   const docTitle  = isAngebot?"ANGEBOT":"RECHNUNG";
+  const showVat   = doc.showVat!==false && !cfg.vatSmall;
   const netto     = doc.items.reduce((s,i)=>s+(i.total||0),0);
-  const vatAmt    = doc.showVat&&!cfg.vatSmall ? doc.items.reduce((s,i)=>s+(i.total||0)*(i.vat||19)/100,0) : 0;
+  const vatAmt    = showVat ? doc.items.reduce((s,i)=>s+(i.total||0)*(i.vat||19)/100,0) : 0;
   const brutto    = netto + vatAmt;
 
   const rows = doc.items.map(it=>`
@@ -1381,96 +1382,149 @@ function buildDocPdf(doc, cfg){
       <td style="text-align:right">${it.qty}</td>
       <td>${it.unit}</td>
       <td style="text-align:right">${(it.price||0).toFixed(2)}</td>
-      ${doc.showVat&&!cfg.vatSmall?`<td style="text-align:right">${it.vat||19}%</td>`:""}
+      ${showVat?`<td style="text-align:right">${it.vat||19}%</td>`:""}
       <td style="text-align:right;font-weight:700">${(it.total||0).toFixed(2)}</td>
     </tr>`).join("");
 
-  const vatHeader = doc.showVat&&!cfg.vatSmall?`<th style="text-align:right">MwSt</th>`:"";
-  const logoHtml  = doc.showLogo&&cfg.logoImg
-    ?`<img src="${cfg.logoImg}" alt="" style="width:60px;height:60px;object-fit:contain;display:block;margin-bottom:4px"/>`
+  const vatHeader = showVat?`<th style="text-align:right;width:8%">MwSt</th>`:"";
+  const logoHtml  = doc.showLogo!==false && cfg.logoImg
+    ?`<img src="${cfg.logoImg}" alt="" style="width:56px;height:56px;object-fit:contain;display:block;margin-bottom:6px"/>`
     :"";
+
+  // Angebot: accent color grün statt orange
+  const accentColor = isAngebot ? "#059669" : "#F5831F";
+  const accentLight = isAngebot ? "#ECFDF5" : "#FEF0E3";
+
+  // Footer text — only company data
+  const legalParts = [
+    cfg.companyName,
+    cfg.companyAddress,
+    cfg.companyPhone&&`Tel: ${cfg.companyPhone}`,
+    cfg.companyEmail&&`E-Mail: ${cfg.companyEmail}`,
+    cfg.taxId&&`USt-IdNr.: ${cfg.taxId}`,
+    cfg.hrb&&`${cfg.court||"AG"}: ${cfg.hrb}`,
+  ].filter(Boolean).join(" &nbsp;·&nbsp; ");
+
+  const bankLine = doc.bankName&&doc.iban
+    ? `<p class="payment">🏦 ${doc.bankName} &nbsp;|&nbsp; IBAN: ${doc.iban}${doc.bic?` &nbsp;|&nbsp; BIC: ${doc.bic}`:""}</p>`
+    : cfg.bankName&&cfg.iban
+    ? `<p class="payment">🏦 ${cfg.bankName} &nbsp;|&nbsp; IBAN: ${cfg.iban}${cfg.bic?` &nbsp;|&nbsp; BIC: ${cfg.bic}`:""}</p>`
+    : "";
+
+  // Angebot box — special intro section
+  const angebotBox = isAngebot ? `
+    <div style="background:${accentLight};border-left:4px solid ${accentColor};border-radius:0 8px 8px 0;
+      padding:12px 16px;margin-bottom:18px;">
+      <div style="font-size:9pt;font-weight:700;color:${accentColor};letter-spacing:.5px;margin-bottom:4px">ANGEBOT</div>
+      <div style="font-size:10pt;color:#333;line-height:1.5">
+        Wir freuen uns, Ihnen folgendes Angebot zu unterbreiten.
+        ${doc.validUntil?`<br>Dieses Angebot ist gültig bis: <strong>${doc.validUntil}</strong>.`:""}
+      </div>
+    </div>` : "";
 
   return `<!DOCTYPE html>
 <html lang="de"><head><meta charset="UTF-8">
-<title>${doc.nr}</title>
+<title>${doc.nr} – ${cfg.companyName}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Arial',sans-serif;font-size:11pt;color:#0D1F35;padding:30px 36px;max-width:800px;margin:0 auto}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
-  .sender h1{font-size:18pt;font-weight:900;color:#0D3B6E;margin-bottom:4px}
-  .sender p{font-size:9pt;color:#666;line-height:1.6}
-  .doc-type{text-align:right}
-  .doc-type h2{font-size:20pt;font-weight:900;color:#0D3B6E;letter-spacing:1px}
-  .doc-type .nr{font-size:13pt;font-weight:700;color:#F5831F;margin-top:4px}
-  .divider{border:none;border-top:2px solid #0D3B6E;margin:16px 0}
-  .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-  .meta-block label{font-size:8pt;font-weight:700;color:#888;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
-  .meta-block p{font-size:10pt;font-weight:600}
-  table{width:100%;border-collapse:collapse;margin-bottom:0}
+  body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10.5pt;color:#1a2332;
+    padding:32px 40px;max-width:794px;margin:0 auto;background:#fff}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+  .sender h1{font-size:17pt;font-weight:900;color:#0D3B6E;margin:4px 0}
+  .sender p{font-size:8.5pt;color:#666;line-height:1.7}
+  .doc-type{text-align:right;min-width:180px}
+  .doc-type h2{font-size:22pt;font-weight:900;color:#0D3B6E;letter-spacing:2px}
+  .doc-nr{font-size:13pt;font-weight:700;color:${accentColor};margin-top:3px}
+  .doc-date{font-size:8.5pt;color:#888;margin-top:6px;line-height:1.6}
+  .divider{border:none;border-top:2.5px solid #0D3B6E;margin:16px 0 18px}
+  .recipient{background:#F8FAFC;border-radius:8px;padding:12px 16px;margin-bottom:18px;
+    border:1px solid #E2E8F0;display:inline-block;min-width:240px}
+  .recipient .label{font-size:7.5pt;font-weight:700;color:#888;letter-spacing:.7px;
+    text-transform:uppercase;margin-bottom:5px}
+  .recipient .name{font-size:12pt;font-weight:800;color:#0D3B6E}
+  .recipient .addr{font-size:8.5pt;color:#555;line-height:1.6;margin-top:3px}
+  table{width:100%;border-collapse:collapse;margin-bottom:0;margin-top:${isAngebot?"0":"0"}}
   thead tr{background:#0D3B6E}
-  thead th{color:#fff;padding:7px 10px;text-align:left;font-size:9pt;font-weight:700}
-  tbody td{padding:7px 10px;border-bottom:1px solid #DDE4EE;font-size:10pt}
-  tbody tr:nth-child(even) td{background:#F8FAFC}
-  .totals{margin-top:0;border:1px solid #DDE4EE;border-top:none}
-  .totals tr td{padding:5px 10px;font-size:10pt}
-  .totals tr.final td{background:#0D3B6E;color:#fff;font-size:12pt;font-weight:900;padding:9px 10px}
-  .notes{background:#F8FAFC;border-left:3px solid #F5831F;padding:10px 14px;font-size:9pt;color:#444;margin-top:16px;border-radius:0 6px 6px 0}
-  .payment{margin-top:12px;font-size:9pt;color:#555}
-  .footer{position:fixed;bottom:20px;left:36px;right:36px;border-top:1px solid #DDE4EE;padding-top:8px;font-size:7.5pt;color:#999;display:flex;justify-content:space-between}
-  .legal{font-size:7.5pt;color:#aaa;line-height:1.6;margin-top:20px;padding-top:12px;border-top:1px solid #eee}
-  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:8pt;font-weight:700}
+  thead th{color:#fff;padding:8px 10px;text-align:left;font-size:8.5pt;font-weight:700;letter-spacing:.3px}
+  tbody td{padding:8px 10px;border-bottom:1px solid #EEF2F7;font-size:9.5pt}
+  tbody tr:hover td{background:#FAFBFD}
+  .totals-wrap{margin-top:0;border:1px solid #DDE4EE;border-top:none;border-radius:0 0 6px 6px;overflow:hidden}
+  .totals-wrap td{padding:6px 12px;font-size:9.5pt;color:#555}
+  .totals-wrap tr.sub td:last-child{text-align:right;font-weight:600;color:#333}
+  .totals-wrap tr.final td{background:#0D3B6E;color:#fff;font-size:12pt;font-weight:900;padding:10px 12px}
+  .totals-wrap tr.final td:last-child{text-align:right}
+  .vat-note{font-size:8pt;color:#999;font-style:italic;padding:6px 12px}
+  .notes-block{margin-top:16px;padding:11px 15px;background:#FFFBEB;
+    border-left:3px solid ${accentColor};border-radius:0 6px 6px 0;font-size:9pt;color:#444;line-height:1.6}
+  .payment{margin-top:10px;font-size:8.5pt;color:#555;line-height:1.7}
+  .legal-footer{margin-top:24px;padding-top:10px;border-top:1px solid #E2E8F0;
+    font-size:7.5pt;color:#aaa;line-height:1.7}
+  .page-footer{margin-top:8px;display:flex;justify-content:space-between;
+    font-size:7.5pt;color:#bbb;padding-top:6px;border-top:1px dashed #E2E8F0}
+  .badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:8pt;font-weight:700}
   .badge-offen{background:#FEF0E3;color:#F5831F}
   .badge-bezahlt{background:#ECFDF5;color:#059669}
   .badge-angenommen{background:#ECFDF5;color:#059669}
   .badge-abgelehnt{background:#FEF2F2;color:#DC2626}
+  .badge-entwurf{background:#F1F5F9;color:#64748B}
   @media print{
-    body{padding:20px 24px}
-    .footer{position:fixed}
-    .no-print{display:none}
-    @page{margin:1.5cm}
+    body{padding:18px 24px}
+    .no-print{display:none!important}
+    @page{margin:1.2cm;size:A4}
   }
 </style>
 </head>
 <body>
+
+<!-- HEADER: Sender + Doc type -->
 <div class="header">
   <div class="sender">
     ${logoHtml}
     <h1>${cfg.companyName}</h1>
     <p>${cfg.companyAddress}<br>
-    Tel: ${cfg.companyPhone} &nbsp;|&nbsp; E-Mail: ${cfg.companyEmail}<br>
-    ${cfg.companyHours}</p>
+    ${cfg.companyPhone?`Tel: ${cfg.companyPhone}<br>`:""}
+    ${cfg.companyEmail?`${cfg.companyEmail}`:""}
+    </p>
   </div>
   <div class="doc-type">
     <h2>${docTitle}</h2>
-    <div class="nr">${doc.nr}</div>
+    <div class="doc-nr">${doc.nr}</div>
+    <div class="doc-date">
+      Datum: <strong>${doc.date}</strong><br>
+      ${isAngebot
+        ?`${doc.validUntil?`Gültig bis: <strong>${doc.validUntil}</strong>`:"Angebot freibleibend"}`
+        :`${doc.dueDate?`Fällig am: <strong>${doc.dueDate}</strong>`:""}`
+      }
+    </div>
     <div style="margin-top:8px">
-      <span class="badge badge-${doc.status.toLowerCase()}">${doc.status.toUpperCase()}</span>
+      <span class="badge badge-${(doc.status||"offen").toLowerCase()}">${(doc.status||"OFFEN").toUpperCase()}</span>
     </div>
   </div>
 </div>
+
 <hr class="divider"/>
-<div class="meta">
-  <div class="meta-block">
-    <label>Empfänger</label>
-    <p style="font-size:12pt;color:#0D3B6E">${doc.client}</p>
-    ${doc.clientAddress?`<p style="font-size:9pt;color:#666;margin-top:2px">${doc.clientAddress}</p>`:""}
-    ${doc.clientEmail?`<p style="font-size:9pt;color:#666">${doc.clientEmail}</p>`:""}
+
+<!-- RECIPIENT -->
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+  <div class="recipient">
+    <div class="label">${isAngebot?"Angebot für":"Rechnung an"}</div>
+    <div class="name">${doc.client||"–"}</div>
+    ${doc.clientAddress?`<div class="addr">${doc.clientAddress}</div>`:""}
+    ${doc.clientEmail?`<div class="addr">${doc.clientEmail}</div>`:""}
   </div>
-  <div style="text-align:right">
-    <div class="meta-block" style="margin-bottom:6px">
-      <label>Datum</label><p>${doc.date}</p>
-    </div>
-    ${isAngebot
-      ?`<div class="meta-block"><label>Gültig bis</label><p>${doc.validUntil||"–"}</p></div>`
-      :`<div class="meta-block"><label>Fällig am</label><p>${doc.dueDate||"–"}</p></div>`
-    }
-    ${doc.projId?`<div class="meta-block" style="margin-top:6px"><label>Projekt</label><p>${doc.title}</p></div>`:""}
-  </div>
+  ${doc.title?`<div style="max-width:220px;text-align:right">
+    <div style="font-size:8pt;color:#888;font-weight:700;margin-bottom:3px">BETREFF</div>
+    <div style="font-size:10pt;font-weight:700;color:#0D3B6E">${doc.title}</div>
+  </div>`:""}
 </div>
+
+${angebotBox}
+
+<!-- ITEMS TABLE -->
 <table>
   <thead>
     <tr>
-      <th style="width:45%">Beschreibung</th>
+      <th style="width:${showVat?"42%":"48%"}">Beschreibung</th>
       <th style="text-align:right;width:7%">Menge</th>
       <th style="width:8%">Einh.</th>
       <th style="text-align:right;width:12%">Preis €</th>
@@ -1480,28 +1534,35 @@ function buildDocPdf(doc, cfg){
   </thead>
   <tbody>${rows}</tbody>
 </table>
-<table class="totals">
-  <tr><td colspan="2" style="padding-left:10px;color:#666;font-size:9pt">Zwischensumme (netto)</td><td style="text-align:right;padding-right:10px">${netto.toFixed(2)} €</td></tr>
-  ${doc.showVat&&!cfg.vatSmall
-    ?`<tr><td colspan="2" style="padding-left:10px;color:#666;font-size:9pt">MwSt (Ø ${Math.round(vatAmt/netto*100)}%)</td><td style="text-align:right;padding-right:10px">${vatAmt.toFixed(2)} €</td></tr>`
-    :`<tr><td colspan="3" style="padding:4px 10px;font-size:8pt;color:#999">Gemäß §19 UStG wird keine Umsatzsteuer berechnet.</td></tr>`
-  }
-  <tr class="final"><td colspan="2" style="padding-left:10px">GESAMTBETRAG${doc.showVat&&!cfg.vatSmall?" (brutto)":""}</td><td style="text-align:right;padding-right:10px">${brutto.toFixed(2)} €</td></tr>
+
+<!-- TOTALS -->
+<table class="totals-wrap">
+  ${showVat?`
+  <tr class="sub"><td colspan="${showVat?4:3}" style="padding-left:12px;font-size:8.5pt">Zwischensumme (netto)</td><td style="text-align:right;padding-right:12px">${netto.toFixed(2)} €</td></tr>
+  <tr class="sub"><td colspan="${showVat?4:3}" style="padding-left:12px;font-size:8.5pt">MwSt (Ø ${netto>0?Math.round(vatAmt/netto*100):19}%)</td><td style="text-align:right;padding-right:12px">${vatAmt.toFixed(2)} €</td></tr>`
+  :`<tr><td colspan="${showVat?5:4}" class="vat-note">Gemäß §19 UStG wird keine Umsatzsteuer berechnet.</td></tr>`}
+  <tr class="final">
+    <td colspan="${showVat?4:3}" style="padding-left:12px">
+      GESAMTBETRAG${showVat?" (inkl. MwSt)":""}
+    </td>
+    <td style="text-align:right;padding-right:12px">${brutto.toFixed(2)} €</td>
+  </tr>
 </table>
-${doc.paymentTerms?`<p class="payment">💳 ${doc.paymentTerms}</p>`:""}
-${doc.bankName?`<p class="payment">🏦 Bank: ${doc.bankName} &nbsp;|&nbsp; IBAN: ${doc.iban} &nbsp;|&nbsp; BIC: ${doc.bic}</p>`:""}
-${doc.notes?`<div class="notes">📝 ${doc.notes}</div>`:""}
-<div class="legal">
-  ${cfg.companyName} &nbsp;|&nbsp; ${cfg.companyAddress} &nbsp;|&nbsp;
-  ${cfg.taxId?`USt-IdNr.: ${cfg.taxId} &nbsp;|&nbsp;`:""}
-  ${cfg.hrb?`${cfg.court}: ${cfg.hrb} &nbsp;|&nbsp;`:""}
-  ${cfg.bankName?`IBAN: ${cfg.iban}`:""}
+
+<!-- NOTES & PAYMENT -->
+${doc.notes?`<div class="notes-block">${doc.notes}</div>`:""}
+${bankLine}
+${!isAngebot&&doc.paymentTerms?`<p class="payment">💳 ${doc.paymentTerms}</p>`:""}
+${doc.footerNote?`<p class="payment" style="color:#777;font-style:italic">${doc.footerNote}</p>`:""}
+
+<!-- LEGAL FOOTER — company only -->
+<div class="legal-footer">${legalParts}</div>
+<div class="page-footer">
+  <span>${cfg.companyName}</span>
+  <span>${doc.nr} · ${doc.date}</span>
+  <span>Seite 1 / 1</span>
 </div>
-<div class="footer">
-  <span>${cfg.companyName} · ${cfg.companyAddress}</span>
-  <span>${doc.nr} · ${doc.date} · Seite 1</span>
-  <span>app.ovivo.io</span>
-</div>
+
 </body></html>`;
 }
 
@@ -1640,7 +1701,7 @@ export default function App(){
      ],
      notes:"",paymentTerms:"Zahlung innerhalb von 14 Tagen netto.",
      bankName:"Deutsche Bank",iban:"DE12 3456 7890 1234 5678 90",bic:"DEUTDEDB",
-     showLogo:true,showVat:true},
+     showLogo:true,showVat:true,footerNote:""},
     {id:2,type:"angebot",nr:"AN-2026-001",projId:null,partnerId:8,
      title:"Grundreinigung Hotel Lobby",
      client:"Hotel Partner",clientAddress:"Hotelstraße 5, 20099 Hamburg",clientEmail:"info@hotel-partner.de",
@@ -1667,6 +1728,7 @@ export default function App(){
     notes:"",paymentTerms:"Zahlung innerhalb von 14 Tagen netto.",
     bankName:"",iban:"",bic:"",
     showLogo:true,showVat:true,
+    footerNote:"",
   };
   const[mApprove,setMApprove]=useState(null); // request to approve
   const[fApprove,setFApprove]=useState({responsibleId:3,editableBy:[],visibleTo:[],rejectReason:""});
