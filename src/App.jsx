@@ -24,6 +24,15 @@ const APP_CONFIG = {
   supportPhone:  "+49 176 56565322",
   supportHours:  "Mo–Fr, 9–18 Uhr",
   supportNote:   "Antwort in < 24h",
+  // Bank
+  bankName:      "Deutsche Bank",
+  iban:          "DE12 3456 7890 1234 5678 90",
+  bic:           "DEUTDEDB",
+  // Legal
+  taxId:         "DE 123 456 789",
+  hrb:           "HRB 12345",
+  court:         "Amtsgericht Hamburg",
+  vatSmall:      false,   // true = Kleinunternehmer §19 UStG
 
   // --- Theme colors (hex) ---
   primaryColor: "#0D3B6E",  // Navy blue
@@ -47,22 +56,32 @@ const APP_CONFIG = {
 const C={navy:"#0D3B6E",navyDark:"#092D55",navyLight:"#E8F0F9",orange:"#F5831F",orangeLight:"#FEF0E3",bg:"#F2F5F9",border:"#DDE4EE",text:"#0D1F35",sub:"#5A7090",green:"#059669",greenL:"#F0FDF4",red:"#DC2626",redL:"#FEF2F2",yellow:"#D97706",yellowL:"#FFFBEB",purple:"#7C3AED",purpleL:"#F5F3FF"};
 
 const ALL_PERMS=[
-  {key:"repairs",  label:"Aufträge & Wartung",  icon:"🔧"},
-  {key:"tasks",    label:"Aufgaben",             icon:"✓"},
-  {key:"messages", label:"Nachrichten",          icon:"✉"},
-  {key:"feed",        label:"Team-Feed",              icon:"◉"},
-  {key:"gallery",     label:"Fotogalerie",            icon:"📷"},
-  {key:"projects",    label:"Projekte",               icon:"🏗"},
-  {key:"schedule",    label:"Arbeitsplan sehen",      icon:"📅"},
-  {key:"scheduleEdit",label:"Arbeitsplan bearbeiten", icon:"✏"},
-  {key:"warehouse",   label:"Lager & Material",       icon:"📦"},
-  {key:"reports",     label:"Berichte & PDF",         icon:"📋"},
-  {key:"orders",      label:"Bestellungen sehen",     icon:"🛒"},
-  {key:"ordersCreate",label:"Bestellungen erstellen", icon:"➕"},
+  // Arbeit
+  {key:"repairs",     label:"Aufträge & Wartung",   icon:"🔧", group:"Arbeit"},
+  {key:"tasks",       label:"Aufgaben",              icon:"✓",  group:"Arbeit"},
+  {key:"projects",    label:"Projekte sehen",        icon:"🏗", group:"Arbeit"},
+  // Kommunikation
+  {key:"messages",    label:"Nachrichten",           icon:"✉",  group:"Kommunikation"},
+  {key:"feed",        label:"Team-Feed",             icon:"◉",  group:"Kommunikation"},
+  {key:"gallery",     label:"Fotogalerie",           icon:"📷", group:"Kommunikation"},
+  // Planung
+  {key:"schedule",    label:"Arbeitsplan sehen",     icon:"📅", group:"Planung"},
+  {key:"scheduleEdit",label:"Arbeitsplan bearbeiten",icon:"✏",  group:"Planung"},
+  // Verwaltung
+  {key:"warehouse",   label:"Lager & Material",      icon:"📦", group:"Verwaltung"},
+  {key:"orders",      label:"Bestellungen sehen",    icon:"🛒", group:"Verwaltung"},
+  {key:"ordersCreate",label:"Bestellungen erstellen",icon:"➕", group:"Verwaltung"},
+  {key:"reports",     label:"Berichte & PDF",        icon:"📋", group:"Verwaltung"},
 ];
 
 const FULL={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:true,warehouse:true,reports:true,orders:true,ordersCreate:true};
 const DEF ={repairs:true,tasks:true,messages:true,feed:true,gallery:true,projects:true,schedule:true,scheduleEdit:false,warehouse:false,reports:false,orders:false,ordersCreate:false};
+// ── CLIENT / PARTNER COMPANIES ────────────────────────────────
+const INIT_CLIENTS=[
+  {id:1,name:"Hotel Partner",type:"hotel",contact:"Max Müller",email:"info@hotel-partner.de",phone:"+49 40 9876543",address:"Hotelstraße 5, 20099 Hamburg",notes:"VIP-Kunde seit 2024",active:true,userId:8},
+  {id:2,name:"Büro Mustermann",type:"office",contact:"Lisa Bauer",email:"info@mustermann.de",phone:"+49 40 1234567",address:"Bürostraße 12, 20355 Hamburg",notes:"Wartungsvertrag monatlich",active:true,userId:9},
+];
+
 const PARTNER_PERMS={repairs:false,tasks:false,messages:true,feed:false,gallery:true,projects:true,schedule:false,scheduleEdit:false,warehouse:false,reports:false};
 
 const ROLE_CFG={
@@ -615,6 +634,236 @@ const NavIcon=({id,active})=>{
         };
 
 
+
+// ── KundenTab Component ──────────────────────────────────────────
+function KundenTab({cu,clients,setClients,users,setUsers,invoices,projs,repairs,partnerRequests,
+  mClient,setMClient,selClient,setSelClient,fClient,setFClient,BLANK_CLIENT,
+  mob,isRoot,APP_CONFIG,C,Lbl,Inp,Sel,Txt,Av,setTab}){
+  const CLIENT_TYPES=[["hotel","🏨 Hotel"],["office","🏢 Büro/Unternehmen"],["school","🏫 Schule"],["hospital","🏥 Klinik"],["retail","🏪 Einzelhandel"],["other","🤝 Sonstiges"]];
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
+        <div>
+          <h1 style={{fontSize:mob?18:22,fontWeight:800,marginBottom:3}}>🤝 Kunden & Partner</h1>
+          <p style={{color:C.sub,fontSize:12}}>Externe Kunden mit eigenem Zugang — isoliert vom internen System</p>
+        </div>
+        <button className="bo" style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",fontSize:13,fontWeight:700,borderRadius:10}}
+          onClick={()=>{setFClient({...BLANK_CLIENT});setMClient(true);}}>
+          + Neuer Kunde
+        </button>
+      </div>
+
+      {/* KPI strip */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:16}}>
+        {[
+          [clients.length,"Kunden gesamt","🤝",C.navy,C.navyLight],
+          [clients.filter(c=>c.active).length,"Aktiv","✅",C.green,C.greenL],
+          [clients.filter(c=>c.userId).length,"Mit Zugang","🔐",C.orange,C.orangeLight],
+          [invoices.filter(i=>clients.some(c=>c.id===i.partnerId)).length,"Dokumente","📄","#6366f1","#EEF2FF"],
+        ].map(([v,l,ic,col,bg])=>(
+          <div key={l} style={{background:bg,border:`1px solid ${col}22`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
+            <div style={{fontSize:20,marginBottom:4}}>{ic}</div>
+            <div style={{fontSize:22,fontWeight:900,color:col}}>{v}</div>
+            <div style={{fontSize:11,color:C.sub,fontWeight:600}}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Client cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
+        {clients.map(client=>{
+          const typeLabel=CLIENT_TYPES.find(t=>t[0]===client.type);
+          const linkedUser=users.find(u=>u.id===client.userId);
+          const clientInvoices=invoices.filter(i=>i.partnerId===client.id);
+          const clientProjs=projs.filter(p=>p.partnerIds?.includes(client.id)||linkedUser&&p.team?.includes(linkedUser.id));
+          const clientReqs=partnerRequests.filter(r=>r.createdBy===client.userId);
+          return(
+            <div key={client.id} onClick={()=>setSelClient(client)}
+              style={{background:"#fff",borderRadius:14,border:`1.5px solid ${client.active?C.border:"#FECACA"}`,padding:16,cursor:"pointer",boxShadow:"0 2px 10px rgba(13,59,110,.06)"}}>
+              <div style={{display:"flex",gap:10,marginBottom:10}}>
+                <div style={{width:44,height:44,borderRadius:12,background:C.navyLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
+                  {typeLabel?.[0]||"🤝"}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:14,fontWeight:800,color:C.navy,marginBottom:2}}>{client.name}</div>
+                  <div style={{fontSize:11,color:C.sub}}>{typeLabel?.[1]||client.type}</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
+                  <span style={{background:client.active?C.greenL:C.redL,color:client.active?C.green:C.red,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>
+                    {client.active?"Aktiv":"Inaktiv"}
+                  </span>
+                  {linkedUser&&<span style={{background:C.orangeLight,color:C.orange,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>🔐 Zugang</span>}
+                </div>
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
+                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:900,color:C.navy}}>{clientProjs.length}</div>
+                  <div style={{fontSize:9,color:C.sub}}>Projekte</div>
+                </div>
+                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:900,color:C.orange}}>{clientReqs.length}</div>
+                  <div style={{fontSize:9,color:C.sub}}>Anfragen</div>
+                </div>
+                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:900,color:"#6366f1"}}>{clientInvoices.length}</div>
+                  <div style={{fontSize:9,color:C.sub}}>Dokumente</div>
+                </div>
+              </div>
+
+              <div style={{fontSize:11,color:C.sub}}>
+                {client.contact&&<div>👤 {client.contact}</div>}
+                {client.email&&<div>✉ {client.email}</div>}
+                {client.phone&&<div>📞 {client.phone}</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Client detail modal */}
+      {selClient&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:mob?"flex-end":"center",justifyContent:"center",padding:mob?0:16}} onClick={()=>setSelClient(null)}>
+          <div style={{background:"#fff",borderRadius:mob?"18px 18px 0 0":"18px",width:"100%",maxWidth:560,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <div style={{fontSize:16,fontWeight:800}}>{selClient.name}</div>
+              <div style={{display:"flex",gap:7}}>
+                <button className="bp" onClick={()=>{setFClient({...selClient});setSelClient(null);setMClient(true);}} style={{padding:"5px 11px",fontSize:12}}>✏ Bearbeiten</button>
+                <button onClick={()=>setSelClient(null)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
+              </div>
+            </div>
+
+            {/* Info */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+              {[
+                ["Typ",CLIENT_TYPES.find(t=>t[0]===selClient.type)?.[1]||selClient.type],
+                ["Status",selClient.active?"✅ Aktiv":"❌ Inaktiv"],
+                ["Kontakt",selClient.contact||"–"],
+                ["E-Mail",selClient.email||"–"],
+                ["Telefon",selClient.phone||"–"],
+                ["Adresse",selClient.address||"–"],
+              ].map(([k,v])=>(
+                <div key={k} style={{background:C.bg,borderRadius:7,padding:"7px 10px"}}>
+                  <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>{k.toUpperCase()}</div>
+                  <div style={{fontSize:12,fontWeight:600}}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            {selClient.notes&&<div style={{background:C.yellowL,border:`1px solid #FDE68A`,borderRadius:9,padding:"8px 12px",fontSize:12,marginBottom:14}}>📝 {selClient.notes}</div>}
+
+            {/* Linked user account */}
+            {(()=>{
+              const lu=users.find(u=>u.id===selClient.userId);
+              return(
+                <div style={{background:C.navyLight,borderRadius:10,padding:12,marginBottom:14}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>🔐 KUNDEN-ZUGANG</div>
+                  {lu?(
+                    <div style={{display:"flex",gap:9,alignItems:"center"}}>
+                      <Av u={lu} size={32}/>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700}}>{lu.name}</div>
+                        <div style={{fontSize:11,color:C.sub}}>PIN: {lu.pin} · {lu.role}</div>
+                      </div>
+                      <span style={{marginLeft:"auto",background:C.greenL,color:C.green,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>Aktiv</span>
+                    </div>
+                  ):(
+                    <div style={{display:"flex",gap:8,alignItems:"center",justifyContent:"space-between"}}>
+                      <div style={{fontSize:12,color:C.sub}}>Noch kein Zugang erstellt</div>
+                      <button className="bo" style={{padding:"5px 12px",fontSize:11}} onClick={()=>{
+                        const pin=String(Math.floor(1000+Math.random()*9000));
+                        const newUser={id:users.length+1,name:selClient.contact||selClient.name,role:"partner",dept:"Extern",
+                          entity:selClient.name,avatar:(selClient.contact||selClient.name).split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
+                          color:"#6366f1",active:true,pin,perms:{repairs:false,tasks:false,messages:true,feed:false,gallery:false,projects:true,schedule:false,scheduleEdit:false,warehouse:false,reports:false,orders:false,ordersCreate:false}};
+                        setUsers(p=>[...p,newUser]);
+                        setClients(p=>p.map(c=>c.id===selClient.id?{...c,userId:newUser.id}:c));
+                        setSelClient(p=>({...p,userId:newUser.id}));
+                      }}>+ Zugang erstellen</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Docs */}
+            {invoices.filter(i=>i.partnerId===selClient.id).length>0&&(
+              <div>
+                <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:7}}>DOKUMENTE</div>
+                {invoices.filter(i=>i.partnerId===selClient.id).map(inv=>(
+                  <div key={inv.id} style={{display:"flex",gap:8,alignItems:"center",padding:"8px 10px",background:C.bg,borderRadius:8,marginBottom:5}}>
+                    <span style={{fontSize:13}}>{inv.type==="angebot"?"📋":"🧾"}</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:700}}>{inv.nr}</div>
+                      <div style={{fontSize:11,color:C.sub}}>{inv.title} · {inv.date}</div>
+                    </div>
+                    <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,angenommen:C.greenL,abgelehnt:C.redL}[inv.status]||C.bg,
+                      color:{offen:C.orange,bezahlt:C.green,angenommen:C.green,abgelehnt:C.red}[inv.status]||C.sub,
+                      borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>{inv.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button className="bdr" style={{width:"100%",padding:"9px",marginTop:12,fontSize:12}}
+              onClick={()=>{setClients(p=>p.map(c=>c.id===selClient.id?{...c,active:!c.active}:c));setSelClient(null);}}>
+              {selClient.active?"⏸ Deaktivieren":"▶ Aktivieren"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* New/Edit client modal */}
+      {mClient&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setMClient(false)}>
+          <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <div style={{fontSize:16,fontWeight:800}}>{fClient.id?"Kunde bearbeiten":"Neuer Kunde"}</div>
+              <button onClick={()=>setMClient(false)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
+            </div>
+
+            <div style={{marginBottom:11}}>
+              <Lbl>TYP</Lbl>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                {CLIENT_TYPES.map(([k,l])=>(
+                  <button key={k} onClick={()=>setFClient(p=>({...p,type:k}))}
+                    style={{padding:"7px 4px",borderRadius:8,border:`1.5px solid ${fClient.type===k?C.navy:C.border}`,
+                      background:fClient.type===k?C.navy:"#fff",color:fClient.type===k?"#fff":C.sub,
+                      fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+              <div style={{gridColumn:"1/-1"}}><Lbl>FIRMENNAME *</Lbl><Inp value={fClient.name||""} onChange={e=>setFClient(p=>({...p,name:e.target.value}))} placeholder="Hotel Grandeur Hamburg"/></div>
+              <div><Lbl>ANSPRECHPARTNER</Lbl><Inp value={fClient.contact||""} onChange={e=>setFClient(p=>({...p,contact:e.target.value}))} placeholder="Max Müller"/></div>
+              <div><Lbl>E-MAIL</Lbl><Inp type="email" value={fClient.email||""} onChange={e=>setFClient(p=>({...p,email:e.target.value}))} placeholder="info@hotel.de"/></div>
+              <div><Lbl>TELEFON</Lbl><Inp value={fClient.phone||""} onChange={e=>setFClient(p=>({...p,phone:e.target.value}))} placeholder="+49 40 ..."/></div>
+              <div style={{gridColumn:"1/-1"}}><Lbl>ADRESSE</Lbl><Inp value={fClient.address||""} onChange={e=>setFClient(p=>({...p,address:e.target.value}))} placeholder="Straße, PLZ Stadt"/></div>
+              <div style={{gridColumn:"1/-1"}}><Lbl>NOTIZ</Lbl><Txt value={fClient.notes||""} rows={2} onChange={e=>setFClient(p=>({...p,notes:e.target.value}))} placeholder="Vertrag, Besonderheiten..."/></div>
+            </div>
+
+            <div style={{display:"flex",gap:8}}>
+              <button className="bgr" style={{flex:1,padding:"11px",fontSize:13,fontWeight:700}} onClick={()=>{
+                if(!fClient.name?.trim())return;
+                if(fClient.id){
+                  setClients(p=>p.map(c=>c.id===fClient.id?{...c,...fClient}:c));
+                } else {
+                  setClients(p=>[...p,{...fClient,id:p.length+1,active:true}]);
+                }
+                setMClient(false);
+              }}>💾 Speichern</button>
+              <button className="bg" style={{flex:1,padding:"11px"}} onClick={()=>setMClient(false)}>Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── BestellungenTab Component ─────────────────────────────────────
 function BestellungenTab({cu,projs,matRequests,setMatRequests,users,fMatReq,setFMatReq,mMatReq,setMMatReq,selMatReq,setSelMatReq,BLANK_MAT_REQ,MAT_UNITS,myProjs,mob,isRoot,hasPerm,approveOrder,rejectOrder,deliverOrder,C,Lbl,Inp,Sel,Txt,Av,Tag,SB}){
   const[oTab,setOTab]=useState("all");
@@ -915,8 +1164,37 @@ function BestellungenTab({cu,projs,matRequests,setMatRequests,users,fMatReq,setF
   );
 }
 
-// ── RechnungenTab Component ────────────────────────────────────────
-function RechnungenTab({cu,projs,invoices,setInvoices,mInvoice,setMInvoice,selInvoice,setSelInvoice,editInvoice,setEditInvoice,BLANK_INVOICE,mob,isRoot,APP_CONFIG,C,Lbl,Inp,Sel,Txt}){
+// ── RechnungenTab Component ─────────────────────────────────────────
+function RechnungenTab({cu,projs,clients,invoices,setInvoices,mInvoice,setMInvoice,selInvoice,setSelInvoice,editInvoice,setEditInvoice,BLANK_INVOICE,mob,isRoot,APP_CONFIG,C,Lbl,Inp,Sel,Txt,docType="rechnung"}){
+  const isAngebot=docType==="angebot";
+  const title=isAngebot?"Angebote":"Rechnungen";
+  const icon=isAngebot?"📋":"🧾";
+  const newNr=()=>{
+    const prefix=isAngebot?"AN":"RE";
+    const yr=new Date().getFullYear();
+    const n=invoices.filter(i=>i.type===docType).length+1;
+    return `${prefix}-${yr}-${String(n).padStart(3,"0")}`;
+  };
+
+  const downloadDoc=(doc)=>{
+    const html=buildDocPdf(doc,APP_CONFIG);
+    const blob=new Blob([html],{type:"text/html;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=`${doc.nr}.html`;
+    a.click();
+  };
+  const printDoc=(doc)=>{
+    const html=buildDocPdf(doc,APP_CONFIG);
+    const fr=document.createElement("iframe");
+    fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;";
+    document.body.appendChild(fr);
+    fr.contentDocument.write(html);
+    fr.contentDocument.close();
+    fr.contentWindow.focus();
+    setTimeout(()=>{fr.contentWindow.print();setTimeout(()=>document.body.removeChild(fr),1500);},400);
+  };
+
   return(
 <div>
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13,flexWrap:"wrap",gap:8}}>
@@ -924,7 +1202,7 @@ function RechnungenTab({cu,projs,invoices,setInvoices,mInvoice,setMInvoice,selIn
       <h1 style={{fontSize:mob?18:20,fontWeight:800,marginBottom:2}}>Rechnungen</h1>
       <p style={{color:C.sub,fontSize:12}}>Rechnungen erstellen, bearbeiten und als PDF exportieren</p>
     </div>
-    <button className="bo" onClick={()=>{setEditInvoice({...BLANK_INVOICE,nr:`RE-2026-${String(invoices.length+1).padStart(3,"0")}`});setMInvoice(true);}}>+ Neue Rechnung</button>
+    <button className="bo" onClick={()=>{setEditInvoice({...BLANK_INVOICE,type:docType,nr:newNr(),bankName:APP_CONFIG.bankName,iban:APP_CONFIG.iban,bic:APP_CONFIG.bic,paymentTerms:"Zahlung innerhalb von 14 Tagen netto."});setMInvoice(true);}}> + {isAngebot?"Neues Angebot":"Neue Rechnung"}</button>
   </div>
 
   {/* Invoice list */}
@@ -1077,36 +1355,8 @@ function RechnungenTab({cu,projs,invoices,setInvoices,mInvoice,setMInvoice,selIn
         </div>
         {selInvoice.notes&&<div style={{background:C.bg,borderRadius:8,padding:"8px 12px",fontSize:12,color:C.sub,marginBottom:14}}>{selInvoice.notes}</div>}
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button className="bo" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>{
-            const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${selInvoice.nr}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:32px;color:#0D1F35}table{width:100%;border-collapse:collapse}th{background:#0D3B6E;color:#fff;padding:7px 10px;text-align:left;font-size:12px}td{padding:6px 10px;border-bottom:1px solid #DDE4EE;font-size:12px}@media print{button{display:none}}</style></head><body>
-              <div style="display:flex;justify-content:space-between;margin-bottom:24px">
-                <div><h1 style="font-size:20px;color:#0D3B6E">${APP_CONFIG.companyName}</h1><div style="font-size:12px;color:#666">${APP_CONFIG.companyAddress}<br>${APP_CONFIG.companyPhone} · ${APP_CONFIG.companyEmail}</div></div>
-                <div style="text-align:right"><h2 style="color:#0D3B6E">RECHNUNG</h2><div style="color:#F5831F;font-weight:700">${selInvoice.nr}</div></div>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16;margin-bottom:20px">
-                <div><b>An:</b> ${selInvoice.client}</div>
-                <div style="text-align:right">Datum: ${selInvoice.date}<br>Fällig: ${selInvoice.dueDate||"–"}</div>
-              </div>
-              <table><tr>${["Beschreibung","Menge","Einh.","Preis €","Total €"].map(h=>`<th>${h}</th>`).join("")}</tr>${selInvoice.items.map(it=>`<tr><td>${it.desc}</td><td style="text-align:right">${it.qty}</td><td>${it.unit}</td><td style="text-align:right">${it.price?.toFixed(2)}</td><td style="text-align:right;font-weight:700">${(it.total||0).toFixed(2)}</td></tr>`).join("")}</table>
-              <div style="text-align:right;font-size:18px;font-weight:700;margin-top:12px;border-top:2px solid #0D3B6E;padding-top:8px">Gesamt: ${selInvoice.items.reduce((s,i)=>s+(i.total||0),0).toFixed(2)} €</div>
-              ${selInvoice.notes?`<div style="margin-top:16px;padding:10px;background:#F2F5F9;border-radius:6px;font-size:12px">${selInvoice.notes}</div>`:""}
-              <div style="margin-top:24px;font-size:10px;color:#999;text-align:center">Powered by ${APP_CONFIG.supportCompany} · ${APP_CONFIG.supportUrl}</div>
-              </body></html>`;
-            const blob=new Blob([html],{type:"text/html"});
-            const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${selInvoice.nr}.html`;a.click();
-          }}>⬇ Herunterladen</button>
-          <button className="bp" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>{
-            const total=selInvoice.items.reduce((s,i)=>s+(i.total||0),0);
-            const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${selInvoice.nr}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#0D1F35}table{width:100%;border-collapse:collapse}th{background:#0D3B6E;color:#fff;padding:7px 10px;font-size:12px;text-align:left}td{padding:6px 10px;border-bottom:1px solid #DDE4EE;font-size:12px}@media print{body{margin:0}}</style></head><body><div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><h1 style="color:#0D3B6E">${APP_CONFIG.companyName}</h1><div style="font-size:12px;color:#666">${APP_CONFIG.companyAddress}</div></div><div style="text-align:right"><h2>RECHNUNG</h2><div style="color:#F5831F">${selInvoice.nr}</div></div></div><div style="margin-bottom:16px"><b>An:</b> ${selInvoice.client} &nbsp;&nbsp; Datum: ${selInvoice.date} &nbsp;&nbsp; Fällig: ${selInvoice.dueDate||"–"}</div><table><tr>${["Beschreibung","Menge","Einh.","Preis €","Total €"].map(h=>`<th>${h}</th>`).join("")}</tr>${selInvoice.items.map(it=>`<tr><td>${it.desc}</td><td>${it.qty}</td><td>${it.unit}</td><td>${(it.price||0).toFixed(2)}</td><td style="font-weight:700">${(it.total||0).toFixed(2)}</td></tr>`).join("")}</table><div style="text-align:right;font-size:18px;font-weight:700;margin-top:12px;border-top:2px solid #0D3B6E;padding-top:8px">Gesamt: ${total.toFixed(2)} €</div>${selInvoice.notes?`<div style="margin-top:14px;padding:10px;background:#F2F5F9;font-size:12px">${selInvoice.notes}</div>`:""}</body></html>`;
-            const fr=document.createElement("iframe");
-            fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;";
-            document.body.appendChild(fr);
-            fr.contentDocument.write(html);
-            fr.contentDocument.close();
-            fr.contentWindow.focus();
-            fr.contentWindow.print();
-            setTimeout(()=>document.body.removeChild(fr),2000);
-          }}>🖨 Drucken</button>
+          <button className="bo" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>downloadDoc(selInvoice)}>⬇ Herunterladen</button>
+          <button className="bp" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>printDoc(selInvoice)}>🖨 Drucken / PDF</button>
           <button className="bg" style={{flex:1,padding:"9px",fontSize:12}} onClick={()=>setSelInvoice(null)}>Schließen</button>
         </div>
       </div>
@@ -1115,6 +1365,146 @@ function RechnungenTab({cu,projs,invoices,setInvoices,mInvoice,setMInvoice,selIn
 </div>
   );
 }
+
+
+// ── Professional Invoice/Quote PDF Generator ─────────────────────
+function buildDocPdf(doc, cfg){
+  const isAngebot = doc.type==="angebot";
+  const docTitle  = isAngebot?"ANGEBOT":"RECHNUNG";
+  const netto     = doc.items.reduce((s,i)=>s+(i.total||0),0);
+  const vatAmt    = doc.showVat&&!cfg.vatSmall ? doc.items.reduce((s,i)=>s+(i.total||0)*(i.vat||19)/100,0) : 0;
+  const brutto    = netto + vatAmt;
+
+  const rows = doc.items.map(it=>`
+    <tr>
+      <td>${it.desc}</td>
+      <td style="text-align:right">${it.qty}</td>
+      <td>${it.unit}</td>
+      <td style="text-align:right">${(it.price||0).toFixed(2)}</td>
+      ${doc.showVat&&!cfg.vatSmall?`<td style="text-align:right">${it.vat||19}%</td>`:""}
+      <td style="text-align:right;font-weight:700">${(it.total||0).toFixed(2)}</td>
+    </tr>`).join("");
+
+  const vatHeader = doc.showVat&&!cfg.vatSmall?`<th style="text-align:right">MwSt</th>`:"";
+  const logoHtml  = doc.showLogo&&cfg.logoImg
+    ?`<img src="${cfg.logoImg}" alt="" style="width:60px;height:60px;object-fit:contain;display:block;margin-bottom:4px"/>`
+    :"";
+
+  return `<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8">
+<title>${doc.nr}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Arial',sans-serif;font-size:11pt;color:#0D1F35;padding:30px 36px;max-width:800px;margin:0 auto}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+  .sender h1{font-size:18pt;font-weight:900;color:#0D3B6E;margin-bottom:4px}
+  .sender p{font-size:9pt;color:#666;line-height:1.6}
+  .doc-type{text-align:right}
+  .doc-type h2{font-size:20pt;font-weight:900;color:#0D3B6E;letter-spacing:1px}
+  .doc-type .nr{font-size:13pt;font-weight:700;color:#F5831F;margin-top:4px}
+  .divider{border:none;border-top:2px solid #0D3B6E;margin:16px 0}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .meta-block label{font-size:8pt;font-weight:700;color:#888;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+  .meta-block p{font-size:10pt;font-weight:600}
+  table{width:100%;border-collapse:collapse;margin-bottom:0}
+  thead tr{background:#0D3B6E}
+  thead th{color:#fff;padding:7px 10px;text-align:left;font-size:9pt;font-weight:700}
+  tbody td{padding:7px 10px;border-bottom:1px solid #DDE4EE;font-size:10pt}
+  tbody tr:nth-child(even) td{background:#F8FAFC}
+  .totals{margin-top:0;border:1px solid #DDE4EE;border-top:none}
+  .totals tr td{padding:5px 10px;font-size:10pt}
+  .totals tr.final td{background:#0D3B6E;color:#fff;font-size:12pt;font-weight:900;padding:9px 10px}
+  .notes{background:#F8FAFC;border-left:3px solid #F5831F;padding:10px 14px;font-size:9pt;color:#444;margin-top:16px;border-radius:0 6px 6px 0}
+  .payment{margin-top:12px;font-size:9pt;color:#555}
+  .footer{position:fixed;bottom:20px;left:36px;right:36px;border-top:1px solid #DDE4EE;padding-top:8px;font-size:7.5pt;color:#999;display:flex;justify-content:space-between}
+  .legal{font-size:7.5pt;color:#aaa;line-height:1.6;margin-top:20px;padding-top:12px;border-top:1px solid #eee}
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:8pt;font-weight:700}
+  .badge-offen{background:#FEF0E3;color:#F5831F}
+  .badge-bezahlt{background:#ECFDF5;color:#059669}
+  .badge-angenommen{background:#ECFDF5;color:#059669}
+  .badge-abgelehnt{background:#FEF2F2;color:#DC2626}
+  @media print{
+    body{padding:20px 24px}
+    .footer{position:fixed}
+    .no-print{display:none}
+    @page{margin:1.5cm}
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="sender">
+    ${logoHtml}
+    <h1>${cfg.companyName}</h1>
+    <p>${cfg.companyAddress}<br>
+    Tel: ${cfg.companyPhone} &nbsp;|&nbsp; E-Mail: ${cfg.companyEmail}<br>
+    ${cfg.companyHours}</p>
+  </div>
+  <div class="doc-type">
+    <h2>${docTitle}</h2>
+    <div class="nr">${doc.nr}</div>
+    <div style="margin-top:8px">
+      <span class="badge badge-${doc.status.toLowerCase()}">${doc.status.toUpperCase()}</span>
+    </div>
+  </div>
+</div>
+<hr class="divider"/>
+<div class="meta">
+  <div class="meta-block">
+    <label>Empfänger</label>
+    <p style="font-size:12pt;color:#0D3B6E">${doc.client}</p>
+    ${doc.clientAddress?`<p style="font-size:9pt;color:#666;margin-top:2px">${doc.clientAddress}</p>`:""}
+    ${doc.clientEmail?`<p style="font-size:9pt;color:#666">${doc.clientEmail}</p>`:""}
+  </div>
+  <div style="text-align:right">
+    <div class="meta-block" style="margin-bottom:6px">
+      <label>Datum</label><p>${doc.date}</p>
+    </div>
+    ${isAngebot
+      ?`<div class="meta-block"><label>Gültig bis</label><p>${doc.validUntil||"–"}</p></div>`
+      :`<div class="meta-block"><label>Fällig am</label><p>${doc.dueDate||"–"}</p></div>`
+    }
+    ${doc.projId?`<div class="meta-block" style="margin-top:6px"><label>Projekt</label><p>${doc.title}</p></div>`:""}
+  </div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:45%">Beschreibung</th>
+      <th style="text-align:right;width:7%">Menge</th>
+      <th style="width:8%">Einh.</th>
+      <th style="text-align:right;width:12%">Preis €</th>
+      ${vatHeader}
+      <th style="text-align:right;width:13%">Total €</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<table class="totals">
+  <tr><td colspan="2" style="padding-left:10px;color:#666;font-size:9pt">Zwischensumme (netto)</td><td style="text-align:right;padding-right:10px">${netto.toFixed(2)} €</td></tr>
+  ${doc.showVat&&!cfg.vatSmall
+    ?`<tr><td colspan="2" style="padding-left:10px;color:#666;font-size:9pt">MwSt (Ø ${Math.round(vatAmt/netto*100)}%)</td><td style="text-align:right;padding-right:10px">${vatAmt.toFixed(2)} €</td></tr>`
+    :`<tr><td colspan="3" style="padding:4px 10px;font-size:8pt;color:#999">Gemäß §19 UStG wird keine Umsatzsteuer berechnet.</td></tr>`
+  }
+  <tr class="final"><td colspan="2" style="padding-left:10px">GESAMTBETRAG${doc.showVat&&!cfg.vatSmall?" (brutto)":""}</td><td style="text-align:right;padding-right:10px">${brutto.toFixed(2)} €</td></tr>
+</table>
+${doc.paymentTerms?`<p class="payment">💳 ${doc.paymentTerms}</p>`:""}
+${doc.bankName?`<p class="payment">🏦 Bank: ${doc.bankName} &nbsp;|&nbsp; IBAN: ${doc.iban} &nbsp;|&nbsp; BIC: ${doc.bic}</p>`:""}
+${doc.notes?`<div class="notes">📝 ${doc.notes}</div>`:""}
+<div class="legal">
+  ${cfg.companyName} &nbsp;|&nbsp; ${cfg.companyAddress} &nbsp;|&nbsp;
+  ${cfg.taxId?`USt-IdNr.: ${cfg.taxId} &nbsp;|&nbsp;`:""}
+  ${cfg.hrb?`${cfg.court}: ${cfg.hrb} &nbsp;|&nbsp;`:""}
+  ${cfg.bankName?`IBAN: ${cfg.iban}`:""}
+</div>
+<div class="footer">
+  <span>${cfg.companyName} · ${cfg.companyAddress}</span>
+  <span>${doc.nr} · ${doc.date} · Seite 1</span>
+  <span>app.ovivo.io</span>
+</div>
+</body></html>`;
+}
+
 
 export default function App(){
   // ── Session persistence — survive page refresh ──────────────────
@@ -1219,6 +1609,11 @@ export default function App(){
 
   // Partner requests system
   const[partnerRequests,setPartnerRequests]=useState([]);
+  const[clients,setClients]=useState(INIT_CLIENTS);
+  const[mClient,setMClient]=useState(false);
+  const[selClient,setSelClient]=useState(null);
+  const BLANK_CLIENT={name:"",type:"hotel",contact:"",email:"",phone:"",address:"",notes:"",active:true,userId:null};
+  const[fClient,setFClient]=useState(BLANK_CLIENT);
 
   // Material & Machine Requests
   const[matRequests,setMatRequests]=useState([
@@ -1233,16 +1628,46 @@ export default function App(){
 
   // Invoices (Rechnungen)
   const[invoices,setInvoices]=useState([
-    {id:1,nr:"RE-2026-001",projId:1,title:"Trockenbau Bürokomplex Nord",client:"Musterfirma GmbH",date:"05.05.2026",dueDate:"20.05.2026",status:"offen",items:[
-      {desc:"Trockenbau Wand 1 & 2",qty:1,unit:"Pauschale",price:1200,total:1200},
-      {desc:"Trockenbauplatten 40 Stk",qty:40,unit:"Stk",price:8.50,total:340},
-      {desc:"Spachtelmasse 10 Kg",qty:10,unit:"Kg",price:5.80,total:58},
-    ],notes:"Zahlung innerhalb 14 Tagen. Danke!"},
+    {id:1,type:"rechnung",nr:"RE-2026-001",projId:1,partnerId:null,
+     title:"Trockenbau Bürokomplex Nord",
+     client:"Musterfirma GmbH",clientAddress:"Musterstraße 1, 20095 Hamburg",clientEmail:"info@musterfirma.de",
+     date:"05.05.2026",dueDate:"20.05.2026",validUntil:"",
+     status:"offen",
+     items:[
+       {desc:"Trockenbau Wand 1 & 2",qty:1,unit:"Pauschale",price:1200,vat:19,total:1200},
+       {desc:"Trockenbauplatten 40 Stk",qty:40,unit:"Stk",price:8.50,vat:19,total:340},
+       {desc:"Spachtelmasse 10 Kg",qty:10,unit:"Kg",price:5.80,vat:19,total:58},
+     ],
+     notes:"",paymentTerms:"Zahlung innerhalb von 14 Tagen netto.",
+     bankName:"Deutsche Bank",iban:"DE12 3456 7890 1234 5678 90",bic:"DEUTDEDB",
+     showLogo:true,showVat:true},
+    {id:2,type:"angebot",nr:"AN-2026-001",projId:null,partnerId:8,
+     title:"Grundreinigung Hotel Lobby",
+     client:"Hotel Partner",clientAddress:"Hotelstraße 5, 20099 Hamburg",clientEmail:"info@hotel-partner.de",
+     date:"06.05.2026",dueDate:"",validUntil:"20.05.2026",
+     status:"offen",
+     items:[
+       {desc:"Grundreinigung Lobby (inkl. Material)",qty:1,unit:"Pauschale",price:480,vat:19,total:480},
+       {desc:"Fensterreinigung Erdgeschoss",qty:12,unit:"Stk",price:15,vat:19,total:180},
+     ],
+     notes:"Angebot freibleibend.",paymentTerms:"Zahlung innerhalb von 10 Tagen netto.",
+     bankName:"Deutsche Bank",iban:"DE12 3456 7890 1234 5678 90",bic:"DEUTDEDB",
+     showLogo:true,showVat:true},
   ]);
   const[mInvoice,setMInvoice]=useState(false);
   const[selInvoice,setSelInvoice]=useState(null);
   const[editInvoice,setEditInvoice]=useState(null);
-  const BLANK_INVOICE={nr:"",projId:null,title:"",client:"Musterfirma GmbH",date:new Date().toLocaleDateString("de-DE"),dueDate:"",status:"offen",items:[{desc:"",qty:1,unit:"Stk",price:0,total:0}],notes:""};
+  const BLANK_INVOICE={
+    type:"rechnung", // rechnung | angebot
+    nr:"",projId:null,partnerId:null,title:"",
+    client:"",clientAddress:"",clientEmail:"",
+    date:new Date().toLocaleDateString("de-DE"),dueDate:"",validUntil:"",
+    status:"offen",  // offen|bezahlt|storniert|entwurf (angebot: offen|angenommen|abgelehnt)
+    items:[{desc:"",qty:1,unit:"Stk",price:0,vat:19,total:0}],
+    notes:"",paymentTerms:"Zahlung innerhalb von 14 Tagen netto.",
+    bankName:"",iban:"",bic:"",
+    showLogo:true,showVat:true,
+  };
   const[mApprove,setMApprove]=useState(null); // request to approve
   const[fApprove,setFApprove]=useState({responsibleId:3,editableBy:[],visibleTo:[],rejectReason:""});
   const[mPartnerRepair,setMPartnerRepair]=useState(false); // partner repair request modal
@@ -1637,6 +2062,8 @@ export default function App(){
   if(!isPartner(cu)&&hasPerm(cu,"reports"))   NAV.push({id:"reports",  icon:"📋",label:"Berichte"});
   if(!isPartner(cu)&&(isRoot(cu)||hasPerm(cu,"orders"))) NAV.push({id:"orders",icon:"🛒",label:"Bestellungen",badge:isRoot(cu)?matRequests.filter(r=>r.status==="ausstehend").length||undefined:matRequests.filter(r=>r.requestedBy===cu.id&&r.status==="ausstehend").length||undefined});
   if(isRoot(cu))                              NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
+  if(isRoot(cu))                              NAV.push({id:"angebote",  icon:"📋",label:"Angebote"});
+  if(isRoot(cu))                              NAV.push({id:"kunden",    icon:"🤝",label:"Kunden"});
   NAV.push({id:"support",icon:"❓",label:"Support"});
   const navItems=isPartner(cu)
     ?[{id:"dashboard",label:"Home"},{id:"projects",label:"Projekte"},{id:"messages",label:"Chat",badge:unread},{id:"support",label:"Hilfe"}]
@@ -3528,32 +3955,85 @@ export default function App(){
           {tab==="users"&&isRoot(cu)&&(
             <div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
-                <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Mitarbeiterverwaltung</h1>
+                <div>
+                  <h1 style={{fontSize:mob?18:20,fontWeight:800}}>Mitarbeiterverwaltung</h1>
+                  <p style={{color:C.sub,fontSize:12,marginTop:2}}>{users.filter(u=>u.active).length} aktive Mitarbeiter · Klicke auf 🔐 um Berechtigungen zu bearbeiten</p>
+                </div>
                 <button className="bo" onClick={()=>{setFUser(BLANK_USER);setMUser("new");}}>+ Mitarbeiter hinzufügen</button>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:9}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:10}}>
                 {users.map(u=>(
-                  <div key={u.id} className="ch" style={{background:"#fff",borderRadius:10,padding:13,border:`1px solid ${C.border}`,opacity:u.active?1:.6}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                      <Av u={u} size={36}/><div style={{flex:1}}><div style={{fontWeight:700,fontSize:14}}>{u.name}</div><RB role={u.role}/></div>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:u.active?"#10B981":"#D1D5DB"}}/>
-                    </div>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}><Tag>{u.dept}</Tag><Tag bg="#F9FAFB" color={C.sub}>{u.entity}</Tag></div>
-                    <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",marginBottom:8,border:`1px solid ${C.border}`}}>
-                      <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:4}}>BERECHTIGUNGEN</div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                        {isRoot(u)?<span style={{background:C.orangeLight,color:C.orange,borderRadius:4,padding:"1px 5px",fontSize:10,fontWeight:700}}>👑 Vollzugriff</span>
-                        :ALL_PERMS.map(p=>(
-                          <span key={p.key} title={p.label} style={{background:u.perms?.[p.key]?C.greenL:C.redL,color:u.perms?.[p.key]?C.green:C.red,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:600}}>
-                            {u.perms?.[p.key]?"✓":"✗"} {p.icon}
-                          </span>
-                        ))}
+                  <div key={u.id} style={{background:"#fff",borderRadius:12,padding:14,border:`1.5px solid ${u.active?C.border:"#FECACA"}`,opacity:u.active?1:.7,boxShadow:"0 2px 8px rgba(13,59,110,.05)"}}>
+                    {/* Header */}
+                    <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:10}}>
+                      <Av u={u} size={40}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontWeight:800,fontSize:14,marginBottom:3}}>{u.name}</div>
+                        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}><RB role={u.role}/><Tag bg="#F9FAFB" color={C.sub}>{u.dept}</Tag></div>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                        <div style={{width:10,height:10,borderRadius:"50%",background:u.active?"#10B981":"#D1D5DB"}}/>
+                        <div style={{fontSize:9,color:C.sub}}>{u.active?"Online":"Inaktiv"}</div>
                       </div>
                     </div>
-                    <div style={{display:"flex",gap:5}}>
-                      <button onClick={()=>{setFUser({...u});setMUser(u);}} style={{flex:1,background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"5px",fontSize:11,fontWeight:600}}>✏ Bearbeiten</button>
-                      <button onClick={()=>setUsers(p=>p.map(x=>x.id===u.id?{...x,active:!x.active}:x))} style={{flex:1,background:u.active?C.redL:C.greenL,color:u.active?C.red:C.green,border:`1px solid ${u.active?"#FECACA":"#6EE7B7"}`,borderRadius:7,padding:"5px",fontSize:11,fontWeight:600}}>
-                        {u.active?"Deaktivieren":"Aktivieren"}
+
+                    {/* Permissions visual — grouped */}
+                    {!isRoot(u)&&(
+                      <div style={{background:C.bg,borderRadius:9,padding:"9px 11px",marginBottom:10,border:`1px solid ${C.border}`}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
+                          <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:".5px"}}>BERECHTIGUNGEN</div>
+                          <div style={{fontSize:11,color:C.sub}}>
+                            <span style={{fontWeight:700,color:C.green}}>{ALL_PERMS.filter(p=>u.perms?.[p.key]).length}</span>
+                            <span style={{color:C.sub}}> / {ALL_PERMS.length} aktiv</span>
+                          </div>
+                        </div>
+                        {["Arbeit","Kommunikation","Planung","Verwaltung"].map(group=>{
+                          const gPerms=ALL_PERMS.filter(p=>p.group===group);
+                          return(
+                            <div key={group} style={{marginBottom:5}}>
+                              <div style={{fontSize:9,color:C.sub,marginBottom:3}}>{group}</div>
+                              <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                                {gPerms.map(p=>(
+                                  <div key={p.key} title={p.label}
+                                    style={{display:"flex",alignItems:"center",gap:2,
+                                      background:u.perms?.[p.key]?"#F0FDF4":"#FFF5F5",
+                                      border:`1px solid ${u.perms?.[p.key]?"#86EFAC":"#FCA5A5"}`,
+                                      borderRadius:5,padding:"2px 6px"}}>
+                                    <span style={{fontSize:11}}>{p.icon}</span>
+                                    <span style={{fontSize:9,fontWeight:600,color:u.perms?.[p.key]?C.green:C.red}}>
+                                      {u.perms?.[p.key]?"✓":"✗"}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {isRoot(u)&&(
+                      <div style={{background:C.orangeLight,borderRadius:9,padding:"8px 11px",marginBottom:10,border:`1px solid #FDE68A`,textAlign:"center"}}>
+                        <span style={{color:C.orange,fontWeight:700,fontSize:12}}>👑 Administrator — Vollzugriff auf alle Bereiche</span>
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div style={{display:"flex",gap:6}}>
+                      {!isRoot(u)&&<button onClick={()=>setMQuickPerm({...u})}
+                        style={{flex:1,background:"linear-gradient(135deg,#0D3B6E,#1A5C9A)",color:"#fff",
+                          border:"none",borderRadius:8,padding:"7px",fontSize:12,fontWeight:700,cursor:"pointer",
+                          display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                        🔐 Berechtigungen
+                      </button>}
+                      <button onClick={()=>{setFUser({...u});setMUser(u);}}
+                        style={{flex:1,background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                        ✏ Bearbeiten
+                      </button>
+                      <button onClick={()=>setUsers(p=>p.map(x=>x.id===u.id?{...x,active:!x.active}:x))}
+                        style={{background:u.active?C.redL:C.greenL,color:u.active?C.red:C.green,
+                          border:`1px solid ${u.active?"#FECACA":"#6EE7B7"}`,borderRadius:8,
+                          padding:"7px 10px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                        {u.active?"⏸":"▶"}
                       </button>
                     </div>
                   </div>
@@ -3601,13 +4081,47 @@ export default function App(){
           {/* ══ RECHNUNGEN ══ */}
           {tab==="rechnungen"&&isRoot(cu)&&(
             <RechnungenTab
-              cu={cu} projs={projs}
-              invoices={invoices} setInvoices={setInvoices}
+              cu={cu} projs={projs} clients={clients}
+              invoices={invoices.filter(i=>i.type==="rechnung"||!i.type)}
+              setInvoices={setInvoices}
               mInvoice={mInvoice} setMInvoice={setMInvoice}
               selInvoice={selInvoice} setSelInvoice={setSelInvoice}
               editInvoice={editInvoice} setEditInvoice={setEditInvoice}
               BLANK_INVOICE={BLANK_INVOICE} mob={mob} isRoot={isRoot}
               APP_CONFIG={APP_CONFIG} C={C} Lbl={Lbl} Inp={Inp} Sel={Sel} Txt={Txt}
+              docType="rechnung"
+            />
+          )}
+          {/* ══ ANGEBOTE ══ */}
+          {tab==="angebote"&&isRoot(cu)&&(
+            <RechnungenTab
+              cu={cu} projs={projs} clients={clients}
+              invoices={invoices.filter(i=>i.type==="angebot")}
+              setInvoices={setInvoices}
+              mInvoice={mInvoice} setMInvoice={setMInvoice}
+              selInvoice={selInvoice} setSelInvoice={setSelInvoice}
+              editInvoice={editInvoice} setEditInvoice={setEditInvoice}
+              BLANK_INVOICE={{...BLANK_INVOICE,type:"angebot",nr:"AN-2026-001",status:"offen"}}
+              mob={mob} isRoot={isRoot}
+              APP_CONFIG={APP_CONFIG} C={C} Lbl={Lbl} Inp={Inp} Sel={Sel} Txt={Txt}
+              docType="angebot"
+            />
+          )}
+          {/* ══ KUNDEN ══ */}
+          {tab==="kunden"&&isRoot(cu)&&(
+            <KundenTab
+              cu={cu} clients={clients} setClients={setClients}
+              users={users} setUsers={setUsers}
+              invoices={invoices}
+              projs={projs} repairs={repairs}
+              partnerRequests={partnerRequests}
+              mClient={mClient} setMClient={setMClient}
+              selClient={selClient} setSelClient={setSelClient}
+              fClient={fClient} setFClient={setFClient}
+              BLANK_CLIENT={BLANK_CLIENT}
+              mob={mob} isRoot={isRoot}
+              APP_CONFIG={APP_CONFIG} C={C} Lbl={Lbl} Inp={Inp} Sel={Sel} Txt={Txt} Av={Av}
+              setTab={setTab}
             />
           )}
           {tab==="support"&&(
@@ -4267,54 +4781,100 @@ export default function App(){
       </Modal>}
 
       {/* QUICK PERMISSIONS MODAL */}
-      {mQuickPerm&&isRoot(cu)&&<Modal title={`🔐 Berechtigungen: ${mQuickPerm.name}`} onClose={()=>setMQuickPerm(null)} w={460}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"9px 12px",background:ROLE_CFG[mQuickPerm.role]?.bg,borderRadius:9,border:`1px solid ${C.border}`}}>
-          <Av u={mQuickPerm} size={38}/>
-          <div>
-            <div style={{fontWeight:700,fontSize:14}}>{mQuickPerm.name}</div>
-            <div style={{display:"flex",gap:5,marginTop:3}}><RB role={mQuickPerm.role}/><Tag bg="#F9FAFB" color={C.sub}>{mQuickPerm.dept}</Tag></div>
+      {mQuickPerm&&isRoot(cu)&&<Modal title={`🔐 Berechtigungen: ${mQuickPerm.name}`} onClose={()=>setMQuickPerm(null)} w={500}>
+        {/* User info */}
+        <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:16,padding:"11px 14px",
+          background:ROLE_CFG[mQuickPerm.role]?.bg,borderRadius:10,border:`1px solid ${C.border}`}}>
+          <Av u={mQuickPerm} size={42}/>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:15}}>{mQuickPerm.name}</div>
+            <div style={{display:"flex",gap:5,marginTop:4}}><RB role={mQuickPerm.role}/><Tag bg="#F9FAFB" color={C.sub}>{mQuickPerm.dept}</Tag></div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:10,color:C.sub,marginBottom:2}}>AKTIVE BEREICHE</div>
+            <div style={{fontSize:22,fontWeight:900,color:C.green}}>
+              {ALL_PERMS.filter(p=>mQuickPerm.perms?.[p.key]).length}
+              <span style={{fontSize:12,color:C.sub,fontWeight:400}}> / {ALL_PERMS.length}</span>
+            </div>
           </div>
         </div>
-        <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:8}}>ZUGRIFF AUF BEREICHE — Antippen zum Umschalten:</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
-          {ALL_PERMS.map(p=>{
-            const on=mQuickPerm.perms?.[p.key];
-            return(
-              <div key={p.key} onClick={()=>setMQuickPerm(v=>({...v,perms:{...v.perms,[p.key]:!on}}))}
-                style={{display:"flex",alignItems:"center",gap:8,padding:"9px 11px",borderRadius:8,
-                  background:on?C.greenL:C.redL,border:`1.5px solid ${on?"#6EE7B7":"#FECACA"}`,cursor:"pointer",transition:"all .15s"}}>
-                <span style={{fontSize:16}}>{p.icon}</span>
-                <span style={{fontSize:12,fontWeight:600,color:on?C.green:C.red,flex:1}}>{p.label}</span>
-                <span style={{fontSize:14,fontWeight:800,color:on?C.green:C.red}}>{on?"✓":"✗"}</span>
-              </div>
-            );
-          })}
-        </div>
-        {/* Preset buttons */}
-        <div style={{background:C.bg,borderRadius:8,padding:"9px 11px",marginBottom:13,border:`1px solid ${C.border}`}}>
-          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:6}}>SCHNELL-VORLAGEN</div>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+
+        {/* Vorlagen */}
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,letterSpacing:".5px",marginBottom:7}}>SCHNELL-VORLAGEN</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
             {[
-              {l:"Vollzugriff",p:FULL,c:C.orange},
-              {l:"Standard MA",p:DEF,c:C.navy},
-              {l:"Nur Aufträge",p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),repairs:true,messages:true},c:C.sub},
-              {l:"Nur Lesen",p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),messages:true},c:"#888"},
+              {l:"👑 Vollzugriff",  p:FULL,  c:C.orange, desc:"Alle Bereiche"},
+              {l:"👤 Standard MA",  p:DEF,   c:C.navy,   desc:"Aufträge + Projekte"},
+              {l:"🔧 Nur Aufträge", p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),repairs:true,messages:true,tasks:true}, c:"#6366f1", desc:"Minimal"},
+              {l:"📅 Vorarbeiter",  p:{...DEF,scheduleEdit:true,reports:true,orders:true,ordersCreate:true}, c:"#0891B2", desc:"+ Schichtplan"},
+              {l:"📖 Nur Lesen",    p:{...ALL_PERMS.reduce((a,x)=>({...a,[x.key]:false}),{}),messages:true,feed:true}, c:C.sub, desc:"Beobachter"},
             ].map(t=>(
               <button key={t.l} onClick={()=>setMQuickPerm(v=>({...v,perms:t.p}))}
-                style={{background:"#fff",color:t.c,border:`1.5px solid ${t.c}33`,borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                style={{background:"#fff",color:t.c,border:`1.5px solid ${t.c}44`,borderRadius:8,
+                  padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",transition:"all .15s",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
                 {t.l}
+                <span style={{fontSize:9,color:C.sub,fontWeight:400}}>{t.desc}</span>
               </button>
             ))}
           </div>
         </div>
-        <div style={{display:"flex",gap:7}}>
-          <button className="bgr" onClick={()=>{
+
+        {/* Grouped permissions */}
+        {["Arbeit","Kommunikation","Planung","Verwaltung"].map(group=>{
+          const groupPerms=ALL_PERMS.filter(p=>p.group===group);
+          const allOn=groupPerms.every(p=>mQuickPerm.perms?.[p.key]);
+          const someOn=groupPerms.some(p=>mQuickPerm.perms?.[p.key]);
+          return(
+            <div key={group} style={{marginBottom:12}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.navy,letterSpacing:".3px"}}>{group.toUpperCase()}</div>
+                <button onClick={()=>{
+                  const newVal=!allOn;
+                  const update=groupPerms.reduce((a,p)=>({...a,[p.key]:newVal}),{});
+                  setMQuickPerm(v=>({...v,perms:{...v.perms,...update}}));
+                }} style={{background:allOn?C.greenL:someOn?C.yellowL:C.redL,
+                  color:allOn?C.green:someOn?C.yellow:C.red,
+                  border:"none",borderRadius:5,padding:"2px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>
+                  {allOn?"✓ Alle an":someOn?"◐ Teils":"✗ Alle aus"}
+                </button>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
+                {groupPerms.map(p=>{
+                  const on=mQuickPerm.perms?.[p.key];
+                  return(
+                    <div key={p.key} onClick={()=>setMQuickPerm(v=>({...v,perms:{...v.perms,[p.key]:!on}}))}
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"9px 11px",borderRadius:8,
+                        background:on?"#F0FDF4":"#FFF5F5",
+                        border:`1.5px solid ${on?"#86EFAC":"#FCA5A5"}`,
+                        cursor:"pointer",transition:"all .12s",userSelect:"none"}}>
+                      <span style={{fontSize:17}}>{p.icon}</span>
+                      <span style={{fontSize:12,fontWeight:600,flex:1,
+                        color:on?"#15803D":"#DC2626"}}>{p.label}</span>
+                      <div style={{width:22,height:22,borderRadius:"50%",
+                        background:on?C.green:C.red,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        flexShrink:0}}>
+                        <span style={{color:"#fff",fontSize:12,fontWeight:800}}>{on?"✓":"✗"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Save */}
+        <div style={{display:"flex",gap:7,marginTop:6}}>
+          <button className="bgr" style={{flex:1,padding:"11px",fontSize:13,fontWeight:700}} onClick={()=>{
             setUsers(p=>p.map(u=>u.id===mQuickPerm.id?{...u,perms:mQuickPerm.perms}:u));
             addNotif(mQuickPerm.id,"perm_update","🔐 Ihre Berechtigungen wurden aktualisiert",
               `${cu.name} hat Ihre Zugriffsrechte angepasst.`);
             setMQuickPerm(null);
-          }} style={{flex:1,padding:"10px",fontSize:13}}>💾 Speichern & Benachrichtigen</button>
-          <button className="bg" onClick={()=>setMQuickPerm(null)}>Abbrechen</button>
+          }}>💾 Speichern & Mitarbeiter benachrichtigen</button>
+          <button className="bg" style={{padding:"11px 16px"}} onClick={()=>setMQuickPerm(null)}>✕</button>
         </div>
       </Modal>}
 
