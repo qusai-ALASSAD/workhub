@@ -2968,13 +2968,18 @@ export default function App(){
             )}
             {editMode&&(
               <>
-                {dirty&&<button onClick={saveEdit}
-                  style={{background:C.green,color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#fff" strokeWidth="2"/><path d="M17 21v-8H7v8M7 3v5h8" stroke="#fff" strokeWidth="2"/></svg>
-                  Speichern
-                </button>}
+                <button onClick={saveEdit}
+                  style={{background:dirty?C.green:"#64748B",color:"#fff",border:"none",
+                    borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,
+                    cursor:"pointer",display:"flex",alignItems:"center",gap:5,
+                    boxShadow:dirty?"0 2px 8px rgba(16,185,129,.4)":"none",
+                    transition:"all .15s"}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#fff" strokeWidth="2.2"/><path d="M17 21v-8H7v8M7 3v5h8" stroke="#fff" strokeWidth="2"/></svg>
+                  {dirty?"✓ Speichern":"Speichern"}
+                </button>
                 <button onClick={discardEdit}
-                  style={{background:"#fff",color:C.sub,border:`1px solid ${C.border}`,borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer"}}>
+                  style={{background:"#fff",color:C.sub,border:`1px solid ${C.border}`,
+                    borderRadius:7,padding:"6px 10px",fontSize:11,cursor:"pointer",fontWeight:600}}>
                   Abbrechen
                 </button>
               </>
