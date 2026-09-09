@@ -639,223 +639,471 @@ const NavIcon=({id,active})=>{
 function KundenTab({cu,clients,setClients,users,setUsers,invoices,projs,repairs,partnerRequests,
   mClient,setMClient,selClient,setSelClient,fClient,setFClient,BLANK_CLIENT,
   mob,isRoot,APP_CONFIG,C,Lbl,Inp,Sel,Txt,Av,setTab}){
-  const CLIENT_TYPES=[["hotel","🏨 Hotel"],["office","🏢 Büro/Unternehmen"],["school","🏫 Schule"],["hospital","🏥 Klinik"],["retail","🏪 Einzelhandel"],["other","🤝 Sonstiges"]];
+
+  const CLIENT_TYPES=[
+    ["hotel","🏨","Hotel"],
+    ["office","🏢","Büro"],
+    ["school","🏫","Schule"],
+    ["hospital","🏥","Klinik"],
+    ["retail","🏪","Einzelhandel"],
+    ["other","🤝","Sonstiges"],
+  ];
+  const TYPE_COLORS={
+    hotel:{bg:"#EFF6FF",color:"#1D4ED8"},
+    office:{bg:"#F0FDF4",color:"#15803D"},
+    school:{bg:"#FFF7ED",color:"#C2410C"},
+    hospital:{bg:"#FDF4FF",color:"#7C3AED"},
+    retail:{bg:"#FFFBEB",color:"#92400E"},
+    other:{bg:C.navyLight,color:C.navy},
+  };
+
+  // Email invite template
+  const buildInviteEmail=(client,user,pin)=>`
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8">
+<style>
+  body{font-family:'Helvetica Neue',Arial,sans-serif;background:#F8FAFC;margin:0;padding:30px}
+  .card{background:#fff;border-radius:16px;max-width:520px;margin:0 auto;
+    box-shadow:0 4px 20px rgba(13,59,110,.1);overflow:hidden}
+  .header{background:linear-gradient(135deg,#0D3B6E,#1A5C9A);padding:28px 32px;text-align:center}
+  .header img{width:60px;height:60px;object-fit:contain;display:block;margin:0 auto 12px}
+  .header h1{color:#fff;font-size:20px;font-weight:900;margin:0}
+  .header p{color:rgba(255,255,255,.75);font-size:13px;margin:6px 0 0}
+  .body{padding:28px 32px}
+  .greeting{font-size:16px;font-weight:700;color:#0D3B6E;margin-bottom:10px}
+  .text{font-size:14px;color:#555;line-height:1.7;margin-bottom:20px}
+  .creds{background:linear-gradient(135deg,#F8FAFF,#EEF4FF);border:1.5px solid #C7D7F5;
+    border-radius:12px;padding:20px 24px;margin-bottom:20px}
+  .creds-title{font-size:11px;font-weight:700;color:#7C93B8;letter-spacing:.7px;
+    text-transform:uppercase;margin-bottom:12px}
+  .cred-row{display:flex;align-items:center;gap:10;margin-bottom:10px}
+  .cred-label{font-size:12px;color:#888;width:80px;flex-shrink:0}
+  .cred-value{font-size:16px;font-weight:900;color:#0D3B6E;font-family:monospace;
+    background:#fff;border:1px solid #DDE4EE;border-radius:7px;padding:6px 14px;letter-spacing:2px}
+  .url{background:#0D3B6E;color:#fff;border-radius:9px;padding:12px 20px;
+    text-align:center;font-size:14px;font-weight:700;margin-bottom:16px}
+  .url a{color:#F5831F;text-decoration:none}
+  .note{background:#FFFBEB;border-left:3px solid #F5831F;border-radius:0 7px 7px 0;
+    padding:10px 14px;font-size:12px;color:#78350F;margin-bottom:20px}
+  .footer{background:#F1F5F9;padding:16px 32px;text-align:center;
+    font-size:11px;color:#94A3B8}
+</style>
+</head><body>
+<div class="card">
+  <div class="header">
+    ${APP_CONFIG.logoImg?`<img src="${APP_CONFIG.logoImg}" alt=""/>`:""}
+    <h1>${APP_CONFIG.companyName}</h1>
+    <p>Kunden-Portal Zugang</p>
+  </div>
+  <div class="body">
+    <div class="greeting">Willkommen, ${user.name}! 👋</div>
+    <div class="text">
+      Sie wurden als Kunde von <strong>${APP_CONFIG.companyName}</strong> eingerichtet
+      und haben jetzt Zugang zu Ihrem persönlichen Kunden-Portal.<br><br>
+      Im Portal können Sie Ihre Projekte verfolgen, Anfragen stellen und
+      Rechnungen & Angebote einsehen.
+    </div>
+    <div class="creds">
+      <div class="creds-title">🔐 Ihre Zugangsdaten</div>
+      <div class="cred-row">
+        <span class="cred-label">Benutzername</span>
+        <span class="cred-value">${user.name}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">PIN / Passwort</span>
+        <span class="cred-value">${pin}</span>
+      </div>
+    </div>
+    <div class="url">
+      🌐 Portal: <a href="https://${APP_CONFIG.supportUrl||"app.ovivo.io"}">${APP_CONFIG.supportUrl||"app.ovivo.io"}</a>
+    </div>
+    <div class="note">
+      🔒 Bitte ändern Sie Ihren PIN beim ersten Login oder teilen Sie ihn
+      mit niemandem. Bei Fragen wenden Sie sich an uns.
+    </div>
+    <div class="text" style="margin-bottom:0">
+      Bei Fragen erreichen Sie uns unter:<br>
+      📞 ${APP_CONFIG.companyPhone} &nbsp;|&nbsp; ✉ ${APP_CONFIG.companyEmail}
+    </div>
+  </div>
+  <div class="footer">
+    ${APP_CONFIG.companyName} · ${APP_CONFIG.companyAddress}<br>
+    Diese E-Mail wurde automatisch generiert über das WorkHub-System.
+  </div>
+</div>
+</body></html>`;
 
   return(
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
         <div>
           <h1 style={{fontSize:mob?18:22,fontWeight:800,marginBottom:3}}>🤝 Kunden & Partner</h1>
-          <p style={{color:C.sub,fontSize:12}}>Externe Kunden mit eigenem Zugang — isoliert vom internen System</p>
+          <p style={{color:C.sub,fontSize:12}}>Externe Kunden mit eigenem Portal-Zugang</p>
         </div>
-        <button className="bo" style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",fontSize:13,fontWeight:700,borderRadius:10}}
+        <button className="bo" style={{padding:"9px 16px",fontSize:13,fontWeight:700,borderRadius:10}}
           onClick={()=>{setFClient({...BLANK_CLIENT});setMClient(true);}}>
           + Neuer Kunde
         </button>
       </div>
 
       {/* KPI strip */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:16}}>
         {[
-          [clients.length,"Kunden gesamt","🤝",C.navy,C.navyLight],
-          [clients.filter(c=>c.active).length,"Aktiv","✅",C.green,C.greenL],
+          [clients.length,"Kunden","🤝",C.navy,C.navyLight],
+          [clients.filter(c=>c.active).length,"Aktiv","✅",C.green,"#F0FDF4"],
           [clients.filter(c=>c.userId).length,"Mit Zugang","🔐",C.orange,C.orangeLight],
           [invoices.filter(i=>clients.some(c=>c.id===i.partnerId)).length,"Dokumente","📄","#6366f1","#EEF2FF"],
         ].map(([v,l,ic,col,bg])=>(
-          <div key={l} style={{background:bg,border:`1px solid ${col}22`,borderRadius:10,padding:"12px 14px",textAlign:"center"}}>
-            <div style={{fontSize:20,marginBottom:4}}>{ic}</div>
-            <div style={{fontSize:22,fontWeight:900,color:col}}>{v}</div>
-            <div style={{fontSize:11,color:C.sub,fontWeight:600}}>{l}</div>
+          <div key={l} style={{background:bg,border:`1px solid ${col}22`,borderRadius:10,padding:"11px 14px",textAlign:"center"}}>
+            <div style={{fontSize:18,marginBottom:3}}>{ic}</div>
+            <div style={{fontSize:20,fontWeight:900,color:col}}>{v}</div>
+            <div style={{fontSize:10,color:C.sub,fontWeight:600}}>{l}</div>
           </div>
         ))}
       </div>
 
       {/* Client cards */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:12}}>
         {clients.map(client=>{
-          const typeLabel=CLIENT_TYPES.find(t=>t[0]===client.type);
+          const typeInfo=CLIENT_TYPES.find(t=>t[0]===client.type)||["other","🤝","Sonstiges"];
+          const tColors=TYPE_COLORS[client.type]||TYPE_COLORS.other;
           const linkedUser=users.find(u=>u.id===client.userId);
           const clientInvoices=invoices.filter(i=>i.partnerId===client.id);
-          const clientProjs=projs.filter(p=>p.partnerIds?.includes(client.id)||linkedUser&&p.team?.includes(linkedUser.id));
+          const clientProjs=projs.filter(p=>p.partnerIds?.includes(client.id)||(linkedUser&&p.team?.includes(linkedUser.id)));
           const clientReqs=partnerRequests.filter(r=>r.createdBy===client.userId);
+
           return(
             <div key={client.id} onClick={()=>setSelClient(client)}
-              style={{background:"#fff",borderRadius:14,border:`1.5px solid ${client.active?C.border:"#FECACA"}`,padding:16,cursor:"pointer",boxShadow:"0 2px 10px rgba(13,59,110,.06)"}}>
-              <div style={{display:"flex",gap:10,marginBottom:10}}>
-                <div style={{width:44,height:44,borderRadius:12,background:C.navyLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
-                  {typeLabel?.[0]||"🤝"}
+              style={{background:"#fff",borderRadius:14,border:`1.5px solid ${client.active?C.border:"#FECACA"}`,
+                overflow:"hidden",cursor:"pointer",
+                boxShadow:"0 2px 12px rgba(13,59,110,.07)",
+                transition:"box-shadow .15s",opacity:client.active?1:.75}}>
+
+              {/* Color bar header */}
+              <div style={{background:tColors.bg,padding:"14px 16px 10px",
+                borderBottom:`1px solid ${tColors.color}22`,
+                display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:40,height:40,borderRadius:10,
+                  background:"#fff",border:`1.5px solid ${tColors.color}33`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:20,flexShrink:0}}>
+                  {typeInfo[1]}
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:14,fontWeight:800,color:C.navy,marginBottom:2}}>{client.name}</div>
-                  <div style={{fontSize:11,color:C.sub}}>{typeLabel?.[1]||client.type}</div>
+                  <div style={{fontSize:14,fontWeight:800,color:"#1a2332",
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    {client.name}
+                  </div>
+                  <div style={{fontSize:11,color:tColors.color,fontWeight:600,marginTop:1}}>
+                    {typeInfo[2]}
+                  </div>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
-                  <span style={{background:client.active?C.greenL:C.redL,color:client.active?C.green:C.red,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>
+                <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0}}>
+                  <span style={{background:client.active?"#DCFCE7":"#FEE2E2",
+                    color:client.active?"#15803D":"#DC2626",
+                    borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>
                     {client.active?"Aktiv":"Inaktiv"}
                   </span>
-                  {linkedUser&&<span style={{background:C.orangeLight,color:C.orange,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>🔐 Zugang</span>}
+                  {linkedUser&&(
+                    <span style={{background:C.orangeLight,color:C.orange,
+                      borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>
+                      🔐 Zugang
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
-                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:C.navy}}>{clientProjs.length}</div>
-                  <div style={{fontSize:9,color:C.sub}}>Projekte</div>
+              {/* Body */}
+              <div style={{padding:"12px 16px"}}>
+                {/* Stats */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:11}}>
+                  {[[clientProjs.length,"Projekte",C.navy],[clientReqs.length,"Anfragen",C.orange],[clientInvoices.length,"Dokumente","#6366f1"]].map(([v,l,col])=>(
+                    <div key={l} style={{background:C.bg,borderRadius:7,padding:"6px 4px",textAlign:"center"}}>
+                      <div style={{fontSize:16,fontWeight:900,color:col}}>{v}</div>
+                      <div style={{fontSize:9,color:C.sub,marginTop:1}}>{l}</div>
+                    </div>
+                  ))}
                 </div>
-                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:C.orange}}>{clientReqs.length}</div>
-                  <div style={{fontSize:9,color:C.sub}}>Anfragen</div>
-                </div>
-                <div style={{background:C.bg,borderRadius:7,padding:"6px 8px",textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:"#6366f1"}}>{clientInvoices.length}</div>
-                  <div style={{fontSize:9,color:C.sub}}>Dokumente</div>
-                </div>
-              </div>
 
-              <div style={{fontSize:11,color:C.sub}}>
-                {client.contact&&<div>👤 {client.contact}</div>}
-                {client.email&&<div>✉ {client.email}</div>}
-                {client.phone&&<div>📞 {client.phone}</div>}
+                {/* Contact info */}
+                <div style={{fontSize:11,color:"#555",lineHeight:1.9}}>
+                  {client.contact&&<div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <span style={{width:14,textAlign:"center"}}>👤</span>{client.contact}
+                  </div>}
+                  {client.email&&<div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <span style={{width:14,textAlign:"center"}}>✉</span>{client.email}
+                  </div>}
+                  {client.phone&&<div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <span style={{width:14,textAlign:"center"}}>📞</span>{client.phone}
+                  </div>}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Client detail modal */}
-      {selClient&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:mob?"flex-end":"center",justifyContent:"center",padding:mob?0:16}} onClick={()=>setSelClient(null)}>
-          <div style={{background:"#fff",borderRadius:mob?"18px 18px 0 0":"18px",width:"100%",maxWidth:560,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-              <div style={{fontSize:16,fontWeight:800}}>{selClient.name}</div>
-              <div style={{display:"flex",gap:7}}>
-                <button className="bp" onClick={()=>{setFClient({...selClient});setSelClient(null);setMClient(true);}} style={{padding:"5px 11px",fontSize:12}}>✏ Bearbeiten</button>
-                <button onClick={()=>setSelClient(null)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
-              </div>
-            </div>
+      {/* ── Client detail modal ── */}
+      {selClient&&(()=>{
+        const lu=users.find(u=>u.id===selClient.userId);
+        const tInfo=CLIENT_TYPES.find(t=>t[0]===selClient.type)||["other","🤝","Sonstiges"];
+        return(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,
+            display:"flex",alignItems:mob?"flex-end":"center",justifyContent:"center",
+            padding:mob?0:16}} onClick={()=>setSelClient(null)}>
+            <div style={{background:"#fff",borderRadius:mob?"18px 18px 0 0":"18px",width:"100%",
+              maxWidth:540,maxHeight:"92vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
 
-            {/* Info */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
-              {[
-                ["Typ",CLIENT_TYPES.find(t=>t[0]===selClient.type)?.[1]||selClient.type],
-                ["Status",selClient.active?"✅ Aktiv":"❌ Inaktiv"],
-                ["Kontakt",selClient.contact||"–"],
-                ["E-Mail",selClient.email||"–"],
-                ["Telefon",selClient.phone||"–"],
-                ["Adresse",selClient.address||"–"],
-              ].map(([k,v])=>(
-                <div key={k} style={{background:C.bg,borderRadius:7,padding:"7px 10px"}}>
-                  <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:1}}>{k.toUpperCase()}</div>
-                  <div style={{fontSize:12,fontWeight:600}}>{v}</div>
+              {/* Modal header */}
+              <div style={{background:`linear-gradient(135deg,#0D3B6E,#1A5C9A)`,
+                padding:"18px 20px",borderRadius:mob?"18px 18px 0 0":"18px 18px 0 0",
+                display:"flex",gap:12,alignItems:"center"}}>
+                <div style={{width:46,height:46,borderRadius:12,background:"rgba(255,255,255,.15)",
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>
+                  {tInfo[1]}
                 </div>
-              ))}
-            </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:17,fontWeight:800,color:"#fff"}}>{selClient.name}</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,.7)",marginTop:2}}>{tInfo[2]}</div>
+                </div>
+                <div style={{display:"flex",gap:7}}>
+                  <button className="bp" onClick={()=>{setFClient({...selClient});setSelClient(null);setMClient(true);}}
+                    style={{padding:"5px 11px",fontSize:12}}>✏ Bearbeiten</button>
+                  <button onClick={()=>setSelClient(null)}
+                    style={{background:"rgba(255,255,255,.15)",border:"none",borderRadius:8,
+                      width:32,height:32,fontSize:16,cursor:"pointer",color:"#fff"}}>✕</button>
+                </div>
+              </div>
 
-            {selClient.notes&&<div style={{background:C.yellowL,border:`1px solid #FDE68A`,borderRadius:9,padding:"8px 12px",fontSize:12,marginBottom:14}}>📝 {selClient.notes}</div>}
+              <div style={{padding:"18px 20px"}}>
+                {/* Info grid */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+                  {[
+                    ["Kontakt",selClient.contact||"–"],
+                    ["E-Mail",selClient.email||"–"],
+                    ["Telefon",selClient.phone||"–"],
+                    ["Adresse",selClient.address||"–"],
+                  ].map(([k,v])=>(
+                    <div key={k} style={{background:C.bg,borderRadius:8,padding:"8px 11px"}}>
+                      <div style={{fontSize:9,color:C.sub,fontWeight:700,marginBottom:2}}>{k.toUpperCase()}</div>
+                      <div style={{fontSize:12,fontWeight:600,wordBreak:"break-all"}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
 
-            {/* Linked user account */}
-            {(()=>{
-              const lu=users.find(u=>u.id===selClient.userId);
-              return(
-                <div style={{background:C.navyLight,borderRadius:10,padding:12,marginBottom:14}}>
-                  <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:8}}>🔐 KUNDEN-ZUGANG</div>
+                {selClient.notes&&(
+                  <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:9,
+                    padding:"9px 12px",fontSize:12,marginBottom:14}}>
+                    📝 {selClient.notes}
+                  </div>
+                )}
+
+                {/* Access section */}
+                <div style={{background:C.navyLight,borderRadius:12,padding:14,marginBottom:14,
+                  border:`1px solid ${C.navy}22`}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.navy,marginBottom:10,
+                    letterSpacing:".3px"}}>🔐 PORTAL-ZUGANG</div>
                   {lu?(
-                    <div style={{display:"flex",gap:9,alignItems:"center"}}>
-                      <Av u={lu} size={32}/>
-                      <div>
-                        <div style={{fontSize:12,fontWeight:700}}>{lu.name}</div>
-                        <div style={{fontSize:11,color:C.sub}}>PIN: {lu.pin} · {lu.role}</div>
+                    <div>
+                      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+                        <Av u={lu} size={36}/>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:13,fontWeight:700}}>{lu.name}</div>
+                          <div style={{fontSize:11,color:C.sub}}>
+                            Benutzername: <b>{lu.name}</b> &nbsp;·&nbsp; PIN: <b style={{fontFamily:"monospace",letterSpacing:2}}>{lu.pin}</b>
+                          </div>
+                        </div>
+                        <span style={{background:"#DCFCE7",color:"#15803D",borderRadius:20,
+                          padding:"3px 10px",fontSize:10,fontWeight:700}}>✓ Aktiv</span>
                       </div>
-                      <span style={{marginLeft:"auto",background:C.greenL,color:C.green,borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>Aktiv</span>
+                      {/* Send email button */}
+                      {selClient.email&&(
+                        <button style={{width:"100%",background:"#fff",border:`1.5px solid ${C.navy}`,
+                          borderRadius:9,padding:"9px",fontSize:12,fontWeight:700,color:C.navy,
+                          cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}
+                          onClick={()=>{
+                            const html=buildInviteEmail(selClient,lu,lu.pin);
+                            const blob=new Blob([html],{type:"text/html"});
+                            const a=document.createElement("a");
+                            a.href=URL.createObjectURL(blob);
+                            a.download=`Einladung_${lu.name.replace(/\s+/g,"_")}.html`;
+                            a.click();
+                          }}>
+                          ✉ Einladungs-E-Mail herunterladen
+                        </button>
+                      )}
                     </div>
                   ):(
-                    <div style={{display:"flex",gap:8,alignItems:"center",justifyContent:"space-between"}}>
-                      <div style={{fontSize:12,color:C.sub}}>Noch kein Zugang erstellt</div>
-                      <button className="bo" style={{padding:"5px 12px",fontSize:11}} onClick={()=>{
-                        const pin=String(Math.floor(1000+Math.random()*9000));
-                        const newUser={id:users.length+1,name:selClient.contact||selClient.name,role:"partner",dept:"Extern",
-                          entity:selClient.name,avatar:(selClient.contact||selClient.name).split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
-                          color:"#6366f1",active:true,pin,perms:{repairs:false,tasks:false,messages:true,feed:false,gallery:false,projects:true,schedule:false,scheduleEdit:false,warehouse:false,reports:false,orders:false,ordersCreate:false}};
-                        setUsers(p=>[...p,newUser]);
-                        setClients(p=>p.map(c=>c.id===selClient.id?{...c,userId:newUser.id}:c));
-                        setSelClient(p=>({...p,userId:newUser.id}));
-                      }}>+ Zugang erstellen</button>
+                    <div style={{textAlign:"center",padding:"8px 0"}}>
+                      <div style={{fontSize:12,color:C.sub,marginBottom:10}}>
+                        Noch kein Zugang erstellt
+                      </div>
+                      <button className="bo" style={{padding:"8px 20px",fontSize:12,fontWeight:700}}
+                        onClick={()=>{
+                          const pin=String(Math.floor(1000+Math.random()*9000));
+                          const dispName=selClient.contact||selClient.name;
+                          const newUser={
+                            id:users.length+1,
+                            name:dispName,
+                            role:"partner",dept:"Extern",
+                            entity:selClient.name,
+                            avatar:dispName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(),
+                            color:"#6366f1",active:true,pin,
+                            perms:{repairs:false,tasks:false,messages:true,feed:false,
+                              gallery:false,projects:true,schedule:false,scheduleEdit:false,
+                              warehouse:false,reports:false,orders:false,ordersCreate:false}
+                          };
+                          setUsers(p=>[...p,newUser]);
+                          setClients(p=>p.map(c=>c.id===selClient.id?{...c,userId:newUser.id}:c));
+                          setSelClient(p=>({...p,userId:newUser.id}));
+                        }}>
+                        🔐 Zugang erstellen
+                      </button>
                     </div>
                   )}
                 </div>
-              );
-            })()}
 
-            {/* Docs */}
-            {invoices.filter(i=>i.partnerId===selClient.id).length>0&&(
-              <div>
-                <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:7}}>DOKUMENTE</div>
-                {invoices.filter(i=>i.partnerId===selClient.id).map(inv=>(
-                  <div key={inv.id} style={{display:"flex",gap:8,alignItems:"center",padding:"8px 10px",background:C.bg,borderRadius:8,marginBottom:5}}>
-                    <span style={{fontSize:13}}>{inv.type==="angebot"?"📋":"🧾"}</span>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:12,fontWeight:700}}>{inv.nr}</div>
-                      <div style={{fontSize:11,color:C.sub}}>{inv.title} · {inv.date}</div>
-                    </div>
-                    <span style={{background:{offen:C.orangeLight,bezahlt:C.greenL,angenommen:C.greenL,abgelehnt:C.redL}[inv.status]||C.bg,
-                      color:{offen:C.orange,bezahlt:C.green,angenommen:C.green,abgelehnt:C.red}[inv.status]||C.sub,
-                      borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>{inv.status}</span>
+                {/* Documents */}
+                {invoices.filter(i=>i.partnerId===selClient.id).length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:11,fontWeight:700,color:C.sub,
+                      letterSpacing:".3px",marginBottom:7}}>DOKUMENTE</div>
+                    {invoices.filter(i=>i.partnerId===selClient.id).map(inv=>(
+                      <div key={inv.id} style={{display:"flex",gap:9,alignItems:"center",
+                        padding:"9px 11px",background:C.bg,borderRadius:9,marginBottom:5,
+                        border:`1px solid ${C.border}`}}>
+                        <span style={{fontSize:16}}>{inv.type==="angebot"?"📋":"🧾"}</span>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:12,fontWeight:700}}>{inv.nr}</div>
+                          <div style={{fontSize:10,color:C.sub}}>{inv.title||inv.client} · {inv.date}</div>
+                        </div>
+                        <span style={{background:{offen:C.orangeLight,bezahlt:"#DCFCE7",
+                          angenommen:"#DCFCE7",abgelehnt:"#FEE2E2"}[inv.status]||C.bg,
+                          color:{offen:C.orange,bezahlt:C.green,angenommen:C.green,
+                            abgelehnt:C.red}[inv.status]||C.sub,
+                          borderRadius:20,padding:"2px 9px",fontSize:10,fontWeight:700}}>
+                          {inv.status}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                <button style={{width:"100%",padding:"9px",borderRadius:9,border:"none",
+                  background:selClient.active?"#FEE2E2":"#DCFCE7",
+                  color:selClient.active?"#DC2626":"#15803D",
+                  fontSize:12,fontWeight:700,cursor:"pointer"}}
+                  onClick={()=>{
+                    setClients(p=>p.map(c=>c.id===selClient.id?{...c,active:!c.active}:c));
+                    setSelClient(null);
+                  }}>
+                  {selClient.active?"⏸ Deaktivieren":"▶ Reaktivieren"}
+                </button>
               </div>
-            )}
-
-            <button className="bdr" style={{width:"100%",padding:"9px",marginTop:12,fontSize:12}}
-              onClick={()=>{setClients(p=>p.map(c=>c.id===selClient.id?{...c,active:!c.active}:c));setSelClient(null);}}>
-              {selClient.active?"⏸ Deaktivieren":"▶ Aktivieren"}
-            </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
-      {/* New/Edit client modal */}
+      {/* ── New/Edit client modal ── */}
       {mClient&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setMClient(false)}>
-          <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:480,maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300,
+          display:"flex",alignItems:"center",justifyContent:"center",padding:16}}
+          onClick={()=>setMClient(false)}>
+          <div style={{background:"#fff",borderRadius:18,width:"100%",maxWidth:480,
+            maxHeight:"92vh",overflowY:"auto",padding:22}} onClick={e=>e.stopPropagation()}>
+
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-              <div style={{fontSize:16,fontWeight:800}}>{fClient.id?"Kunde bearbeiten":"Neuer Kunde"}</div>
-              <button onClick={()=>setMClient(false)} style={{background:C.bg,border:"none",borderRadius:8,width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
+              <div style={{fontSize:16,fontWeight:800}}>
+                {fClient.id?"✏ Kunde bearbeiten":"➕ Neuer Kunde"}
+              </div>
+              <button onClick={()=>setMClient(false)}
+                style={{background:C.bg,border:"none",borderRadius:8,
+                  width:32,height:32,fontSize:16,cursor:"pointer"}}>✕</button>
             </div>
 
-            <div style={{marginBottom:11}}>
+            {/* Type selector */}
+            <div style={{marginBottom:13}}>
               <Lbl>TYP</Lbl>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
-                {CLIENT_TYPES.map(([k,l])=>(
-                  <button key={k} onClick={()=>setFClient(p=>({...p,type:k}))}
-                    style={{padding:"7px 4px",borderRadius:8,border:`1.5px solid ${fClient.type===k?C.navy:C.border}`,
-                      background:fClient.type===k?C.navy:"#fff",color:fClient.type===k?"#fff":C.sub,
-                      fontSize:11,fontWeight:700,cursor:"pointer"}}>
-                    {l}
-                  </button>
-                ))}
+                {CLIENT_TYPES.map(([k,emoji,label])=>{
+                  const tc=TYPE_COLORS[k]||TYPE_COLORS.other;
+                  const sel=fClient.type===k;
+                  return(
+                    <button key={k} onClick={()=>setFClient(p=>({...p,type:k}))}
+                      style={{padding:"8px 4px",borderRadius:9,
+                        border:`1.5px solid ${sel?tc.color:C.border}`,
+                        background:sel?tc.bg:"#fff",
+                        color:sel?tc.color:C.sub,
+                        fontSize:11,fontWeight:700,cursor:"pointer",
+                        display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                      <span style={{fontSize:16}}>{emoji}</span>
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              <div style={{gridColumn:"1/-1"}}><Lbl>FIRMENNAME *</Lbl><Inp value={fClient.name||""} onChange={e=>setFClient(p=>({...p,name:e.target.value}))} placeholder="Hotel Grandeur Hamburg"/></div>
-              <div><Lbl>ANSPRECHPARTNER</Lbl><Inp value={fClient.contact||""} onChange={e=>setFClient(p=>({...p,contact:e.target.value}))} placeholder="Max Müller"/></div>
-              <div><Lbl>E-MAIL</Lbl><Inp type="email" value={fClient.email||""} onChange={e=>setFClient(p=>({...p,email:e.target.value}))} placeholder="info@hotel.de"/></div>
-              <div><Lbl>TELEFON</Lbl><Inp value={fClient.phone||""} onChange={e=>setFClient(p=>({...p,phone:e.target.value}))} placeholder="+49 40 ..."/></div>
-              <div style={{gridColumn:"1/-1"}}><Lbl>ADRESSE</Lbl><Inp value={fClient.address||""} onChange={e=>setFClient(p=>({...p,address:e.target.value}))} placeholder="Straße, PLZ Stadt"/></div>
-              <div style={{gridColumn:"1/-1"}}><Lbl>NOTIZ</Lbl><Txt value={fClient.notes||""} rows={2} onChange={e=>setFClient(p=>({...p,notes:e.target.value}))} placeholder="Vertrag, Besonderheiten..."/></div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              <div style={{gridColumn:"1/-1"}}>
+                <Lbl>FIRMENNAME *</Lbl>
+                <Inp value={fClient.name||""} onChange={e=>setFClient(p=>({...p,name:e.target.value}))}
+                  placeholder="Hotel Grandeur Hamburg"/>
+              </div>
+              <div>
+                <Lbl>ANSPRECHPARTNER</Lbl>
+                <Inp value={fClient.contact||""} onChange={e=>setFClient(p=>({...p,contact:e.target.value}))}
+                  placeholder="Max Müller"/>
+              </div>
+              <div>
+                <Lbl>E-MAIL (FÜR EINLADUNG)</Lbl>
+                <Inp type="email" value={fClient.email||""} onChange={e=>setFClient(p=>({...p,email:e.target.value}))}
+                  placeholder="info@hotel.de"/>
+              </div>
+              <div>
+                <Lbl>TELEFON</Lbl>
+                <Inp value={fClient.phone||""} onChange={e=>setFClient(p=>({...p,phone:e.target.value}))}
+                  placeholder="+49 40 ..."/>
+              </div>
+              <div>
+                <Lbl>BENUTZERNAME (ANZEIGENAME)</Lbl>
+                <Inp value={fClient.displayName||fClient.contact||""} 
+                  onChange={e=>setFClient(p=>({...p,displayName:e.target.value}))}
+                  placeholder={fClient.contact||"Max Müller"}/>
+              </div>
+              <div style={{gridColumn:"1/-1"}}>
+                <Lbl>ADRESSE</Lbl>
+                <Inp value={fClient.address||""} onChange={e=>setFClient(p=>({...p,address:e.target.value}))}
+                  placeholder="Straße, PLZ Stadt"/>
+              </div>
+              <div style={{gridColumn:"1/-1"}}>
+                <Lbl>NOTIZ / INTERNE BEMERKUNG</Lbl>
+                <Txt value={fClient.notes||""} rows={2} onChange={e=>setFClient(p=>({...p,notes:e.target.value}))}
+                  placeholder="Vertrag, Besonderheiten..."/>
+              </div>
             </div>
 
             <div style={{display:"flex",gap:8}}>
-              <button className="bgr" style={{flex:1,padding:"11px",fontSize:13,fontWeight:700}} onClick={()=>{
-                if(!fClient.name?.trim())return;
-                if(fClient.id){
-                  setClients(p=>p.map(c=>c.id===fClient.id?{...c,...fClient}:c));
-                } else {
-                  setClients(p=>[...p,{...fClient,id:p.length+1,active:true}]);
-                }
-                setMClient(false);
-              }}>💾 Speichern</button>
-              <button className="bg" style={{flex:1,padding:"11px"}} onClick={()=>setMClient(false)}>Abbrechen</button>
+              <button className="bgr" style={{flex:1,padding:"11px",fontSize:13,fontWeight:700}}
+                onClick={()=>{
+                  if(!fClient.name?.trim())return;
+                  const dispName=fClient.displayName||fClient.contact||fClient.name;
+                  if(fClient.id){
+                    setClients(p=>p.map(c=>c.id===fClient.id?{...c,...fClient}:c));
+                    // Update linked user name if changed
+                    const lu=users.find(u=>u.id===fClient.userId);
+                    if(lu&&dispName!==lu.name) setUsers(p=>p.map(u=>u.id===lu.id?{...u,name:dispName}:u));
+                  } else {
+                    setClients(p=>[...p,{...fClient,id:p.length+1,active:true}]);
+                  }
+                  setMClient(false);
+                }}>
+                💾 Speichern
+              </button>
+              <button className="bg" style={{flex:1,padding:"11px"}} onClick={()=>setMClient(false)}>
+                Abbrechen
+              </button>
             </div>
           </div>
         </div>
