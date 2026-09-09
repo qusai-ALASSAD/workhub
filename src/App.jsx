@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 // ══════════════════════════════════════════════════════════════════
 const APP_CONFIG = {
   // --- Branding ---
-  appName:    "WorkHub",                 // App name shown everywhere
+  appName:    "ovivo WorkHub-System",    // App name shown everywhere
   appSubtitle:"Facility & Handwerk",     // Subtitle under app name
   logoIcon:   "", logoImg: "/ovivo-logo.svg",                      // Ovivo logo
 
