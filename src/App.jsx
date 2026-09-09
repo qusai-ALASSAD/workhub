@@ -1539,17 +1539,81 @@ function RechnungenTab({cu,projs,clients,invoices,setInvoices,mInvoice,setMInvoi
         </table>
         <button onClick={()=>setEditInvoice(p=>({...p,items:[...p.items,{desc:"",qty:1,unit:"Stk",price:0,total:0}]}))} className="bg" style={{marginBottom:12,width:"100%",padding:"6px",fontSize:11}}>+ Position hinzufügen</button>
 
-        <div style={{textAlign:"right",fontSize:16,fontWeight:800,color:C.navy,marginBottom:12}}>
-          Gesamtbetrag: {editInvoice.items.reduce((s,i)=>s+(i.total||0),0).toFixed(2)} €
+        {/* ── Totals preview ── */}
+        {(()=>{
+          const netto=editInvoice.items.reduce((s,i)=>s+(i.total||0),0);
+          const doVat=editInvoice.showVat!==false;
+          const vatAmt=doVat ? editInvoice.items.reduce((s,i)=>s+(i.total||0)*((i.vat??19)/100),0) : 0;
+          return(
+            <div style={{background:C.navyLight,borderRadius:9,padding:"10px 14px",marginBottom:14,border:`1px solid ${C.navy}22`}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.sub,marginBottom:3}}>
+                <span>Netto</span><span>{netto.toFixed(2)} €</span>
+              </div>
+              {doVat&&<div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.sub,marginBottom:6}}>
+                <span>MwSt</span><span>{vatAmt.toFixed(2)} €</span>
+              </div>}
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:16,fontWeight:800,
+                color:C.navy,borderTop:`1px solid ${C.border}`,paddingTop:6}}>
+                <span>GESAMT</span>
+                <span>{(netto+vatAmt).toFixed(2)} €</span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── MwSt toggle — prominent ── */}
+        <div style={{background:editInvoice.showVat!==false?"#F0FDF4":"#FFF7ED",
+          border:`1.5px solid ${editInvoice.showVat!==false?"#86EFAC":"#FDE68A"}`,
+          borderRadius:10,padding:"11px 14px",marginBottom:12,
+          display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:editInvoice.showVat!==false?"#15803D":"#92400E"}}>
+              {editInvoice.showVat!==false?"✓ MwSt wird ausgewiesen":"✗ Ohne MwSt (Kleinunternehmer)"}
+            </div>
+            <div style={{fontSize:11,color:C.sub,marginTop:2}}>
+              {editInvoice.showVat!==false
+                ?"MwSt-Spalte und Beträge erscheinen auf dem Dokument"
+                :"§19 UStG — keine MwSt-Ausweisung auf Fatura/Angebot"}
+            </div>
+          </div>
+          <button onClick={()=>setEditInvoice(p=>({...p,showVat:p.showVat===false}))}
+            style={{flexShrink:0,background:editInvoice.showVat!==false?"#15803D":"#D97706",
+              color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",
+              fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+            {editInvoice.showVat!==false?"Ausschalten":"Einschalten"}
+          </button>
         </div>
 
-        <div style={{marginBottom:12}}><Lbl>ANMERKUNGEN</Lbl><Txt value={editInvoice.notes||""} rows={2} onChange={e=>setEditInvoice(p=>({...p,notes:e.target.value}))}/></div>
+        {/* ── Notes + footer text ── */}
+        <div style={{marginBottom:10}}>
+          <Lbl>ANMERKUNGEN (erscheint auf Dokument)</Lbl>
+          <Txt value={editInvoice.notes||""} rows={2}
+            onChange={e=>setEditInvoice(p=>({...p,notes:e.target.value}))}
+            placeholder="z.B. Vielen Dank für Ihren Auftrag!"/>
+        </div>
+        <div style={{marginBottom:12}}>
+          <Lbl>FUSSZEILEN-TEXT (editierbar)</Lbl>
+          <Inp value={editInvoice.footerNote||""}
+            onChange={e=>setEditInvoice(p=>({...p,footerNote:e.target.value}))}
+            placeholder="z.B. Kein Skonto. Eigentumsvorbehalt bis zur vollständigen Zahlung."/>
+        </div>
+
+        {/* ── Logo toggle ── */}
+        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:14,
+          padding:"8px 12px",background:C.bg,borderRadius:8,border:`1px solid ${C.border}`}}>
+          <input type="checkbox" id="cb_logo" checked={editInvoice.showLogo!==false}
+            onChange={e=>setEditInvoice(p=>({...p,showLogo:e.target.checked}))}
+            style={{width:16,height:16,cursor:"pointer"}}/>
+          <label htmlFor="cb_logo" style={{fontSize:12,fontWeight:600,cursor:"pointer",flex:1}}>
+            🖼 Logo auf Dokument anzeigen
+          </label>
+        </div>
 
         <div style={{display:"flex",gap:8}}>
           <button className="bgr" style={{flex:1,padding:"9px"}} onClick={()=>{
             if(!editInvoice.nr.trim()||!editInvoice.title.trim())return;
             if(editInvoice.id){setInvoices(p=>p.map(i=>i.id===editInvoice.id?editInvoice:i));}
-            else{setInvoices(p=>[...p,{...editInvoice,id:p.length+1}]);}
+            else{setInvoices(p=>[...p,{...editInvoice,id:p.length+1,type:docType}]);}
             setMInvoice(false);setEditInvoice(null);
           }}>💾 Speichern</button>
           <button className="bg" style={{flex:1,padding:"9px"}} onClick={()=>setMInvoice(false)}>Abbrechen</button>
