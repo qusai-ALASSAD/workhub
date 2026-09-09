@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 // ══════════════════════════════════════════════════════════════════
 const APP_CONFIG = {
   // --- Branding ---
-  appName:    "Ovivo WorkHub-System",    // App name shown everywhere
+  appName:    "ovivo WorkHub-System",    // App name shown everywhere
   appSubtitle:"Facility & Handwerk",     // Subtitle under app name
   logoIcon:   "", logoImg: "/ovivo-logo.svg",                      // Ovivo logo
 
@@ -2586,13 +2586,52 @@ export default function App(){
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}><SB status={proj.status}/><Tag>{proj.entity}</Tag><Tag bg="#F9FAFB" color={C.sub}>📍 {proj.location}</Tag></div>
           </div>
           <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-            {canEdit&&!editMode&&<button className="bg" onClick={startEdit} style={{fontSize:11,padding:"4px 9px"}}>✏ Bearbeiten</button>}
-            {editMode&&<><button className="bgr" onClick={saveEdit} style={{fontSize:11,padding:"4px 9px"}}>✓ Speichern</button><button className="bg" onClick={()=>setEditMode(false)} style={{fontSize:11,padding:"4px 9px"}}>Abbrechen</button></>}
-            <button onClick={()=>setPdfContent(buildPdfHtml("project",proj,{by:cu.name}))} style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"4px 9px",fontSize:11,fontWeight:600}}>📄 PDF</button>
+            {canEdit&&!editMode&&<button className="bg" onClick={startEdit} style={{fontSize:11,padding:"5px 10px"}}>✏ Bearbeiten</button>}
+            {editMode&&(
+              <>
+                <button className="bgr" onClick={saveEdit} style={{fontSize:11,padding:"5px 10px"}}>✓ Speichern</button>
+                <button className="bg" onClick={()=>setEditMode(false)} style={{fontSize:11,padding:"5px 10px"}}>Abbrechen</button>
+              </>
+            )}
+            <button onClick={()=>setPdfContent(buildPdfHtml("project",proj,{by:cu.name}))}
+              style={{background:C.navyLight,color:C.navy,border:`1px solid ${C.border}`,borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:600}}>
+              📄 PDF
+            </button>
+            {canEditProj(cu,proj)&&(
+              <button onClick={()=>{
+                if(!window.confirm(`Projekt "${proj.name}" wirklich löschen?`))return;
+                setProjs(p=>p.filter(x=>x.id!==proj.id));
+                setSelP(null);
+              }} style={{background:C.redL,color:C.red,border:"1px solid #FECACA",
+                borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                🗑 Löschen
+              </button>
+            )}
           </div>
         </div>
 
-        {proj.stopReason&&<div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:7,padding:"7px 10px",fontSize:12,color:C.red,marginBottom:10}}>⛔ {proj.stopReason}</div>}
+        {/* Stop reason banner — with remove button for admin */}
+        {proj.stopReason&&(
+          <div style={{background:C.redL,border:"1px solid #FECACA",borderRadius:9,
+            padding:"10px 13px",fontSize:12,color:C.red,marginBottom:12,
+            display:"flex",alignItems:"flex-start",gap:10}}>
+            <span style={{fontSize:16,flexShrink:0}}>⛔</span>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,marginBottom:2}}>Projekt gestoppt</div>
+              <div>{proj.stopReason}</div>
+            </div>
+            {canEditProj(cu,proj)&&(
+              <button onClick={()=>{
+                updateProj(proj.id,{stopReason:"",status:"active"});
+                setSelP(p=>({...p,stopReason:"",status:"active"}));
+              }} style={{flexShrink:0,background:"#fff",color:C.green,
+                border:`1px solid ${C.green}`,borderRadius:6,
+                padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                ✓ Stopp aufheben
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Key figures */}
         <Sec title="PROJEKTDATEN" icon="📊">
