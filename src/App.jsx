@@ -614,9 +614,6 @@ const NavIcon=({id,active})=>{
           return icons[id]||<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={col} strokeWidth="2"/></svg>;
         };
 
-        const navItems = isPartner(cu)
-          ? [{id:"dashboard",label:"Home"},{id:"projects",label:"Projekte"},{id:"messages",label:"Chat",badge:unread},{id:"support",label:"Hilfe"}]
-          : [...NAV.slice(0,4), {id:"support",label:"Hilfe",badge:0}].filter(Boolean);
 
 // ── BestellungenTab Component ─────────────────────────────────────
 function BestellungenTab({cu,projs,matRequests,setMatRequests,users,fMatReq,setFMatReq,mMatReq,setMMatReq,selMatReq,setSelMatReq,BLANK_MAT_REQ,MAT_UNITS,myProjs,mob,isRoot,hasPerm,approveOrder,rejectOrder,deliverOrder,C,Lbl,Inp,Sel,Txt,Av,Tag,SB}){
@@ -1641,6 +1638,9 @@ export default function App(){
   if(!isPartner(cu)&&(isRoot(cu)||hasPerm(cu,"orders"))) NAV.push({id:"orders",icon:"🛒",label:"Bestellungen",badge:isRoot(cu)?matRequests.filter(r=>r.status==="ausstehend").length||undefined:matRequests.filter(r=>r.requestedBy===cu.id&&r.status==="ausstehend").length||undefined});
   if(isRoot(cu))                              NAV.push({id:"rechnungen",icon:"🧾",label:"Rechnungen"});
   NAV.push({id:"support",icon:"❓",label:"Support"});
+  const navItems=isPartner(cu)
+    ?[{id:"dashboard",label:"Home"},{id:"projects",label:"Projekte"},{id:"messages",label:"Chat",badge:unread},{id:"support",label:"Hilfe"}]
+    :[...NAV.slice(0,4),{id:"support",label:"Hilfe",badge:0}].filter(Boolean);
 
   const CSS=`
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -2822,8 +2822,6 @@ export default function App(){
                   </div>)}
                 </div>)}
               </div>)}
-            {/*end internal dashboard*/}
-            </div>
           )}
 
           {/* ══ AUFGABEN ══ */}
@@ -4362,7 +4360,8 @@ export default function App(){
           </div>
         </div>
       )}
-    </div>
       </div>
+      </div>
+    </div>
   );
 }
